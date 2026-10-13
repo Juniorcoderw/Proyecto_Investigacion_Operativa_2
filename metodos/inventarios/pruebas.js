@@ -88,6 +88,27 @@ function ejecutarPruebas() {
       }
     },
     {
+      nombre: "EOQ con faltantes planificados",
+      ejecutar() {
+        const resultado = calculadora.calcularEoqFaltantes(datosBase({ modelo: "faltantes", demanda: 2000, costoPedido: 25, costoUnitario: 50, mantenimientoUnitario: 10, valorMantenimiento: 10, costoFaltante: 30 }));
+        const loteEsperado = Math.sqrt(2 * 2000 * 25 * 40 / (10 * 30));
+        afirmarCasiIgual(resultado.loteOptimo, loteEsperado, "El lote con faltantes no coincide");
+        afirmarCasiIgual(resultado.inventarioMaximo, loteEsperado * .75, "El inventario máximo no coincide");
+        afirmarCasiIgual(resultado.faltanteMaximo, loteEsperado * .25, "El faltante máximo no coincide");
+        afirmarCasiIgual(resultado.puntoReorden, 40 - resultado.faltanteMaximo, "El punto de reorden debe descontar el faltante máximo");
+        afirmarCasiIgual(resultado.costoRelevante, resultado.costoOrdenar + resultado.costoMantener + resultado.costoFaltantes, "El costo debe incluir las tres componentes");
+      }
+    },
+    {
+      nombre: "mínimo de costos con faltantes",
+      ejecutar() {
+        const resultado = calculadora.calcularEoqFaltantes(datosBase({ modelo: "faltantes", demanda: 2000, costoPedido: 25, mantenimientoUnitario: 10, valorMantenimiento: 10, costoFaltante: 30 }));
+        const optimo = calculadora.costoRelevanteParaLote(resultado, resultado.loteOptimo);
+        afirmar(calculadora.costoRelevanteParaLote(resultado, resultado.loteOptimo * .8) > optimo, "Un lote menor debe costar más");
+        afirmar(calculadora.costoRelevanteParaLote(resultado, resultado.loteOptimo * 1.2) > optimo, "Un lote mayor debe costar más");
+      }
+    },
+    {
       nombre: "el costo es mínimo alrededor del lote óptimo",
       ejecutar() {
         const resultado = calculadora.calcularEpq(datosBase({ modelo: "epq", demanda: 10000, tasaProduccion: 40000, costoPedido: 100, mantenimientoUnitario: 2, valorMantenimiento: 2 }));

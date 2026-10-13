@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#102d27">
-  <title>Inventarios EOQ–EPQ | Investigación Operativa</title>
+  <title>Inventarios EOQ, EPQ y faltantes | Investigación Operativa</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
@@ -31,13 +31,13 @@
       <a class="activo" href="../../index.html#calculadoras">Calculadoras</a>
       <a href="../../index.html#proyecto">El proyecto</a>
     </nav>
-    <span class="identificador-modulo">INVENTARIOS <b>·</b> EOQ–EPQ</span>
+    <span class="identificador-modulo">INVENTARIOS <b>·</b> 3 MODELOS</span>
   </header>
 
   <section class="cabecera-modulo">
     <div>
       <p class="etiqueta"><span></span> Política de abastecimiento</p>
-      <h1>INVENTARIOS <em>EOQ–EPQ</em></h1>
+      <h1>INVENTARIOS <em>EOQ · EPQ · FALTANTES</em></h1>
       <p>Determine cuánto pedir o producir, cuándo iniciar y cuánto cuesta la política.</p>
     </div>
     <ol class="flujo" aria-label="Flujo de trabajo">
@@ -63,7 +63,7 @@
           <select id="modelo" name="modelo">
             <option value="eoq">EOQ · Demanda constante</option>
             <option value="epq">EPQ · Producción gradual</option>
-            <option disabled>EOQ con faltantes · Próximamente</option>
+            <option value="faltantes">EOQ · Faltantes planificados</option>
             <option disabled>Descuentos por cantidad · Próximamente</option>
           </select>
         </label>
@@ -75,6 +75,7 @@
         <div class="rejilla-campos">
           <label class="campo" for="demanda"><span class="rotulo-con-simbolo">Demanda anual <i class="simbolo-variable">D</i></span><span class="entrada-unidad"><input id="demanda" name="demanda" type="number" min="0" step="any" inputmode="decimal" placeholder="1200"><span>unid.</span></span></label>
           <label id="campo-produccion" class="campo" for="tasa-produccion" hidden><span class="rotulo-con-simbolo">Producción anual <i class="simbolo-variable">P</i></span><span class="entrada-unidad"><input id="tasa-produccion" name="tasaProduccion" type="number" min="0" step="any" inputmode="decimal" placeholder="4800"><span>unid.</span></span><small>Debe ser mayor que la demanda.</small></label>
+          <label id="campo-faltante" class="campo" for="costo-faltante" hidden><span class="rotulo-con-simbolo">Costo anual por faltante <i class="simbolo-variable">C<sub>s</sub></i></span><span class="entrada-unidad"><input id="costo-faltante" name="costoFaltante" type="number" min="0" step="any" inputmode="decimal" placeholder="30"><span class="simbolo-moneda">S/</span></span><small>Penalización por unidad pendiente y año.</small></label>
           <label class="campo" for="costo-pedido"><span class="rotulo-con-simbolo">Costo por pedido <i class="simbolo-variable">C<sub>o</sub></i></span><span class="entrada-unidad"><input id="costo-pedido" name="costoPedido" type="number" min="0" step="any" inputmode="decimal" placeholder="20"><span class="simbolo-moneda">S/</span></span></label>
           <label class="campo" for="costo-unitario"><span class="rotulo-con-simbolo">Costo unitario <i class="simbolo-variable">C</i></span><span class="entrada-unidad"><input id="costo-unitario" name="costoUnitario" type="number" min="0" step="any" inputmode="decimal" placeholder="2"><span class="simbolo-moneda">S/</span></span></label>
           <label class="campo" for="dias-laborables"><span class="rotulo-con-simbolo">Días laborables <i class="simbolo-variable">d<sub>a</sub></i></span><span class="entrada-unidad"><input id="dias-laborables" name="diasLaborables" type="number" min="1" step="1" inputmode="numeric" placeholder="240"><span>días</span></span></label>
@@ -114,7 +115,7 @@
     <section class="area-analisis" aria-label="Análisis del inventario">
       <div id="estado-vacio" class="estado-vacio">
         <span class="paso-inicial">01</span>
-        <div><p class="sobretitulo">Nuevo análisis</p><h2>Ingrese los datos del producto</h2><p>Seleccione EOQ o EPQ y use el ejemplo para conocer el flujo completo.</p></div>
+        <div><p class="sobretitulo">Nuevo análisis</p><h2>Ingrese los datos del producto</h2><p>Seleccione un modelo y use el ejemplo para conocer el flujo completo.</p></div>
       </div>
 
       <section id="salida" class="salida" hidden>
@@ -148,7 +149,7 @@
             <div class="encabezado-panel">
               <div><p class="sobretitulo">Nivel de existencias</p><h2 id="titulo-grafico-politica">Evolución del inventario</h2></div>
               <div class="acciones-grafico">
-                <div class="leyenda"><span><i class="muestra inventario"></i> Inventario</span><span><i class="muestra reorden"></i> Punto de pedido</span></div>
+                <div class="leyenda"><span><i class="muestra inventario"></i> Inventario</span><span id="leyenda-faltante" hidden><i class="muestra faltante"></i> Faltante</span><span><i class="muestra reorden"></i> Punto de pedido</span></div>
                 <label class="control-compacto" for="ciclos-grafico">Ciclos
                   <select id="ciclos-grafico">
                     <option value="2">2</option>
@@ -185,6 +186,7 @@
               <dl>
                 <div><dt>Pedidos al año <i>CP</i></dt><dd id="costo-ordenar">—</dd></div>
                 <div><dt>Retención al año <i>CR</i></dt><dd id="costo-mantener">—</dd></div>
+                <div id="fila-costo-faltantes" hidden><dt>Faltantes al año <i>CF</i></dt><dd id="costo-faltantes">—</dd></div>
                 <div class="fila-relevante"><dt id="rotulo-costo-relevante">Costo anual del modelo <i>CT</i></dt><dd id="costo-relevante">—</dd></div>
                 <div><dt>Compra anual <i>CA</i></dt><dd id="costo-adquisicion">—</dd></div>
                 <div class="fila-total"><dt>Total con compra <i>CT + CA</i></dt><dd id="costo-total">—</dd></div>
@@ -208,7 +210,7 @@
             </div>
             <div class="tabla-contenedor">
               <table class="tabla-comparacion">
-                <thead><tr><th>Escenario</th><th>Demanda D</th><th>Pedido C<sub>o</sub></th><th>Mant. C<sub>h</sub></th><th class="columna-produccion" hidden>Producción P</th><th>Q*</th><th>Ciclos/año</th><th>Costo anual</th><th></th></tr></thead>
+                <thead><tr><th>Escenario</th><th>Demanda D</th><th>Pedido C<sub>o</sub></th><th>Mant. C<sub>h</sub></th><th class="columna-produccion" hidden>Producción P</th><th class="columna-faltantes" hidden>Faltante C<sub>s</sub></th><th>Q*</th><th>Ciclos/año</th><th>Costo anual</th><th></th></tr></thead>
                 <tbody id="escenarios"></tbody>
               </table>
             </div>
@@ -225,21 +227,24 @@
   </button>
 
   <dialog id="dialogo-guia" class="dialogo">
-    <div class="cabecera-dialogo"><div><p class="sobretitulo">Modelos EOQ y EPQ</p><h2>Teoría y notación</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div>
-    <p class="introduccion-guia">EOQ supone reposición instantánea; EPQ representa un lote que ingresa gradualmente mientras también se consume.</p>
+    <div class="cabecera-dialogo"><div><p class="sobretitulo">Modelos de inventario</p><h2>Teoría y notación</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div>
+    <p class="introduccion-guia">EOQ supone reposición instantánea; EPQ representa ingreso gradual y el modelo con faltantes permite pedidos pendientes que se atienden en la siguiente reposición.</p>
     <div class="contenido-guia">
       <div class="preguntas-eoq">
         <article><span>a</span><div><small>Cantidad económica de pedido</small><strong>\(Q^*=\sqrt{\frac{2DC_o}{C_h}}\)</strong><p>Equilibra el costo anual de pedidos y el costo anual de retención.</p></div></article>
         <article><span>b</span><div><small>Lote económico de producción</small><strong>\(Q^*=\sqrt{\frac{2DC_o}{C_h(1-D/P)}}\)</strong><p>Considera que las unidades se producen y consumen simultáneamente.</p></div></article>
         <article><span>c</span><div><small>Inventario máximo EPQ</small><strong>\(I_{max}=Q^*(1-D/P)\)</strong><p>El almacén nunca recibe todo el lote de una sola vez.</p></div></article>
         <article><span>d</span><div><small>Punto de reorden</small><strong>\(d=\frac{D}{d_a},\quad r=dm\)</strong><p>Cubre la demanda diaria durante el tiempo de preparación o entrega.</p></div></article>
+        <article><span>e</span><div><small>EOQ con faltantes</small><strong>\(Q^*=\sqrt{\frac{2DC_o(C_h+C_s)}{C_hC_s}}\)</strong><p>Equilibra pedido, almacenamiento y unidades pendientes.</p></div></article>
+        <article><span>f</span><div><small>Niveles y reorden</small><strong>\(I_{max}=Q^*\frac{C_s}{C_h+C_s},\quad B^*=Q^*\frac{C_h}{C_h+C_s}\)</strong><p>El punto de pedido descuenta el faltante máximo: \(r=dm-B^*\).</p></div></article>
       </div>
       <section class="bloque-guia"><h3>Diccionario de símbolos</h3><div class="diccionario-simbolos">
-        <p><b>D</b><span>Demanda anual</span></p><p><b>P</b><span>Tasa anual de producción</span></p><p><b>C<sub>o</sub></b><span>Costo de ordenar o preparar</span></p><p><b>C<sub>h</sub></b><span>Costo anual de retención por unidad</span></p><p><b>C</b><span>Costo unitario</span></p><p><b>I</b><span>Tasa anual de mantenimiento</span></p><p><b>m</b><span>Tiempo de entrega o preparación</span></p><p><b>d</b><span>Demanda diaria</span></p><p><b>d<sub>a</sub></b><span>Días laborables al año</span></p><p><b>N</b><span>Número de ciclos por año</span></p><p><b>T</b><span>Tiempo entre ciclos</span></p><p><b>r</b><span>Punto de reorden</span></p><p><b>Q*</b><span>Lote económico</span></p><p><b>I<sub>max</sub></b><span>Inventario máximo EPQ</span></p><p><b>C<sub>máx</sub></b><span>Capacidad máxima disponible</span></p>
+        <p><b>D</b><span>Demanda anual</span></p><p><b>P</b><span>Tasa anual de producción</span></p><p><b>C<sub>o</sub></b><span>Costo de ordenar o preparar</span></p><p><b>C<sub>h</sub></b><span>Costo anual de retención por unidad</span></p><p><b>C<sub>s</sub></b><span>Costo anual por unidad faltante</span></p><p><b>C</b><span>Costo unitario</span></p><p><b>I</b><span>Tasa anual de mantenimiento</span></p><p><b>m</b><span>Tiempo de entrega o preparación</span></p><p><b>d</b><span>Demanda diaria</span></p><p><b>d<sub>a</sub></b><span>Días laborables al año</span></p><p><b>N</b><span>Número de ciclos por año</span></p><p><b>T</b><span>Tiempo entre ciclos</span></p><p><b>r</b><span>Punto de reorden</span></p><p><b>Q*</b><span>Lote económico</span></p><p><b>I<sub>max</sub></b><span>Inventario máximo</span></p><p><b>B*</b><span>Faltante máximo planificado</span></p><p><b>C<sub>máx</sub></b><span>Capacidad máxima disponible</span></p>
       </div></section>
       <section class="bloque-guia"><h3>Supuestos para usar EOQ básico</h3><ul><li>Demanda conocida y constante.</li><li>Tiempo de entrega constante.</li><li>Reposición completa del lote.</li><li>Sin faltantes ni descuentos por cantidad.</li></ul></section>
       <section class="bloque-guia"><h3>Supuestos adicionales de EPQ</h3><ul><li>Producción y demanda constantes.</li><li>La tasa de producción es mayor que la demanda.</li><li>El lote ingresa gradualmente.</li><li>No se permiten faltantes.</li></ul></section>
-      <div class="nota-guia"><strong>Costos anuales</strong><p>En EOQ: \(CR=\frac{Q^*}{2}C_h\). En EPQ: \(CR=\frac{I_{max}}{2}C_h\). En ambos modelos, \(CP=\frac{D}{Q^*}C_o\), \(CT=CP+CR\) y el costo de compra \(CA=DC\) se muestra aparte.</p></div>
+      <section class="bloque-guia"><h3>Supuestos del modelo con faltantes</h3><ul><li>La demanda no atendida queda pendiente; no se pierde la venta.</li><li>La reposición es instantánea.</li><li>Demanda, entrega y costos son conocidos.</li><li>Cada unidad pendiente genera un costo anual.</li></ul></section>
+      <div class="nota-guia"><strong>Costos anuales</strong><p>En EOQ: \(CR=\frac{Q^*}{2}C_h\). En EPQ: \(CR=\frac{I_{max}}{2}C_h\). Con faltantes: \(CR=\frac{I_{max}^2}{2Q^*}C_h\) y \(CF=\frac{{B^*}^2}{2Q^*}C_s\). Siempre se suma \(CP=\frac{D}{Q^*}C_o\); la compra \(CA=DC\) se muestra aparte.</p></div>
       <div class="nota-guia nota-redondeo"><strong>Criterio de redondeo</strong><p>La calculadora conserva todos los decimales durante el procedimiento y presenta la respuesta con dos decimales. Si un desarrollo manual trunca valores intermedios, puede diferir por algunas centésimas.</p></div>
     </div>
     <button class="boton boton-principal cerrar-dialogo" type="button">Cerrar</button>

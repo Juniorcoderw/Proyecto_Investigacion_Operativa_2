@@ -1,13 +1,13 @@
 # Investigación Operativa II — Métodos cuantitativos
 
-Aplicación web académica para resolver y analizar modelos de Investigación Operativa II. Incluye módulos interactivos de PERT–CPM e inventarios EOQ–EPQ.
+Aplicación web académica para resolver y analizar modelos de Investigación Operativa II. Incluye módulos interactivos de PERT–CPM e inventarios EOQ, EPQ y faltantes planificados.
 
 ## Estado del proyecto
 
 - PERT–CPM: módulo funcional con cálculo CPM y PERT, desarrollo matemático y red AON.
-- Inventarios EOQ–EPQ: módulo funcional con políticas de pedido o producción, punto de reorden, costos, gráficos y comparación de escenarios.
+- Inventarios: módulo funcional con EOQ básico, EPQ y EOQ con faltantes planificados, además de costos, gráficos y comparación de escenarios.
 - Teoría de decisiones: propuesta para una etapa posterior.
-- Pruebas realizadas: redes PERT–CPM, casos manuales EOQ, producción EPQ, capacidad y mínimo de costos.
+- Pruebas realizadas: redes PERT–CPM, casos manuales EOQ, producción EPQ, faltantes planificados, capacidad y mínimo de costos.
 
 ## Estructura
 
@@ -98,9 +98,9 @@ El ejemplo precargado es demostrativo y puede reemplazarse mediante ingreso manu
 
 Cada nuevo método tendrá su propia carpeta con `index.html`, `estilos.css` y un archivo JavaScript propio. Se priorizan identificadores en español y se evitan dependencias o carpetas adicionales mientras no sean necesarias.
 
-## Módulo de inventarios EOQ–EPQ
+## Módulo de inventarios
 
-EOQ calcula el lote económico con reposición instantánea. EPQ modela una producción gradual, exige que la tasa de producción supere la demanda y calcula tanto el lote de fabricación como el inventario máximo realmente almacenado. Ambos modelos presentan ciclos, punto de reorden, inventario promedio y costos anuales. El mantenimiento puede ingresarse como costo por unidad o como porcentaje del precio.
+EOQ calcula el lote económico con reposición instantánea. EPQ modela una producción gradual y exige que la tasa de producción supere la demanda. El modelo con faltantes planificados permite pedidos pendientes, calcula el inventario y faltante máximos y añade su penalización anual. Los tres modelos presentan ciclos, punto de reorden y costos; el mantenimiento puede ingresarse como costo por unidad o como porcentaje del precio.
 
 La herramienta incluye una gráfica dinámica adaptada al tipo de reposición, curva de costos con simulador de lotes alternativos, desarrollo matemático con LaTeX, interpretación automática y una tabla compatible con datos pegados desde Excel para comparar escenarios. Los cálculos conservan su precisión interna y el redondeo se aplica únicamente en la presentación.
 
@@ -111,7 +111,7 @@ El proyecto es estático y puede desplegarse directamente desde la raíz del rep
 ## Próximos pasos
 
 1. Contrastar ejemplos adicionales de inventarios con los resultados esperados de POM-QM.
-2. Incorporar EOQ con faltantes y descuentos por cantidad.
+2. Incorporar descuentos por cantidad.
 3. Realizar la revisión final de contenido y accesibilidad.
 4. Desplegar la rama aprobada en Vercel.
 5. Continuar con el módulo de teoría de decisiones.

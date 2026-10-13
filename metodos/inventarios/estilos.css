@@ -172,6 +172,7 @@ select:disabled { color: #9fa7a4; }
 .leyenda span { display: flex; align-items: center; gap: 6px; }
 .muestra { display: inline-block; width: 20px; height: 3px; border-radius: 99px; }
 .muestra.inventario { background: var(--esmeralda); }
+.muestra.faltante { background: var(--cobre); }
 .muestra.reorden { height: 2px; border-top: 2px dashed var(--cobre); }
 .control-compacto { display: flex; align-items: center; gap: 7px; color: #6a7772; font-size: .58rem; }
 .control-compacto select { width: 58px; height: 32px; padding: 0 7px; font-size: .66rem; }
@@ -227,7 +228,7 @@ select:disabled { color: #9fa7a4; }
 .panel-comparacion .encabezado-panel { align-items: flex-start; margin-bottom: 14px; }
 .tabla-contenedor { width: 100%; overflow: auto; border: 1px solid var(--borde); border-radius: 11px; }
 table { width: 100%; border-collapse: separate; border-spacing: 0; }
-.tabla-comparacion { min-width: 840px; }
+.tabla-comparacion { min-width: 900px; }
 .tabla-comparacion th { padding: 10px 8px; border-right: 1px solid rgba(255,255,255,.12); background: var(--bosque); color: #fff; font-size: .59rem; text-transform: uppercase; white-space: nowrap; }
 .tabla-comparacion td { height: 43px; padding: 4px; border-right: 1px solid #ebe8df; border-bottom: 1px solid #e6e3db; color: #52615c; font-size: .68rem; text-align: center; }
 .tabla-comparacion tr:nth-child(even) td { background: #fbfaf6; }

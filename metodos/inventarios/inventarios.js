@@ -1,7 +1,7 @@
 "use strict";
 
 const CLAVE_GUARDADO = "inventarios-modelos-v2";
-const CAMPOS_NUMERICOS = ["demanda", "tasa-produccion", "costo-pedido", "costo-unitario", "dias-laborables", "tiempo-entrega", "capacidad-maxima", "mantenimiento"];
+const CAMPOS_NUMERICOS = ["demanda", "tasa-produccion", "costo-faltante", "costo-pedido", "costo-unitario", "dias-laborables", "tiempo-entrega", "capacidad-maxima", "mantenimiento"];
 
 const elementos = {
   formulario: document.getElementById("formulario-inventario"),
@@ -10,6 +10,8 @@ const elementos = {
   demanda: document.getElementById("demanda"),
   tasaProduccion: document.getElementById("tasa-produccion"),
   campoProduccion: document.getElementById("campo-produccion"),
+  costoFaltante: document.getElementById("costo-faltante"),
+  campoFaltante: document.getElementById("campo-faltante"),
   costoPedido: document.getElementById("costo-pedido"),
   costoUnitario: document.getElementById("costo-unitario"),
   diasLaborables: document.getElementById("dias-laborables"),
@@ -40,8 +42,11 @@ const elementos = {
   graficoInventario: document.getElementById("grafico-inventario"),
   graficoCostos: document.getElementById("grafico-costos"),
   lecturaGrafico: document.getElementById("lectura-grafico"),
+  leyendaFaltante: document.getElementById("leyenda-faltante"),
   costoOrdenar: document.getElementById("costo-ordenar"),
   costoMantener: document.getElementById("costo-mantener"),
+  costoFaltantes: document.getElementById("costo-faltantes"),
+  filaCostoFaltantes: document.getElementById("fila-costo-faltantes"),
   costoRelevante: document.getElementById("costo-relevante"),
   costoAdquisicion: document.getElementById("costo-adquisicion"),
   costoTotal: document.getElementById("costo-total"),
@@ -114,6 +119,7 @@ function leerDatos() {
     producto: elementos.producto.value.trim() || "Producto analizado",
     demanda: numero(elementos.demanda.value),
     tasaProduccion: elementos.tasaProduccion.value.trim() ? numero(elementos.tasaProduccion.value) : null,
+    costoFaltante: elementos.costoFaltante.value.trim() ? numero(elementos.costoFaltante.value) : null,
     costoPedido: numero(elementos.costoPedido.value),
     costoUnitario,
     diasLaborables: numero(elementos.diasLaborables.value),
@@ -130,6 +136,7 @@ function validarDatos(datos, mostrarMensaje = true) {
   const errores = [];
   if (!(datos.demanda > 0)) errores.push("La demanda anual debe ser mayor que cero.");
   if (datos.modelo === "epq" && !(datos.tasaProduccion > datos.demanda)) errores.push("En EPQ, la producción anual debe ser mayor que la demanda anual.");
+  if (datos.modelo === "faltantes" && !(datos.costoFaltante > 0)) errores.push("El costo anual por faltante debe ser mayor que cero.");
   if (!(datos.costoPedido > 0)) errores.push("El costo por pedido debe ser mayor que cero.");
   if (!(datos.costoUnitario >= 0)) errores.push("Ingrese un costo unitario válido.");
   if (!(datos.diasLaborables > 0)) errores.push("Los días laborables deben ser mayores que cero.");
@@ -166,9 +173,12 @@ function calcularEoq(datos) {
     puntoReorden,
     inventarioMaximo: loteOptimo,
     inventarioPromedio,
+    faltanteMaximo: 0,
+    tiempoSinInventario: 0,
     tiempoProduccion: 0,
     costoOrdenar,
     costoMantener,
+    costoFaltantes: 0,
     costoRelevante,
     costoAdquisicion,
     costoTotal,
@@ -204,8 +214,56 @@ function calcularEpq(datos) {
     puntoReorden,
     inventarioMaximo,
     inventarioPromedio,
+    faltanteMaximo: 0,
+    tiempoSinInventario: 0,
     costoOrdenar,
     costoMantener,
+    costoFaltantes: 0,
+    costoRelevante,
+    costoAdquisicion,
+    costoTotal,
+    capacidadSuficiente: datos.capacidadMaxima === null ? null : inventarioMaximo <= datos.capacidadMaxima
+  };
+}
+
+function calcularEoqFaltantes(datos) {
+  const factorCosto = datos.costoFaltante / (datos.mantenimientoUnitario + datos.costoFaltante);
+  const loteOptimo = Math.sqrt((2 * datos.demanda * datos.costoPedido) / (datos.mantenimientoUnitario * factorCosto));
+  const inventarioMaximo = loteOptimo * factorCosto;
+  const faltanteMaximo = loteOptimo - inventarioMaximo;
+  const numeroPedidos = datos.demanda / loteOptimo;
+  const tiempoCiclo = datos.diasLaborables / numeroPedidos;
+  const demandaDiaria = datos.demanda / datos.diasLaborables;
+  const puntoReorden = demandaDiaria * datos.tiempoEntrega - faltanteMaximo;
+  const inventarioPromedio = inventarioMaximo ** 2 / (2 * loteOptimo);
+  const faltantePromedio = faltanteMaximo ** 2 / (2 * loteOptimo);
+  const tiempoSinInventario = faltanteMaximo / demandaDiaria;
+  const costoOrdenar = numeroPedidos * datos.costoPedido;
+  const costoMantener = inventarioPromedio * datos.mantenimientoUnitario;
+  const costoFaltantes = faltantePromedio * datos.costoFaltante;
+  const costoRelevante = costoOrdenar + costoMantener + costoFaltantes;
+  const costoAdquisicion = datos.demanda * datos.costoUnitario;
+  const costoTotal = costoRelevante + costoAdquisicion;
+
+  return {
+    ...datos,
+    modelo: "faltantes",
+    factorProduccion: 1,
+    factorCosto,
+    loteOptimo,
+    numeroPedidos,
+    tiempoCiclo,
+    demandaDiaria,
+    puntoReorden,
+    inventarioMaximo,
+    inventarioPromedio,
+    faltanteMaximo,
+    faltantePromedio,
+    tiempoSinInventario,
+    tiempoProduccion: 0,
+    costoOrdenar,
+    costoMantener,
+    costoFaltantes,
     costoRelevante,
     costoAdquisicion,
     costoTotal,
@@ -214,7 +272,9 @@ function calcularEpq(datos) {
 }
 
 function calcularModelo(datos) {
-  return datos.modelo === "epq" ? calcularEpq(datos) : calcularEoq(datos);
+  if (datos.modelo === "epq") return calcularEpq(datos);
+  if (datos.modelo === "faltantes") return calcularEoqFaltantes(datos);
+  return calcularEoq(datos);
 }
 
 function guardarFormulario() {
@@ -249,18 +309,26 @@ function restaurarFormulario() {
 
 function actualizarModelo() {
   const esEpq = elementos.modelo.value === "epq";
+  const esFaltantes = elementos.modelo.value === "faltantes";
   elementos.campoProduccion.hidden = !esEpq;
   elementos.tasaProduccion.disabled = !esEpq;
+  elementos.campoFaltante.hidden = !esFaltantes;
+  elementos.costoFaltante.disabled = !esFaltantes;
   document.querySelectorAll(".columna-produccion").forEach(elemento => { elemento.hidden = !esEpq; });
-  elementos.ayudaComparacion.textContent = esEpq
-    ? "Pegue filas desde Excel o edite las celdas. En EPQ, P debe ser mayor que D."
-    : "Pegue filas desde Excel o edite las celdas. Cₕ se expresa por unidad al año.";
-  elementos.ordenColumnas.innerHTML = esEpq
-    ? "Orden de columnas: <strong>Escenario, Demanda, Costo de preparación, Mantenimiento, Producción</strong>."
-    : "Orden de columnas: <strong>Escenario, Demanda, Costo por pedido, Mantenimiento por unidad</strong>.";
-  elementos.datosPegados.placeholder = esEpq
-    ? "Base\t10000\t100\t2\t40000\nMayor producción\t10000\t100\t2\t50000"
-    : "Base\t1200\t20\t0.30\nAlta demanda\t1500\t20\t0.30";
+  document.querySelectorAll(".columna-faltantes").forEach(elemento => { elemento.hidden = !esFaltantes; });
+  if (esEpq) {
+    elementos.ayudaComparacion.textContent = "Pegue filas desde Excel o edite las celdas. En EPQ, P debe ser mayor que D.";
+    elementos.ordenColumnas.innerHTML = "Orden de columnas: <strong>Escenario, Demanda, Costo de preparación, Mantenimiento, Producción</strong>.";
+    elementos.datosPegados.placeholder = "Base\t10000\t100\t2\t40000\nMayor producción\t10000\t100\t2\t50000";
+  } else if (esFaltantes) {
+    elementos.ayudaComparacion.textContent = "Pegue filas desde Excel o edite las celdas. Cₛ es el costo anual de mantener una unidad pendiente.";
+    elementos.ordenColumnas.innerHTML = "Orden de columnas: <strong>Escenario, Demanda, Costo por pedido, Mantenimiento, Costo por faltante</strong>.";
+    elementos.datosPegados.placeholder = "Base\t2000\t25\t10\t30\nFaltante costoso\t2000\t25\t10\t45";
+  } else {
+    elementos.ayudaComparacion.textContent = "Pegue filas desde Excel o edite las celdas. Cₕ se expresa por unidad al año.";
+    elementos.ordenColumnas.innerHTML = "Orden de columnas: <strong>Escenario, Demanda, Costo por pedido, Mantenimiento por unidad</strong>.";
+    elementos.datosPegados.placeholder = "Base\t1200\t20\t0.30\nAlta demanda\t1500\t20\t0.30";
+  }
 }
 
 function actualizarModoMantenimiento() {
@@ -286,30 +354,41 @@ function mostrarResultado(resultado) {
   elementos.salida.hidden = false;
   elementos.tituloResultado.textContent = resultado.producto;
   const esEpq = resultado.modelo === "epq";
-  elementos.rotuloLote.innerHTML = esEpq ? "Lote de producción <i>Q*</i>" : "Cantidad económica <i>Q*</i>";
+  const esFaltantes = resultado.modelo === "faltantes";
+  elementos.rotuloLote.innerHTML = esEpq ? "Lote de producción <i>Q*</i>" : esFaltantes ? "Lote con faltantes <i>Q*</i>" : "Cantidad económica <i>Q*</i>";
   elementos.detalleLote.textContent = esEpq ? "unidades por lote producido" : "unidades por pedido";
-  elementos.rotuloReorden.innerHTML = esEpq ? "Inicio de preparación <i>r</i>" : "Punto de reorden <i>r</i>";
-  elementos.detalleReorden.textContent = "unidades de posición de inventario";
+  elementos.rotuloReorden.innerHTML = esFaltantes ? "Faltante máximo <i>B*</i>" : esEpq ? "Inicio de preparación <i>r</i>" : "Punto de reorden <i>r</i>";
+  elementos.detalleReorden.textContent = esFaltantes ? "unidades pendientes al final del ciclo" : "unidades de posición de inventario";
   elementos.rotuloFrecuencia.innerHTML = esEpq ? "Ciclos por año <i>N</i>" : "Pedidos por año <i>N</i>";
   elementos.rotuloCiclo.innerHTML = esEpq ? "Tiempo entre ciclos <i>T</i>" : "Tiempo entre pedidos <i>T</i>";
-  elementos.rotuloCostoRelevante.innerHTML = esEpq ? "Costo anual EPQ <i>CT</i>" : "Costo anual EOQ <i>CT</i>";
-  elementos.tituloGraficoPolitica.textContent = esEpq ? "Producción e inventario por ciclo" : "Cuándo realizar cada pedido";
+  elementos.rotuloCostoRelevante.innerHTML = esEpq ? "Costo anual EPQ <i>CT</i>" : esFaltantes ? "Costo anual con faltantes <i>CT</i>" : "Costo anual EOQ <i>CT</i>";
+  elementos.tituloGraficoPolitica.textContent = esEpq ? "Producción e inventario por ciclo" : esFaltantes ? "Existencias y pedidos pendientes" : "Cuándo realizar cada pedido";
   elementos.loteOptimo.textContent = limitarDecimales(resultado.loteOptimo);
-  elementos.puntoReorden.textContent = limitarDecimales(resultado.puntoReorden);
+  elementos.puntoReorden.textContent = limitarDecimales(esFaltantes ? resultado.faltanteMaximo : resultado.puntoReorden);
   elementos.numeroPedidos.textContent = limitarDecimales(resultado.numeroPedidos);
   elementos.pedidosPracticos.textContent = esEpq ? "corridas de producción estimadas" : "frecuencia anual estimada";
   elementos.tiempoCiclo.textContent = limitarDecimales(resultado.tiempoCiclo);
   elementos.costoOrdenar.textContent = formatearMoneda(resultado.costoOrdenar, resultado.moneda);
   elementos.costoMantener.textContent = formatearMoneda(resultado.costoMantener, resultado.moneda);
+  elementos.costoFaltantes.textContent = formatearMoneda(resultado.costoFaltantes, resultado.moneda);
+  elementos.filaCostoFaltantes.hidden = !esFaltantes;
+  elementos.leyendaFaltante.hidden = !esFaltantes;
   elementos.costoRelevante.textContent = formatearMoneda(resultado.costoRelevante, resultado.moneda);
   elementos.costoAdquisicion.textContent = formatearMoneda(resultado.costoAdquisicion, resultado.moneda);
   elementos.costoTotal.textContent = formatearMoneda(resultado.costoTotal, resultado.moneda);
 
   const lotePractico = Math.round(resultado.loteOptimo);
   const reordenPractico = Math.ceil(resultado.puntoReorden);
-  elementos.recomendacion.innerHTML = esEpq
-    ? `<p>Programe lotes de aproximadamente <strong>${limitarDecimales(lotePractico, 0)} unidades</strong>. Inicie la preparación cuando la posición del inventario llegue a <strong>${limitarDecimales(reordenPractico, 0)} unidades</strong>; el inventario físico máximo será <strong>${limitarDecimales(resultado.inventarioMaximo)} unidades</strong>.</p>`
-    : `<p>Solicite aproximadamente <strong>${limitarDecimales(lotePractico, 0)} unidades</strong> cada vez que la posición del inventario llegue a <strong>${limitarDecimales(reordenPractico, 0)} unidades</strong>. En condiciones constantes, esto ocurre cada <strong>${limitarDecimales(resultado.tiempoCiclo)} días laborables</strong>.</p>`;
+  if (esEpq) {
+    elementos.recomendacion.innerHTML = `<p>Programe lotes de aproximadamente <strong>${limitarDecimales(lotePractico, 0)} unidades</strong>. Inicie la preparación cuando la posición del inventario llegue a <strong>${limitarDecimales(reordenPractico, 0)} unidades</strong>; el inventario físico máximo será <strong>${limitarDecimales(resultado.inventarioMaximo)} unidades</strong>.</p>`;
+  } else if (esFaltantes) {
+    const indicacionReorden = resultado.puntoReorden >= 0
+      ? `cuando la posición del inventario llegue a <strong>${limitarDecimales(reordenPractico, 0)} unidades</strong>`
+      : `cuando existan aproximadamente <strong>${limitarDecimales(Math.abs(reordenPractico), 0)} unidades pendientes</strong>`;
+    elementos.recomendacion.innerHTML = `<p>Solicite aproximadamente <strong>${limitarDecimales(lotePractico, 0)} unidades</strong> ${indicacionReorden}. La política admite hasta <strong>${limitarDecimales(resultado.faltanteMaximo)} unidades pendientes</strong> y conserva como máximo <strong>${limitarDecimales(resultado.inventarioMaximo)} unidades</strong>.</p>`;
+  } else {
+    elementos.recomendacion.innerHTML = `<p>Solicite aproximadamente <strong>${limitarDecimales(lotePractico, 0)} unidades</strong> cada vez que la posición del inventario llegue a <strong>${limitarDecimales(reordenPractico, 0)} unidades</strong>. En condiciones constantes, esto ocurre cada <strong>${limitarDecimales(resultado.tiempoCiclo)} días laborables</strong>.</p>`;
+  }
 
   if (resultado.capacidadSuficiente === null) {
     elementos.evaluacionCapacidad.hidden = true;
@@ -318,8 +397,8 @@ function mostrarResultado(resultado) {
     elementos.evaluacionCapacidad.hidden = false;
     elementos.evaluacionCapacidad.classList.toggle("no-suficiente", !resultado.capacidadSuficiente);
     elementos.evaluacionCapacidad.innerHTML = resultado.capacidadSuficiente
-      ? `<strong>Capacidad suficiente.</strong> ${esEpq ? "I<sub>máx</sub>" : "Q*"} = ${limitarDecimales(resultado.inventarioMaximo)} es menor o igual que C<sub>máx</sub> = ${limitarDecimales(resultado.capacidadMaxima)} unidades.`
-      : `<strong>Capacidad insuficiente.</strong> ${esEpq ? "I<sub>máx</sub>" : "Q*"} = ${limitarDecimales(resultado.inventarioMaximo)} supera C<sub>máx</sub> = ${limitarDecimales(resultado.capacidadMaxima)} unidades.`;
+      ? `<strong>Capacidad suficiente.</strong> ${esEpq || esFaltantes ? "I<sub>máx</sub>" : "Q*"} = ${limitarDecimales(resultado.inventarioMaximo)} es menor o igual que C<sub>máx</sub> = ${limitarDecimales(resultado.capacidadMaxima)} unidades.`
+      : `<strong>Capacidad insuficiente.</strong> ${esEpq || esFaltantes ? "I<sub>máx</sub>" : "Q*"} = ${limitarDecimales(resultado.inventarioMaximo)} supera C<sub>máx</sub> = ${limitarDecimales(resultado.capacidadMaxima)} unidades.`;
   }
 
   configurarSimuladorLote(resultado);
@@ -350,17 +429,19 @@ function programarCalculo() {
 
 function cargarEjemplo() {
   const esEpq = elementos.modelo.value === "epq";
-  elementos.producto.value = esEpq ? "Producción por lotes" : "R&B Beverage Company";
-  elementos.demanda.value = esEpq ? "10000" : "3600";
+  const esFaltantes = elementos.modelo.value === "faltantes";
+  elementos.producto.value = esEpq ? "Producción por lotes" : esFaltantes ? "Pedidos con espera planificada" : "R&B Beverage Company";
+  elementos.demanda.value = esEpq ? "10000" : esFaltantes ? "2000" : "3600";
   elementos.tasaProduccion.value = esEpq ? "40000" : "";
-  elementos.costoPedido.value = esEpq ? "100" : "20";
-  elementos.costoUnitario.value = esEpq ? "10" : "3";
+  elementos.costoFaltante.value = esFaltantes ? "30" : "";
+  elementos.costoPedido.value = esEpq ? "100" : esFaltantes ? "25" : "20";
+  elementos.costoUnitario.value = esEpq ? "10" : esFaltantes ? "50" : "3";
   elementos.diasLaborables.value = "250";
   elementos.tiempoEntrega.value = esEpq ? "2" : "5";
   elementos.capacidadMaxima.value = "";
-  elementos.mantenimiento.value = esEpq ? "2" : "25";
+  elementos.mantenimiento.value = esEpq ? "2" : esFaltantes ? "10" : "25";
   elementos.moneda.value = "USD";
-  elementos.formulario.elements.modoMantenimiento.value = esEpq ? "unidad" : "porcentaje";
+  elementos.formulario.elements.modoMantenimiento.value = esEpq || esFaltantes ? "unidad" : "porcentaje";
   listaEscenarios = [];
   actualizarModoMantenimiento();
   actualizarSimbolosMoneda();
@@ -396,9 +477,14 @@ function dibujarGraficoInventario(resultado) {
   const altoUtil = alto - margen.superior - margen.inferior;
   const ciclos = Number(elementos.ciclosGrafico.value) || 3;
   const esEpq = resultado.modelo === "epq";
-  const maximoY = Math.max(resultado.inventarioMaximo, resultado.puntoReorden) * 1.16;
+  const esFaltantes = resultado.modelo === "faltantes";
+  const minimoDatos = Math.min(0, esFaltantes ? -resultado.faltanteMaximo : 0, resultado.puntoReorden);
+  const maximoDatos = Math.max(resultado.inventarioMaximo, resultado.puntoReorden, 0);
+  const amplitudDatos = Math.max(1, maximoDatos - minimoDatos);
+  const minimoY = minimoDatos - (esFaltantes ? amplitudDatos * .08 : 0);
+  const maximoY = maximoDatos + amplitudDatos * .12;
   const escalaX = tiempo => margen.izquierda + (tiempo / (resultado.tiempoCiclo * ciclos)) * anchoUtil;
-  const escalaY = valor => margen.superior + altoUtil - (valor / maximoY) * altoUtil;
+  const escalaY = valor => margen.superior + (maximoY - valor) / (maximoY - minimoY) * altoUtil;
   const puntos = [];
   for (let ciclo = 0; ciclo < ciclos; ciclo += 1) {
     const inicio = ciclo * resultado.tiempoCiclo;
@@ -410,6 +496,12 @@ function dibujarGraficoInventario(resultado) {
         [escalaX(finProduccion), escalaY(resultado.inventarioMaximo)],
         [escalaX(fin), escalaY(0)]
       );
+    } else if (esFaltantes) {
+      puntos.push(
+        [escalaX(inicio), escalaY(resultado.inventarioMaximo)],
+        [escalaX(fin), escalaY(-resultado.faltanteMaximo)]
+      );
+      if (ciclo < ciclos - 1) puntos.push([escalaX(fin), escalaY(resultado.inventarioMaximo)]);
     } else {
       puntos.push([escalaX(inicio), escalaY(resultado.loteOptimo)], [escalaX(fin), escalaY(0)]);
       if (ciclo < ciclos - 1) puntos.push([escalaX(fin), escalaY(resultado.loteOptimo)]);
@@ -417,7 +509,7 @@ function dibujarGraficoInventario(resultado) {
   }
 
   const lineasHorizontales = [0, .25, .5, .75, 1].map(proporcion => {
-    const valor = maximoY * proporcion;
+    const valor = minimoY + (maximoY - minimoY) * proporcion;
     const y = escalaY(valor);
     return `<line x1="${margen.izquierda}" y1="${y}" x2="${ancho - margen.derecha}" y2="${y}" stroke="#dfe7e3"/><text x="${margen.izquierda - 11}" y="${y + 4}" text-anchor="end" fill="#71817b" font-size="11">${limitarDecimales(valor, 0)}</text>`;
   }).join("");
@@ -429,6 +521,7 @@ function dibujarGraficoInventario(resultado) {
   }).join("");
 
   const yReorden = escalaY(resultado.puntoReorden);
+  const yCero = escalaY(0);
   const marcadores = [];
   if (resultado.tiempoEntrega <= resultado.tiempoCiclo) {
     for (let ciclo = 1; ciclo <= ciclos; ciclo += 1) {
@@ -441,17 +534,18 @@ function dibujarGraficoInventario(resultado) {
   elementos.graficoInventario.innerHTML = `
     <svg viewBox="0 0 ${ancho} ${alto}" role="img" aria-labelledby="titulo-grafico-inventario">
       <title id="titulo-grafico-inventario">${esEpq ? "Producción e inventario" : "Inventario"} de ${escaparHtml(resultado.producto)} durante ${ciclos} ciclos</title>
-      <defs><linearGradient id="area-inventario" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4ca38b" stop-opacity=".28"/><stop offset="1" stop-color="#4ca38b" stop-opacity=".03"/></linearGradient></defs>
+      <defs><linearGradient id="area-inventario" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4ca38b" stop-opacity=".28"/><stop offset="1" stop-color="#4ca38b" stop-opacity=".03"/></linearGradient><linearGradient id="trazo-inventario" gradientUnits="userSpaceOnUse" x1="0" y1="${margen.superior}" x2="0" y2="${alto - margen.inferior}"><stop offset="0" stop-color="#25816b"/><stop offset="${Math.max(0, Math.min(1, (yCero - margen.superior) / altoUtil))}" stop-color="#25816b"/><stop offset="${Math.max(0, Math.min(1, (yCero - margen.superior) / altoUtil))}" stop-color="#bd6c3c"/><stop offset="1" stop-color="#bd6c3c"/></linearGradient></defs>
       ${lineasHorizontales}${etiquetasX}
-      <line x1="${margen.izquierda}" y1="${alto - margen.inferior}" x2="${ancho - margen.derecha}" y2="${alto - margen.inferior}" stroke="#61756e" stroke-width="1.5"/>
+      ${esFaltantes ? `<rect x="${margen.izquierda}" y="${yCero}" width="${anchoUtil}" height="${alto - margen.inferior - yCero}" fill="#fff0ec" opacity=".7"/>` : ""}
+      <line x1="${margen.izquierda}" y1="${yCero}" x2="${ancho - margen.derecha}" y2="${yCero}" stroke="#61756e" stroke-width="1.5"/>
       <line x1="${margen.izquierda}" y1="${margen.superior}" x2="${margen.izquierda}" y2="${alto - margen.inferior}" stroke="#61756e" stroke-width="1.5"/>
-      <path d="${lineaSvg([[margen.izquierda, alto - margen.inferior], ...puntos, [ancho - margen.derecha, alto - margen.inferior]])} Z" fill="url(#area-inventario)"/>
-      <path d="${lineaSvg(puntos)}" fill="none" stroke="#25816b" stroke-width="4" stroke-linejoin="round"/>
+      ${esFaltantes ? "" : `<path d="${lineaSvg([[margen.izquierda, yCero], ...puntos, [ancho - margen.derecha, yCero]])} Z" fill="url(#area-inventario)"/>`}
+      <path d="${lineaSvg(puntos)}" fill="none" stroke="${esFaltantes ? "url(#trazo-inventario)" : "#25816b"}" stroke-width="4" stroke-linejoin="round"/>
       <line x1="${margen.izquierda}" y1="${yReorden}" x2="${ancho - margen.derecha}" y2="${yReorden}" stroke="#bd6c3c" stroke-width="2" stroke-dasharray="8 6"/>
       ${marcadores.join("")}
-      <rect x="${ancho - 177}" y="${Math.max(8, yReorden - 24)}" width="147" height="24" rx="7" fill="#fff4ec" stroke="#e6b8a0"/>
-      <text x="${ancho - 104}" y="${Math.max(24, yReorden - 8)}" text-anchor="middle" fill="#9b5130" font-size="11" font-weight="700">r = ${limitarDecimales(resultado.puntoReorden)}</text>
-      <text x="20" y="${margen.superior + altoUtil / 2}" transform="rotate(-90 20 ${margen.superior + altoUtil / 2})" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">Inventario físico</text>
+      <rect x="${ancho - 177}" y="${Math.min(alto - margen.inferior - 24, Math.max(8, yReorden - 24))}" width="147" height="24" rx="7" fill="#fff4ec" stroke="#e6b8a0"/>
+      <text x="${ancho - 104}" y="${Math.min(alto - margen.inferior - 8, Math.max(24, yReorden - 8))}" text-anchor="middle" fill="#9b5130" font-size="11" font-weight="700">r = ${limitarDecimales(resultado.puntoReorden)}</text>
+      <text x="20" y="${margen.superior + altoUtil / 2}" transform="rotate(-90 20 ${margen.superior + altoUtil / 2})" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">${esFaltantes ? "Inventario neto" : "Inventario físico"}</text>
       <text x="${margen.izquierda + anchoUtil / 2}" y="${alto - 5}" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">Días laborables</text>
     </svg>`;
 }
@@ -464,11 +558,15 @@ function dibujarGraficoCostos(resultado) {
   const altoUtil = alto - margen.superior - margen.inferior;
   const minimoQ = resultado.loteOptimo * .25;
   const maximoQ = resultado.loteOptimo * 2.25;
+  const esFaltantes = resultado.modelo === "faltantes";
   const muestras = Array.from({ length: 55 }, (_, indice) => {
     const q = minimoQ + (maximoQ - minimoQ) * indice / 54;
     const ordenar = resultado.demanda / q * resultado.costoPedido;
-    const mantener = q * resultado.factorProduccion / 2 * resultado.mantenimientoUnitario;
-    return { q, ordenar, mantener, total: ordenar + mantener };
+    const inventarioMaximo = esFaltantes ? q * resultado.costoFaltante / (resultado.mantenimientoUnitario + resultado.costoFaltante) : q * resultado.factorProduccion;
+    const faltanteMaximo = esFaltantes ? q - inventarioMaximo : 0;
+    const mantener = esFaltantes ? inventarioMaximo ** 2 / (2 * q) * resultado.mantenimientoUnitario : inventarioMaximo / 2 * resultado.mantenimientoUnitario;
+    const faltantes = esFaltantes ? faltanteMaximo ** 2 / (2 * q) * resultado.costoFaltante : 0;
+    return { q, ordenar, mantener, faltantes, total: ordenar + mantener + faltantes };
   });
   const maximoCosto = Math.max(...muestras.map(muestra => muestra.total)) * 1.08;
   const escalaX = q => margen.izquierda + (q - minimoQ) / (maximoQ - minimoQ) * anchoUtil;
@@ -494,17 +592,25 @@ function dibujarGraficoCostos(resultado) {
       <line x1="${margen.izquierda}" y1="${alto - margen.inferior}" x2="${ancho - margen.derecha}" y2="${alto - margen.inferior}" stroke="#61756e" stroke-width="1.5"/>
       <path d="${ruta("ordenar")}" fill="none" stroke="#bd6c3c" stroke-width="3"/>
       <path d="${ruta("mantener")}" fill="none" stroke="#25816b" stroke-width="3"/>
+      ${esFaltantes ? `<path d="${ruta("faltantes")}" fill="none" stroke="#795b9f" stroke-width="3"/>` : ""}
       <path d="${ruta("total")}" fill="none" stroke="#172722" stroke-width="4"/>
       <line x1="${xOptimo}" y1="${margen.superior}" x2="${xOptimo}" y2="${alto - margen.inferior}" stroke="#e7b949" stroke-width="2" stroke-dasharray="7 5"/>
       <circle cx="${xOptimo}" cy="${yOptimo}" r="7" fill="#e7b949" stroke="#fff" stroke-width="3"><title>Q* = ${limitarDecimales(resultado.loteOptimo)}</title></circle>
       ${mostrarAlternativo ? `<line x1="${xAlternativo}" y1="${margen.superior}" x2="${xAlternativo}" y2="${alto - margen.inferior}" stroke="#795b9f" stroke-width="2" stroke-dasharray="4 5"/><circle cx="${xAlternativo}" cy="${yAlternativo}" r="7" fill="#795b9f" stroke="#fff" stroke-width="3"><title>Lote probado ${limitarDecimales(loteAlternativo)} · Costo ${formatearMoneda(costoAlternativo, resultado.moneda)}</title></circle>` : ""}
       <text x="${xOptimo}" y="${alto - 31}" text-anchor="middle" fill="#8e651b" font-size="11" font-weight="800">Q* ${limitarDecimales(resultado.loteOptimo)}</text>
-      <g transform="translate(${margen.izquierda + 12} 15)" font-size="10" font-weight="700"><circle cx="0" cy="0" r="4" fill="#bd6c3c"/><text x="9" y="4" fill="#6c7773">Ordenar</text><circle cx="72" cy="0" r="4" fill="#25816b"/><text x="81" y="4" fill="#6c7773">Mantener</text><circle cx="154" cy="0" r="4" fill="#172722"/><text x="163" y="4" fill="#6c7773">Relevante</text>${mostrarAlternativo ? `<circle cx="236" cy="0" r="4" fill="#795b9f"/><text x="245" y="4" fill="#6c7773">Lote probado</text>` : ""}</g>
+      <g transform="translate(${margen.izquierda + 12} 15)" font-size="10" font-weight="700"><circle cx="0" cy="0" r="4" fill="#bd6c3c"/><text x="9" y="4" fill="#6c7773">Ordenar</text><circle cx="72" cy="0" r="4" fill="#25816b"/><text x="81" y="4" fill="#6c7773">Mantener</text>${esFaltantes ? `<circle cx="154" cy="0" r="4" fill="#795b9f"/><text x="163" y="4" fill="#6c7773">Faltantes</text><circle cx="232" cy="0" r="4" fill="#172722"/><text x="241" y="4" fill="#6c7773">Relevante</text>` : `<circle cx="154" cy="0" r="4" fill="#172722"/><text x="163" y="4" fill="#6c7773">Relevante</text>`}${mostrarAlternativo ? `<circle cx="${esFaltantes ? 318 : 236}" cy="0" r="4" fill="#9a7dbd"/><text x="${esFaltantes ? 327 : 245}" y="4" fill="#6c7773">Lote probado</text>` : ""}</g>
       <text x="${margen.izquierda + anchoUtil / 2}" y="${alto - 5}" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">${resultado.modelo === "epq" ? "Lote de producción Q" : "Cantidad por pedido Q"}</text>
     </svg>`;
 }
 
 function costoRelevanteParaLote(resultado, lote) {
+  if (resultado.modelo === "faltantes") {
+    const inventarioMaximo = lote * resultado.costoFaltante / (resultado.mantenimientoUnitario + resultado.costoFaltante);
+    const faltanteMaximo = lote - inventarioMaximo;
+    return resultado.demanda / lote * resultado.costoPedido
+      + inventarioMaximo ** 2 / (2 * lote) * resultado.mantenimientoUnitario
+      + faltanteMaximo ** 2 / (2 * lote) * resultado.costoFaltante;
+  }
   return resultado.demanda / lote * resultado.costoPedido + lote * resultado.factorProduccion / 2 * resultado.mantenimientoUnitario;
 }
 
@@ -545,13 +651,13 @@ function actualizarSimulacionLote(redibujar = true) {
 
 function mostrarLecturaGrafico(resultado) {
   const esEpq = resultado.modelo === "epq";
+  const esFaltantes = resultado.modelo === "faltantes";
   const avisoEntrega = resultado.tiempoEntrega > resultado.tiempoCiclo
     ? "El tiempo de entrega supera un ciclo; puede haber varios pedidos pendientes. Interprete r como posición de inventario."
     : `El pedido tarda ${limitarDecimales(resultado.tiempoEntrega)} días y llega cuando el inventario se aproxima a cero.`;
-  elementos.lecturaGrafico.innerHTML = `
-    <div><span>Inventario máximo</span><strong>${limitarDecimales(resultado.inventarioMaximo)} unidades</strong></div>
-    <div><span>Inventario promedio</span><strong>${limitarDecimales(resultado.inventarioPromedio)} unidades</strong></div>
-    <div><span>${esEpq ? "Producción del lote" : "Tiempo de entrega"}</span><strong>${esEpq ? `${limitarDecimales(resultado.tiempoProduccion)} días de producción` : escaparHtml(avisoEntrega)}</strong></div>`;
+  elementos.lecturaGrafico.innerHTML = esFaltantes
+    ? `<div><span>Inventario máximo</span><strong>${limitarDecimales(resultado.inventarioMaximo)} unidades</strong></div><div><span>Faltante máximo</span><strong>${limitarDecimales(resultado.faltanteMaximo)} unidades</strong></div><div><span>Periodo sin existencias</span><strong>${limitarDecimales(resultado.tiempoSinInventario)} días por ciclo</strong></div>`
+    : `<div><span>Inventario máximo</span><strong>${limitarDecimales(resultado.inventarioMaximo)} unidades</strong></div><div><span>Inventario promedio</span><strong>${limitarDecimales(resultado.inventarioPromedio)} unidades</strong></div><div><span>${esEpq ? "Producción del lote" : "Tiempo de entrega"}</span><strong>${esEpq ? `${limitarDecimales(resultado.tiempoProduccion)} días de producción` : escaparHtml(avisoEntrega)}</strong></div>`;
 }
 
 function pasoDesarrollo(numeroPaso, titulo, explicacion, formula) {
@@ -569,6 +675,36 @@ function mostrarDesarrollo(resultado) {
   const costo = simboloMoneda(resultado.moneda);
   const pasos = [];
   const esEpq = resultado.modelo === "epq";
+  const esFaltantes = resultado.modelo === "faltantes";
+
+  if (esFaltantes) {
+    const cs = limitarDecimales(resultado.costoFaltante, 4);
+    const imax = limitarDecimales(resultado.inventarioMaximo, 4);
+    const faltante = limitarDecimales(resultado.faltanteMaximo, 4);
+    const agregar = (titulo, explicacion, formula) => pasos.push(pasoDesarrollo(String(pasos.length + 1).padStart(2, "0"), titulo, explicacion, formula));
+    if (resultado.modoMantenimiento === "porcentaje") {
+      agregar("Calcular el costo de retención", "Convierta la tasa anual a decimal y multiplíquela por el costo unitario.", `C_h=IC=\\left(\\frac{${limitarDecimales(resultado.valorMantenimiento, 4)}}{100}\\right)(${limitarDecimales(resultado.costoUnitario, 4)})=${ch}`);
+    }
+    agregar("Cantidad económica con faltantes", "Incluya el costo de mantener unidades y el costo de dejarlas pendientes.", `Q^*=\\sqrt{\\frac{2DC_o(C_h+C_s)}{C_hC_s}}=\\sqrt{\\frac{2(${d})(${co})(${ch}+${cs})}{(${ch})(${cs})}}=${q}`);
+    agregar("Calcular el inventario máximo", "La parte más costosa de dejar pendiente se conserva como existencia.", `I_{max}=Q^*\\frac{C_s}{C_h+C_s}=(${q})\\frac{${cs}}{${ch}+${cs}}=${imax}`);
+    agregar("Calcular el faltante máximo", "La parte restante del lote corresponde a pedidos pendientes.", `B^*=Q^*\\frac{C_h}{C_h+C_s}=(${q})\\frac{${ch}}{${ch}+${cs}}=${faltante}`);
+    agregar("Calcular los pedidos del año", "Divida la demanda anual entre el lote óptimo.", `N=\\frac{D}{Q^*}=\\frac{${d}}{${q}}=${limitarDecimales(resultado.numeroPedidos, 4)}`);
+    agregar("Calcular el tiempo entre pedidos", "Distribuya los días laborables entre los ciclos.", `T=\\frac{d_a}{N}=\\frac{${dias}}{${limitarDecimales(resultado.numeroPedidos, 4)}}=${limitarDecimales(resultado.tiempoCiclo, 4)}\\;días`);
+    agregar("Calcular la demanda diaria", "Divida la demanda anual entre los días laborables.", `d=\\frac{D}{d_a}=\\frac{${d}}{${dias}}=${demandaDiaria}`);
+    agregar("Obtener el punto de reorden", "Reste el faltante máximo a la demanda esperada durante la entrega.", `r=dm-B^*=(${demandaDiaria})(${m})-${faltante}=${limitarDecimales(resultado.puntoReorden, 4)}`);
+    agregar("Costo anual de preparación", "Multiplique el número de pedidos por el costo de cada orden.", `CP=\\frac{D}{Q^*}C_o=\\frac{${d}}{${q}}(${co})=${costo}\\;${limitarDecimales(resultado.costoOrdenar, 4)}`);
+    agregar("Costo anual de retención", "Considere únicamente el área positiva del ciclo de inventario.", `CR=\\frac{I_{max}^2}{2Q^*}C_h=\\frac{${imax}^2}{2(${q})}(${ch})=${costo}\\;${limitarDecimales(resultado.costoMantener, 4)}`);
+    agregar("Costo anual de faltantes", "Considere el área negativa del ciclo y su penalización anual.", `CF=\\frac{{B^*}^2}{2Q^*}C_s=\\frac{${faltante}^2}{2(${q})}(${cs})=${costo}\\;${limitarDecimales(resultado.costoFaltantes, 4)}`);
+    agregar("Costo anual con faltantes", "Sume preparación, retención y faltantes.", `CT=CP+CR+CF=${limitarDecimales(resultado.costoOrdenar, 4)}+${limitarDecimales(resultado.costoMantener, 4)}+${limitarDecimales(resultado.costoFaltantes, 4)}=${costo}\\;${limitarDecimales(resultado.costoRelevante, 4)}`);
+    if (resultado.capacidadMaxima !== null) {
+      const comparador = resultado.capacidadSuficiente ? "\\le" : ">";
+      const conclusion = resultado.capacidadSuficiente ? "La capacidad disponible es suficiente." : "La capacidad disponible no es suficiente.";
+      agregar("Comprobar la capacidad", conclusion, `I_{max}=${imax}${comparador}C_{\\max}=${limitarDecimales(resultado.capacidadMaxima, 4)}`);
+    }
+    elementos.desarrollo.innerHTML = pasos.join("");
+    renderizarLatex([elementos.desarrollo]);
+    return;
+  }
 
   if (resultado.modoMantenimiento === "porcentaje") {
     pasos.push(pasoDesarrollo("01", "Calcular el costo de retención", "Convierta la tasa anual a decimal y multiplíquela por el costo unitario.", `I=${limitarDecimales(resultado.valorMantenimiento, 4)}\\%=\\frac{${limitarDecimales(resultado.valorMantenimiento, 4)}}{100},\\quad C_h=IC=\\left(\\frac{${limitarDecimales(resultado.valorMantenimiento, 4)}}{100}\\right)(${limitarDecimales(resultado.costoUnitario, 4)})=${ch}`));
@@ -612,10 +748,11 @@ function renderizarLatex(contenedores) {
 }
 
 function crearEscenariosIniciales(resultado) {
+  const esFaltantes = resultado.modelo === "faltantes";
   listaEscenarios = [
-    { nombre: "Base", demanda: resultado.demanda, pedido: resultado.costoPedido, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.tasaProduccion },
-    { nombre: "Demanda +20%", demanda: resultado.demanda * 1.2, pedido: resultado.costoPedido, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.tasaProduccion },
-    { nombre: resultado.modelo === "epq" ? "Producción +20%" : "Pedido +20%", demanda: resultado.demanda, pedido: resultado.modelo === "epq" ? resultado.costoPedido : resultado.costoPedido * 1.2, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.modelo === "epq" ? resultado.tasaProduccion * 1.2 : null }
+    { nombre: "Base", demanda: resultado.demanda, pedido: resultado.costoPedido, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.tasaProduccion, faltante: resultado.costoFaltante },
+    { nombre: "Demanda +20%", demanda: resultado.demanda * 1.2, pedido: resultado.costoPedido, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.tasaProduccion, faltante: resultado.costoFaltante },
+    { nombre: resultado.modelo === "epq" ? "Producción +20%" : esFaltantes ? "Faltante +20%" : "Pedido +20%", demanda: resultado.demanda, pedido: resultado.modelo === "epq" || esFaltantes ? resultado.costoPedido : resultado.costoPedido * 1.2, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.modelo === "epq" ? resultado.tasaProduccion * 1.2 : null, faltante: esFaltantes ? resultado.costoFaltante * 1.2 : null }
   ];
   renderizarEscenarios();
 }
@@ -626,9 +763,12 @@ function calculoEscenario(escenario) {
   const mantenimiento = numero(escenario.mantenimiento);
   if (!(demanda > 0 && pedido > 0 && mantenimiento > 0)) return null;
   const esEpq = elementos.modelo.value === "epq";
+  const esFaltantes = elementos.modelo.value === "faltantes";
   const produccion = numero(escenario.produccion);
+  const faltante = numero(escenario.faltante);
   if (esEpq && !(produccion > demanda)) return null;
-  const factor = esEpq ? 1 - demanda / produccion : 1;
+  if (esFaltantes && !(faltante > 0)) return null;
+  const factor = esEpq ? 1 - demanda / produccion : esFaltantes ? faltante / (mantenimiento + faltante) : 1;
   const lote = Math.sqrt(2 * demanda * pedido / (mantenimiento * factor));
   const pedidos = demanda / lote;
   const relevante = demanda / lote * pedido + lote * factor / 2 * mantenimiento;
@@ -637,6 +777,7 @@ function calculoEscenario(escenario) {
 
 function renderizarEscenarios() {
   const esEpq = elementos.modelo.value === "epq";
+  const esFaltantes = elementos.modelo.value === "faltantes";
   elementos.escenarios.innerHTML = listaEscenarios.map((escenario, indice) => {
     const calculo = calculoEscenario(escenario);
     return `<tr data-indice="${indice}">
@@ -645,6 +786,7 @@ function renderizarEscenarios() {
       <td><input data-campo="pedido" type="number" min="0" step="any" value="${escenario.pedido}" aria-label="Costo por pedido del escenario ${indice + 1}"></td>
       <td><input data-campo="mantenimiento" type="number" min="0" step="any" value="${escenario.mantenimiento}" aria-label="Mantenimiento del escenario ${indice + 1}"></td>
       <td class="columna-produccion"${esEpq ? "" : " hidden"}><input data-campo="produccion" type="number" min="0" step="any" value="${escenario.produccion ?? ""}" aria-label="Producción del escenario ${indice + 1}"></td>
+      <td class="columna-faltantes"${esFaltantes ? "" : " hidden"}><input data-campo="faltante" type="number" min="0" step="any" value="${escenario.faltante ?? ""}" aria-label="Costo por faltante del escenario ${indice + 1}"></td>
       <td data-salida="lote">${calculo ? limitarDecimales(calculo.lote) : "—"}</td>
       <td data-salida="pedidos">${calculo ? limitarDecimales(calculo.pedidos) : "—"}</td>
       <td data-salida="relevante">${calculo ? formatearMoneda(calculo.relevante) : "—"}</td>
@@ -677,19 +819,20 @@ function actualizarEscenarioDesdeTabla(evento) {
 }
 
 function agregarEscenario() {
-  listaEscenarios.push({ nombre: `Escenario ${listaEscenarios.length + 1}`, demanda: ultimoResultado?.demanda || "", pedido: ultimoResultado?.costoPedido || "", mantenimiento: ultimoResultado?.mantenimientoUnitario || "", produccion: ultimoResultado?.tasaProduccion || "" });
+  listaEscenarios.push({ nombre: `Escenario ${listaEscenarios.length + 1}`, demanda: ultimoResultado?.demanda || "", pedido: ultimoResultado?.costoPedido || "", mantenimiento: ultimoResultado?.mantenimientoUnitario || "", produccion: ultimoResultado?.tasaProduccion || "", faltante: ultimoResultado?.costoFaltante || "" });
   renderizarEscenarios();
 }
 
 function importarEscenarios() {
   const esEpq = elementos.modelo.value === "epq";
+  const esFaltantes = elementos.modelo.value === "faltantes";
   const lineas = elementos.datosPegados.value.trim().split(/\r?\n/).filter(Boolean);
   const importados = [];
   lineas.forEach(linea => {
     const separador = linea.includes("\t") ? "\t" : ";";
     const partes = linea.split(separador).map(parte => parte.trim());
-    if (partes.length < (esEpq ? 5 : 4)) return;
-    const escenario = { nombre: partes[0] || `Escenario ${importados.length + 1}`, demanda: numero(partes[1]), pedido: numero(partes[2]), mantenimiento: numero(partes[3]), produccion: esEpq ? numero(partes[4]) : null };
+    if (partes.length < (esEpq || esFaltantes ? 5 : 4)) return;
+    const escenario = { nombre: partes[0] || `Escenario ${importados.length + 1}`, demanda: numero(partes[1]), pedido: numero(partes[2]), mantenimiento: numero(partes[3]), produccion: esEpq ? numero(partes[4]) : null, faltante: esFaltantes ? numero(partes[4]) : null };
     if (calculoEscenario(escenario)) importados.push(escenario);
   });
   if (!importados.length) {
