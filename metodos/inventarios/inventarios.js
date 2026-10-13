@@ -1,12 +1,15 @@
 "use strict";
 
-const CLAVE_GUARDADO = "inventarios-eoq-v1";
-const CAMPOS_NUMERICOS = ["demanda", "costo-pedido", "costo-unitario", "dias-laborables", "tiempo-entrega", "capacidad-maxima", "mantenimiento"];
+const CLAVE_GUARDADO = "inventarios-modelos-v2";
+const CAMPOS_NUMERICOS = ["demanda", "tasa-produccion", "costo-pedido", "costo-unitario", "dias-laborables", "tiempo-entrega", "capacidad-maxima", "mantenimiento"];
 
 const elementos = {
   formulario: document.getElementById("formulario-inventario"),
+  modelo: document.getElementById("modelo"),
   producto: document.getElementById("producto"),
   demanda: document.getElementById("demanda"),
+  tasaProduccion: document.getElementById("tasa-produccion"),
+  campoProduccion: document.getElementById("campo-produccion"),
   costoPedido: document.getElementById("costo-pedido"),
   costoUnitario: document.getElementById("costo-unitario"),
   diasLaborables: document.getElementById("dias-laborables"),
@@ -23,6 +26,15 @@ const elementos = {
   numeroPedidos: document.getElementById("numero-pedidos"),
   pedidosPracticos: document.getElementById("pedidos-practicos"),
   tiempoCiclo: document.getElementById("tiempo-ciclo"),
+  rotuloLote: document.getElementById("rotulo-lote"),
+  detalleLote: document.getElementById("detalle-lote"),
+  rotuloReorden: document.getElementById("rotulo-reorden"),
+  detalleReorden: document.getElementById("detalle-reorden"),
+  rotuloFrecuencia: document.getElementById("rotulo-frecuencia"),
+  rotuloCiclo: document.getElementById("rotulo-ciclo"),
+  rotuloCostoRelevante: document.getElementById("rotulo-costo-relevante"),
+  tituloGraficoPolitica: document.getElementById("titulo-grafico-politica"),
+  ayudaComparacion: document.getElementById("ayuda-comparacion"),
   recomendacion: document.getElementById("recomendacion"),
   evaluacionCapacidad: document.getElementById("evaluacion-capacidad"),
   graficoInventario: document.getElementById("grafico-inventario"),
@@ -44,6 +56,7 @@ const elementos = {
   barrasEscenarios: document.getElementById("barras-escenarios"),
   dialogoGuia: document.getElementById("dialogo-guia"),
   dialogoPegar: document.getElementById("dialogo-pegar"),
+  ordenColumnas: document.getElementById("orden-columnas"),
   datosPegados: document.getElementById("datos-pegados")
 };
 
@@ -97,8 +110,10 @@ function leerDatos() {
     : null;
 
   return {
+    modelo: elementos.modelo.value,
     producto: elementos.producto.value.trim() || "Producto analizado",
     demanda: numero(elementos.demanda.value),
+    tasaProduccion: elementos.tasaProduccion.value.trim() ? numero(elementos.tasaProduccion.value) : null,
     costoPedido: numero(elementos.costoPedido.value),
     costoUnitario,
     diasLaborables: numero(elementos.diasLaborables.value),
@@ -114,6 +129,7 @@ function leerDatos() {
 function validarDatos(datos, mostrarMensaje = true) {
   const errores = [];
   if (!(datos.demanda > 0)) errores.push("La demanda anual debe ser mayor que cero.");
+  if (datos.modelo === "epq" && !(datos.tasaProduccion > datos.demanda)) errores.push("En EPQ, la producción anual debe ser mayor que la demanda anual.");
   if (!(datos.costoPedido > 0)) errores.push("El costo por pedido debe ser mayor que cero.");
   if (!(datos.costoUnitario >= 0)) errores.push("Ingrese un costo unitario válido.");
   if (!(datos.diasLaborables > 0)) errores.push("Los días laborables deben ser mayores que cero.");
@@ -141,12 +157,16 @@ function calcularEoq(datos) {
 
   return {
     ...datos,
+    modelo: "eoq",
+    factorProduccion: 1,
     loteOptimo,
     numeroPedidos,
     tiempoCiclo,
     demandaDiaria,
     puntoReorden,
+    inventarioMaximo: loteOptimo,
     inventarioPromedio,
+    tiempoProduccion: 0,
     costoOrdenar,
     costoMantener,
     costoRelevante,
@@ -154,6 +174,47 @@ function calcularEoq(datos) {
     costoTotal,
     capacidadSuficiente: datos.capacidadMaxima === null ? null : loteOptimo <= datos.capacidadMaxima
   };
+}
+
+function calcularEpq(datos) {
+  const factorProduccion = 1 - datos.demanda / datos.tasaProduccion;
+  const loteOptimo = Math.sqrt((2 * datos.demanda * datos.costoPedido) / (datos.mantenimientoUnitario * factorProduccion));
+  const numeroPedidos = datos.demanda / loteOptimo;
+  const tiempoCiclo = datos.diasLaborables / numeroPedidos;
+  const tiempoProduccion = loteOptimo / datos.tasaProduccion * datos.diasLaborables;
+  const demandaDiaria = datos.demanda / datos.diasLaborables;
+  const puntoReorden = demandaDiaria * datos.tiempoEntrega;
+  const inventarioMaximo = loteOptimo * factorProduccion;
+  const inventarioPromedio = inventarioMaximo / 2;
+  const costoOrdenar = numeroPedidos * datos.costoPedido;
+  const costoMantener = inventarioPromedio * datos.mantenimientoUnitario;
+  const costoRelevante = costoOrdenar + costoMantener;
+  const costoAdquisicion = datos.demanda * datos.costoUnitario;
+  const costoTotal = costoRelevante + costoAdquisicion;
+
+  return {
+    ...datos,
+    modelo: "epq",
+    factorProduccion,
+    loteOptimo,
+    numeroPedidos,
+    tiempoCiclo,
+    tiempoProduccion,
+    demandaDiaria,
+    puntoReorden,
+    inventarioMaximo,
+    inventarioPromedio,
+    costoOrdenar,
+    costoMantener,
+    costoRelevante,
+    costoAdquisicion,
+    costoTotal,
+    capacidadSuficiente: datos.capacidadMaxima === null ? null : inventarioMaximo <= datos.capacidadMaxima
+  };
+}
+
+function calcularModelo(datos) {
+  return datos.modelo === "epq" ? calcularEpq(datos) : calcularEoq(datos);
 }
 
 function guardarFormulario() {
@@ -176,6 +237,7 @@ function restaurarFormulario() {
       else control.value = valor;
     });
     if (Array.isArray(datos.escenarios)) listaEscenarios = datos.escenarios;
+    actualizarModelo();
     actualizarModoMantenimiento();
     actualizarSimbolosMoneda();
     return true;
@@ -183,6 +245,22 @@ function restaurarFormulario() {
     localStorage.removeItem(CLAVE_GUARDADO);
     return false;
   }
+}
+
+function actualizarModelo() {
+  const esEpq = elementos.modelo.value === "epq";
+  elementos.campoProduccion.hidden = !esEpq;
+  elementos.tasaProduccion.disabled = !esEpq;
+  document.querySelectorAll(".columna-produccion").forEach(elemento => { elemento.hidden = !esEpq; });
+  elementos.ayudaComparacion.textContent = esEpq
+    ? "Pegue filas desde Excel o edite las celdas. En EPQ, P debe ser mayor que D."
+    : "Pegue filas desde Excel o edite las celdas. Cₕ se expresa por unidad al año.";
+  elementos.ordenColumnas.innerHTML = esEpq
+    ? "Orden de columnas: <strong>Escenario, Demanda, Costo de preparación, Mantenimiento, Producción</strong>."
+    : "Orden de columnas: <strong>Escenario, Demanda, Costo por pedido, Mantenimiento por unidad</strong>.";
+  elementos.datosPegados.placeholder = esEpq
+    ? "Base\t10000\t100\t2\t40000\nMayor producción\t10000\t100\t2\t50000"
+    : "Base\t1200\t20\t0.30\nAlta demanda\t1500\t20\t0.30";
 }
 
 function actualizarModoMantenimiento() {
@@ -207,10 +285,19 @@ function mostrarResultado(resultado) {
   elementos.estadoVacio.hidden = true;
   elementos.salida.hidden = false;
   elementos.tituloResultado.textContent = resultado.producto;
+  const esEpq = resultado.modelo === "epq";
+  elementos.rotuloLote.innerHTML = esEpq ? "Lote de producción <i>Q*</i>" : "Cantidad económica <i>Q*</i>";
+  elementos.detalleLote.textContent = esEpq ? "unidades por lote producido" : "unidades por pedido";
+  elementos.rotuloReorden.innerHTML = esEpq ? "Inicio de preparación <i>r</i>" : "Punto de reorden <i>r</i>";
+  elementos.detalleReorden.textContent = "unidades de posición de inventario";
+  elementos.rotuloFrecuencia.innerHTML = esEpq ? "Ciclos por año <i>N</i>" : "Pedidos por año <i>N</i>";
+  elementos.rotuloCiclo.innerHTML = esEpq ? "Tiempo entre ciclos <i>T</i>" : "Tiempo entre pedidos <i>T</i>";
+  elementos.rotuloCostoRelevante.innerHTML = esEpq ? "Costo anual EPQ <i>CT</i>" : "Costo anual EOQ <i>CT</i>";
+  elementos.tituloGraficoPolitica.textContent = esEpq ? "Producción e inventario por ciclo" : "Cuándo realizar cada pedido";
   elementos.loteOptimo.textContent = limitarDecimales(resultado.loteOptimo);
   elementos.puntoReorden.textContent = limitarDecimales(resultado.puntoReorden);
   elementos.numeroPedidos.textContent = limitarDecimales(resultado.numeroPedidos);
-  elementos.pedidosPracticos.textContent = "frecuencia anual estimada";
+  elementos.pedidosPracticos.textContent = esEpq ? "corridas de producción estimadas" : "frecuencia anual estimada";
   elementos.tiempoCiclo.textContent = limitarDecimales(resultado.tiempoCiclo);
   elementos.costoOrdenar.textContent = formatearMoneda(resultado.costoOrdenar, resultado.moneda);
   elementos.costoMantener.textContent = formatearMoneda(resultado.costoMantener, resultado.moneda);
@@ -220,7 +307,9 @@ function mostrarResultado(resultado) {
 
   const lotePractico = Math.round(resultado.loteOptimo);
   const reordenPractico = Math.ceil(resultado.puntoReorden);
-  elementos.recomendacion.innerHTML = `<p>Solicite aproximadamente <strong>${limitarDecimales(lotePractico, 0)} unidades</strong> cada vez que la posición del inventario llegue a <strong>${limitarDecimales(reordenPractico, 0)} unidades</strong>. En condiciones constantes, esto ocurre cada <strong>${limitarDecimales(resultado.tiempoCiclo)} días laborables</strong>.</p>`;
+  elementos.recomendacion.innerHTML = esEpq
+    ? `<p>Programe lotes de aproximadamente <strong>${limitarDecimales(lotePractico, 0)} unidades</strong>. Inicie la preparación cuando la posición del inventario llegue a <strong>${limitarDecimales(reordenPractico, 0)} unidades</strong>; el inventario físico máximo será <strong>${limitarDecimales(resultado.inventarioMaximo)} unidades</strong>.</p>`
+    : `<p>Solicite aproximadamente <strong>${limitarDecimales(lotePractico, 0)} unidades</strong> cada vez que la posición del inventario llegue a <strong>${limitarDecimales(reordenPractico, 0)} unidades</strong>. En condiciones constantes, esto ocurre cada <strong>${limitarDecimales(resultado.tiempoCiclo)} días laborables</strong>.</p>`;
 
   if (resultado.capacidadSuficiente === null) {
     elementos.evaluacionCapacidad.hidden = true;
@@ -229,8 +318,8 @@ function mostrarResultado(resultado) {
     elementos.evaluacionCapacidad.hidden = false;
     elementos.evaluacionCapacidad.classList.toggle("no-suficiente", !resultado.capacidadSuficiente);
     elementos.evaluacionCapacidad.innerHTML = resultado.capacidadSuficiente
-      ? `<strong>Capacidad suficiente.</strong> Q* = ${limitarDecimales(resultado.loteOptimo)} es menor o igual que C<sub>máx</sub> = ${limitarDecimales(resultado.capacidadMaxima)} unidades.`
-      : `<strong>Capacidad insuficiente.</strong> Q* = ${limitarDecimales(resultado.loteOptimo)} supera C<sub>máx</sub> = ${limitarDecimales(resultado.capacidadMaxima)} unidades.`;
+      ? `<strong>Capacidad suficiente.</strong> ${esEpq ? "I<sub>máx</sub>" : "Q*"} = ${limitarDecimales(resultado.inventarioMaximo)} es menor o igual que C<sub>máx</sub> = ${limitarDecimales(resultado.capacidadMaxima)} unidades.`
+      : `<strong>Capacidad insuficiente.</strong> ${esEpq ? "I<sub>máx</sub>" : "Q*"} = ${limitarDecimales(resultado.inventarioMaximo)} supera C<sub>máx</sub> = ${limitarDecimales(resultado.capacidadMaxima)} unidades.`;
   }
 
   configurarSimuladorLote(resultado);
@@ -249,7 +338,7 @@ function resolverFormulario(mostrarMensaje = true) {
   const datos = leerDatos();
   if (!validarDatos(datos, mostrarMensaje)) return false;
   elementos.mensaje.textContent = "";
-  mostrarResultado(calcularEoq(datos));
+  mostrarResultado(calcularModelo(datos));
   return true;
 }
 
@@ -260,16 +349,18 @@ function programarCalculo() {
 }
 
 function cargarEjemplo() {
-  elementos.producto.value = "R&B Beverage Company";
-  elementos.demanda.value = "3600";
-  elementos.costoPedido.value = "20";
-  elementos.costoUnitario.value = "3";
+  const esEpq = elementos.modelo.value === "epq";
+  elementos.producto.value = esEpq ? "Producción por lotes" : "R&B Beverage Company";
+  elementos.demanda.value = esEpq ? "10000" : "3600";
+  elementos.tasaProduccion.value = esEpq ? "40000" : "";
+  elementos.costoPedido.value = esEpq ? "100" : "20";
+  elementos.costoUnitario.value = esEpq ? "10" : "3";
   elementos.diasLaborables.value = "250";
-  elementos.tiempoEntrega.value = "5";
+  elementos.tiempoEntrega.value = esEpq ? "2" : "5";
   elementos.capacidadMaxima.value = "";
-  elementos.mantenimiento.value = "25";
+  elementos.mantenimiento.value = esEpq ? "2" : "25";
   elementos.moneda.value = "USD";
-  elementos.formulario.elements.modoMantenimiento.value = "porcentaje";
+  elementos.formulario.elements.modoMantenimiento.value = esEpq ? "unidad" : "porcentaje";
   listaEscenarios = [];
   actualizarModoMantenimiento();
   actualizarSimbolosMoneda();
@@ -288,6 +379,7 @@ function limpiarFormulario() {
   elementos.salida.hidden = true;
   elementos.estadoVacio.hidden = false;
   actualizarFlujo("datos");
+  actualizarModelo();
   actualizarModoMantenimiento();
   actualizarSimbolosMoneda();
 }
@@ -303,15 +395,25 @@ function dibujarGraficoInventario(resultado) {
   const anchoUtil = ancho - margen.izquierda - margen.derecha;
   const altoUtil = alto - margen.superior - margen.inferior;
   const ciclos = Number(elementos.ciclosGrafico.value) || 3;
-  const maximoY = Math.max(resultado.loteOptimo, resultado.puntoReorden) * 1.16;
+  const esEpq = resultado.modelo === "epq";
+  const maximoY = Math.max(resultado.inventarioMaximo, resultado.puntoReorden) * 1.16;
   const escalaX = tiempo => margen.izquierda + (tiempo / (resultado.tiempoCiclo * ciclos)) * anchoUtil;
   const escalaY = valor => margen.superior + altoUtil - (valor / maximoY) * altoUtil;
   const puntos = [];
   for (let ciclo = 0; ciclo < ciclos; ciclo += 1) {
     const inicio = ciclo * resultado.tiempoCiclo;
     const fin = (ciclo + 1) * resultado.tiempoCiclo;
-    puntos.push([escalaX(inicio), escalaY(resultado.loteOptimo)], [escalaX(fin), escalaY(0)]);
-    if (ciclo < ciclos - 1) puntos.push([escalaX(fin), escalaY(resultado.loteOptimo)]);
+    if (esEpq) {
+      const finProduccion = inicio + resultado.tiempoProduccion;
+      puntos.push(
+        [escalaX(inicio), escalaY(0)],
+        [escalaX(finProduccion), escalaY(resultado.inventarioMaximo)],
+        [escalaX(fin), escalaY(0)]
+      );
+    } else {
+      puntos.push([escalaX(inicio), escalaY(resultado.loteOptimo)], [escalaX(fin), escalaY(0)]);
+      if (ciclo < ciclos - 1) puntos.push([escalaX(fin), escalaY(resultado.loteOptimo)]);
+    }
   }
 
   const lineasHorizontales = [0, .25, .5, .75, 1].map(proporcion => {
@@ -338,7 +440,7 @@ function dibujarGraficoInventario(resultado) {
 
   elementos.graficoInventario.innerHTML = `
     <svg viewBox="0 0 ${ancho} ${alto}" role="img" aria-labelledby="titulo-grafico-inventario">
-      <title id="titulo-grafico-inventario">Inventario de ${escaparHtml(resultado.producto)} durante ${ciclos} ciclos</title>
+      <title id="titulo-grafico-inventario">${esEpq ? "Producción e inventario" : "Inventario"} de ${escaparHtml(resultado.producto)} durante ${ciclos} ciclos</title>
       <defs><linearGradient id="area-inventario" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4ca38b" stop-opacity=".28"/><stop offset="1" stop-color="#4ca38b" stop-opacity=".03"/></linearGradient></defs>
       ${lineasHorizontales}${etiquetasX}
       <line x1="${margen.izquierda}" y1="${alto - margen.inferior}" x2="${ancho - margen.derecha}" y2="${alto - margen.inferior}" stroke="#61756e" stroke-width="1.5"/>
@@ -349,7 +451,7 @@ function dibujarGraficoInventario(resultado) {
       ${marcadores.join("")}
       <rect x="${ancho - 177}" y="${Math.max(8, yReorden - 24)}" width="147" height="24" rx="7" fill="#fff4ec" stroke="#e6b8a0"/>
       <text x="${ancho - 104}" y="${Math.max(24, yReorden - 8)}" text-anchor="middle" fill="#9b5130" font-size="11" font-weight="700">r = ${limitarDecimales(resultado.puntoReorden)}</text>
-      <text x="20" y="${margen.superior + altoUtil / 2}" transform="rotate(-90 20 ${margen.superior + altoUtil / 2})" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">Unidades disponibles</text>
+      <text x="20" y="${margen.superior + altoUtil / 2}" transform="rotate(-90 20 ${margen.superior + altoUtil / 2})" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">Inventario físico</text>
       <text x="${margen.izquierda + anchoUtil / 2}" y="${alto - 5}" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">Días laborables</text>
     </svg>`;
 }
@@ -365,7 +467,7 @@ function dibujarGraficoCostos(resultado) {
   const muestras = Array.from({ length: 55 }, (_, indice) => {
     const q = minimoQ + (maximoQ - minimoQ) * indice / 54;
     const ordenar = resultado.demanda / q * resultado.costoPedido;
-    const mantener = q / 2 * resultado.mantenimientoUnitario;
+    const mantener = q * resultado.factorProduccion / 2 * resultado.mantenimientoUnitario;
     return { q, ordenar, mantener, total: ordenar + mantener };
   });
   const maximoCosto = Math.max(...muestras.map(muestra => muestra.total)) * 1.08;
@@ -398,12 +500,12 @@ function dibujarGraficoCostos(resultado) {
       ${mostrarAlternativo ? `<line x1="${xAlternativo}" y1="${margen.superior}" x2="${xAlternativo}" y2="${alto - margen.inferior}" stroke="#795b9f" stroke-width="2" stroke-dasharray="4 5"/><circle cx="${xAlternativo}" cy="${yAlternativo}" r="7" fill="#795b9f" stroke="#fff" stroke-width="3"><title>Lote probado ${limitarDecimales(loteAlternativo)} · Costo ${formatearMoneda(costoAlternativo, resultado.moneda)}</title></circle>` : ""}
       <text x="${xOptimo}" y="${alto - 31}" text-anchor="middle" fill="#8e651b" font-size="11" font-weight="800">Q* ${limitarDecimales(resultado.loteOptimo)}</text>
       <g transform="translate(${margen.izquierda + 12} 15)" font-size="10" font-weight="700"><circle cx="0" cy="0" r="4" fill="#bd6c3c"/><text x="9" y="4" fill="#6c7773">Ordenar</text><circle cx="72" cy="0" r="4" fill="#25816b"/><text x="81" y="4" fill="#6c7773">Mantener</text><circle cx="154" cy="0" r="4" fill="#172722"/><text x="163" y="4" fill="#6c7773">Relevante</text>${mostrarAlternativo ? `<circle cx="236" cy="0" r="4" fill="#795b9f"/><text x="245" y="4" fill="#6c7773">Lote probado</text>` : ""}</g>
-      <text x="${margen.izquierda + anchoUtil / 2}" y="${alto - 5}" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">Cantidad por pedido Q</text>
+      <text x="${margen.izquierda + anchoUtil / 2}" y="${alto - 5}" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">${resultado.modelo === "epq" ? "Lote de producción Q" : "Cantidad por pedido Q"}</text>
     </svg>`;
 }
 
 function costoRelevanteParaLote(resultado, lote) {
-  return resultado.demanda / lote * resultado.costoPedido + lote / 2 * resultado.mantenimientoUnitario;
+  return resultado.demanda / lote * resultado.costoPedido + lote * resultado.factorProduccion / 2 * resultado.mantenimientoUnitario;
 }
 
 function configurarSimuladorLote(resultado) {
@@ -442,13 +544,14 @@ function actualizarSimulacionLote(redibujar = true) {
 }
 
 function mostrarLecturaGrafico(resultado) {
+  const esEpq = resultado.modelo === "epq";
   const avisoEntrega = resultado.tiempoEntrega > resultado.tiempoCiclo
     ? "El tiempo de entrega supera un ciclo; puede haber varios pedidos pendientes. Interprete r como posición de inventario."
     : `El pedido tarda ${limitarDecimales(resultado.tiempoEntrega)} días y llega cuando el inventario se aproxima a cero.`;
   elementos.lecturaGrafico.innerHTML = `
-    <div><span>Inventario máximo</span><strong>${limitarDecimales(resultado.loteOptimo)} unidades</strong></div>
+    <div><span>Inventario máximo</span><strong>${limitarDecimales(resultado.inventarioMaximo)} unidades</strong></div>
     <div><span>Inventario promedio</span><strong>${limitarDecimales(resultado.inventarioPromedio)} unidades</strong></div>
-    <div><span>Tiempo de entrega</span><strong>${escaparHtml(avisoEntrega)}</strong></div>`;
+    <div><span>${esEpq ? "Producción del lote" : "Tiempo de entrega"}</span><strong>${esEpq ? `${limitarDecimales(resultado.tiempoProduccion)} días de producción` : escaparHtml(avisoEntrega)}</strong></div>`;
 }
 
 function pasoDesarrollo(numeroPaso, titulo, explicacion, formula) {
@@ -465,25 +568,38 @@ function mostrarDesarrollo(resultado) {
   const demandaDiaria = limitarDecimales(resultado.demandaDiaria, 4);
   const costo = simboloMoneda(resultado.moneda);
   const pasos = [];
+  const esEpq = resultado.modelo === "epq";
 
   if (resultado.modoMantenimiento === "porcentaje") {
     pasos.push(pasoDesarrollo("01", "Calcular el costo de retención", "Convierta la tasa anual a decimal y multiplíquela por el costo unitario.", `I=${limitarDecimales(resultado.valorMantenimiento, 4)}\\%=\\frac{${limitarDecimales(resultado.valorMantenimiento, 4)}}{100},\\quad C_h=IC=\\left(\\frac{${limitarDecimales(resultado.valorMantenimiento, 4)}}{100}\\right)(${limitarDecimales(resultado.costoUnitario, 4)})=${ch}`));
   }
+  if (esEpq) {
+    pasos.push(pasoDesarrollo(
+      String(pasos.length + 1).padStart(2, "0"),
+      "Obtener la fracción almacenada",
+      "Descuente del ritmo de producción la parte que se consume mientras se fabrica.",
+      `1-\\frac{D}{P}=1-\\frac{${limitarDecimales(resultado.demanda, 4)}}{${limitarDecimales(resultado.tasaProduccion, 4)}}=${limitarDecimales(resultado.factorProduccion, 4)}`
+    ));
+  }
   const base = pasos.length + 1;
   pasos.push(
-    pasoDesarrollo(String(base).padStart(2, "0"), "Cantidad económica de pedido", "Sustituya la demanda, el costo por pedido y el costo de retención.", `Q^*=\\sqrt{\\frac{2DC_o}{C_h}}=\\sqrt{\\frac{2(${d})(${co})}{${ch}}}=${q}`),
-    pasoDesarrollo(String(base + 1).padStart(2, "0"), "Calcular los pedidos del año", "Divide la demanda anual entre el lote óptimo.", `N=\\frac{D}{Q^*}=\\frac{${d}}{${q}}=${limitarDecimales(resultado.numeroPedidos, 4)}`),
-    pasoDesarrollo(String(base + 2).padStart(2, "0"), "Calcular el tiempo entre pedidos", "Distribuye los días laborables entre los pedidos.", `T=\\frac{días}{N}=\\frac{${dias}}{${limitarDecimales(resultado.numeroPedidos, 4)}}=${limitarDecimales(resultado.tiempoCiclo, 4)}\\;días`),
+    pasoDesarrollo(String(base).padStart(2, "0"), esEpq ? "Lote económico de producción" : "Cantidad económica de pedido", esEpq ? "Incluya la reposición gradual en el equilibrio de costos." : "Sustituya la demanda, el costo por pedido y el costo de retención.", esEpq ? `Q^*=\\sqrt{\\frac{2DC_o}{C_h(1-D/P)}}=\\sqrt{\\frac{2(${d})(${co})}{(${ch})(${limitarDecimales(resultado.factorProduccion, 4)})}}=${q}` : `Q^*=\\sqrt{\\frac{2DC_o}{C_h}}=\\sqrt{\\frac{2(${d})(${co})}{${ch}}}=${q}`),
+    pasoDesarrollo(String(base + 1).padStart(2, "0"), esEpq ? "Calcular los ciclos del año" : "Calcular los pedidos del año", "Divida la demanda anual entre el lote óptimo.", `N=\\frac{D}{Q^*}=\\frac{${d}}{${q}}=${limitarDecimales(resultado.numeroPedidos, 4)}`),
+    pasoDesarrollo(String(base + 2).padStart(2, "0"), esEpq ? "Calcular el tiempo entre ciclos" : "Calcular el tiempo entre pedidos", "Distribuya los días laborables entre los ciclos.", `T=\\frac{d_a}{N}=\\frac{${dias}}{${limitarDecimales(resultado.numeroPedidos, 4)}}=${limitarDecimales(resultado.tiempoCiclo, 4)}\\;días`),
     pasoDesarrollo(String(base + 3).padStart(2, "0"), "Calcular la demanda diaria", "Divide la demanda anual entre los días laborables.", `d=\\frac{D}{d_a}=\\frac{${d}}{${dias}}=${demandaDiaria}`),
-    pasoDesarrollo(String(base + 4).padStart(2, "0"), "Obtener el punto de reorden", "Multiplique la demanda diaria por el tiempo de entrega.", `r=dm=(${demandaDiaria})(${m})=${limitarDecimales(resultado.puntoReorden, 4)}`),
-    pasoDesarrollo(String(base + 5).padStart(2, "0"), "Costo anual de pedidos", "Multiplique el número de pedidos por el costo de cada orden.", `CP=\\frac{D}{Q^*}C_o=\\frac{${d}}{${q}}(${co})=${costo}\\;${limitarDecimales(resultado.costoOrdenar, 4)}`),
-    pasoDesarrollo(String(base + 6).padStart(2, "0"), "Costo anual de retención", "El inventario promedio es la mitad del lote óptimo.", `CR=\\frac{Q^*}{2}C_h=\\frac{${q}}{2}(${ch})=${costo}\\;${limitarDecimales(resultado.costoMantener, 4)}`),
-    pasoDesarrollo(String(base + 7).padStart(2, "0"), "Costo anual EOQ", "Sume el costo de pedidos y el costo de retención.", `CT=CP+CR=${limitarDecimales(resultado.costoOrdenar, 4)}+${limitarDecimales(resultado.costoMantener, 4)}=${costo}\\;${limitarDecimales(resultado.costoRelevante, 4)}`)
+    pasoDesarrollo(String(base + 4).padStart(2, "0"), esEpq ? "Definir el inicio de preparación" : "Obtener el punto de reorden", "Multiplique la demanda diaria por el tiempo de preparación o entrega.", `r=dm=(${demandaDiaria})(${m})=${limitarDecimales(resultado.puntoReorden, 4)}`),
+    ...(esEpq ? [
+      pasoDesarrollo(String(base + 5).padStart(2, "0"), "Calcular el inventario máximo", "Solo la fracción no consumida del lote llega a almacenarse.", `I_{max}=Q^*\\left(1-\\frac{D}{P}\\right)=(${q})(${limitarDecimales(resultado.factorProduccion, 4)})=${limitarDecimales(resultado.inventarioMaximo, 4)}`),
+      pasoDesarrollo(String(base + 6).padStart(2, "0"), "Calcular el tiempo de producción", "Divida el lote entre la producción anual y convierta el resultado a días laborables.", `t_p=\\frac{Q^*}{P}d_a=\\frac{${q}}{${limitarDecimales(resultado.tasaProduccion, 4)}}(${dias})=${limitarDecimales(resultado.tiempoProduccion, 4)}\\;días`)
+    ] : []),
+    pasoDesarrollo(String(base + (esEpq ? 7 : 5)).padStart(2, "0"), "Costo anual de preparación", "Multiplique el número de ciclos por el costo de cada preparación.", `CP=\\frac{D}{Q^*}C_o=\\frac{${d}}{${q}}(${co})=${costo}\\;${limitarDecimales(resultado.costoOrdenar, 4)}`),
+    pasoDesarrollo(String(base + (esEpq ? 8 : 6)).padStart(2, "0"), "Costo anual de retención", "Multiplique el inventario promedio por el costo de mantener una unidad.", `CR=I_{prom}C_h=(${limitarDecimales(resultado.inventarioPromedio, 4)})(${ch})=${costo}\\;${limitarDecimales(resultado.costoMantener, 4)}`),
+    pasoDesarrollo(String(base + (esEpq ? 9 : 7)).padStart(2, "0"), esEpq ? "Costo anual EPQ" : "Costo anual EOQ", "Sume el costo de preparación y el costo de retención.", `CT=CP+CR=${limitarDecimales(resultado.costoOrdenar, 4)}+${limitarDecimales(resultado.costoMantener, 4)}=${costo}\\;${limitarDecimales(resultado.costoRelevante, 4)}`)
   );
   if (resultado.capacidadMaxima !== null) {
     const comparador = resultado.capacidadSuficiente ? "\\le" : ">";
     const conclusion = resultado.capacidadSuficiente ? "La capacidad disponible es suficiente." : "La capacidad disponible no es suficiente.";
-    pasos.push(pasoDesarrollo(String(base + 8).padStart(2, "0"), "Comprobar la capacidad", conclusion, `Q^*=${q}${comparador}C_{\\max}=${limitarDecimales(resultado.capacidadMaxima, 4)}`));
+    pasos.push(pasoDesarrollo(String(base + (esEpq ? 10 : 8)).padStart(2, "0"), "Comprobar la capacidad", conclusion, `${esEpq ? `I_{max}=${limitarDecimales(resultado.inventarioMaximo, 4)}` : `Q^*=${q}`}${comparador}C_{\\max}=${limitarDecimales(resultado.capacidadMaxima, 4)}`));
   }
   elementos.desarrollo.innerHTML = pasos.join("");
   renderizarLatex([elementos.desarrollo]);
@@ -497,9 +613,9 @@ function renderizarLatex(contenedores) {
 
 function crearEscenariosIniciales(resultado) {
   listaEscenarios = [
-    { nombre: "Base", demanda: resultado.demanda, pedido: resultado.costoPedido, mantenimiento: resultado.mantenimientoUnitario },
-    { nombre: "Demanda +20%", demanda: resultado.demanda * 1.2, pedido: resultado.costoPedido, mantenimiento: resultado.mantenimientoUnitario },
-    { nombre: "Pedido +20%", demanda: resultado.demanda, pedido: resultado.costoPedido * 1.2, mantenimiento: resultado.mantenimientoUnitario }
+    { nombre: "Base", demanda: resultado.demanda, pedido: resultado.costoPedido, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.tasaProduccion },
+    { nombre: "Demanda +20%", demanda: resultado.demanda * 1.2, pedido: resultado.costoPedido, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.tasaProduccion },
+    { nombre: resultado.modelo === "epq" ? "Producción +20%" : "Pedido +20%", demanda: resultado.demanda, pedido: resultado.modelo === "epq" ? resultado.costoPedido : resultado.costoPedido * 1.2, mantenimiento: resultado.mantenimientoUnitario, produccion: resultado.modelo === "epq" ? resultado.tasaProduccion * 1.2 : null }
   ];
   renderizarEscenarios();
 }
@@ -509,13 +625,18 @@ function calculoEscenario(escenario) {
   const pedido = numero(escenario.pedido);
   const mantenimiento = numero(escenario.mantenimiento);
   if (!(demanda > 0 && pedido > 0 && mantenimiento > 0)) return null;
-  const lote = Math.sqrt(2 * demanda * pedido / mantenimiento);
+  const esEpq = elementos.modelo.value === "epq";
+  const produccion = numero(escenario.produccion);
+  if (esEpq && !(produccion > demanda)) return null;
+  const factor = esEpq ? 1 - demanda / produccion : 1;
+  const lote = Math.sqrt(2 * demanda * pedido / (mantenimiento * factor));
   const pedidos = demanda / lote;
-  const relevante = demanda / lote * pedido + lote / 2 * mantenimiento;
-  return { lote, pedidos, relevante };
+  const relevante = demanda / lote * pedido + lote * factor / 2 * mantenimiento;
+  return { lote, pedidos, relevante, factor };
 }
 
 function renderizarEscenarios() {
+  const esEpq = elementos.modelo.value === "epq";
   elementos.escenarios.innerHTML = listaEscenarios.map((escenario, indice) => {
     const calculo = calculoEscenario(escenario);
     return `<tr data-indice="${indice}">
@@ -523,6 +644,7 @@ function renderizarEscenarios() {
       <td><input data-campo="demanda" type="number" min="0" step="any" value="${escenario.demanda}" aria-label="Demanda del escenario ${indice + 1}"></td>
       <td><input data-campo="pedido" type="number" min="0" step="any" value="${escenario.pedido}" aria-label="Costo por pedido del escenario ${indice + 1}"></td>
       <td><input data-campo="mantenimiento" type="number" min="0" step="any" value="${escenario.mantenimiento}" aria-label="Mantenimiento del escenario ${indice + 1}"></td>
+      <td class="columna-produccion"${esEpq ? "" : " hidden"}><input data-campo="produccion" type="number" min="0" step="any" value="${escenario.produccion ?? ""}" aria-label="Producción del escenario ${indice + 1}"></td>
       <td data-salida="lote">${calculo ? limitarDecimales(calculo.lote) : "—"}</td>
       <td data-salida="pedidos">${calculo ? limitarDecimales(calculo.pedidos) : "—"}</td>
       <td data-salida="relevante">${calculo ? formatearMoneda(calculo.relevante) : "—"}</td>
@@ -555,18 +677,19 @@ function actualizarEscenarioDesdeTabla(evento) {
 }
 
 function agregarEscenario() {
-  listaEscenarios.push({ nombre: `Escenario ${listaEscenarios.length + 1}`, demanda: ultimoResultado?.demanda || "", pedido: ultimoResultado?.costoPedido || "", mantenimiento: ultimoResultado?.mantenimientoUnitario || "" });
+  listaEscenarios.push({ nombre: `Escenario ${listaEscenarios.length + 1}`, demanda: ultimoResultado?.demanda || "", pedido: ultimoResultado?.costoPedido || "", mantenimiento: ultimoResultado?.mantenimientoUnitario || "", produccion: ultimoResultado?.tasaProduccion || "" });
   renderizarEscenarios();
 }
 
 function importarEscenarios() {
+  const esEpq = elementos.modelo.value === "epq";
   const lineas = elementos.datosPegados.value.trim().split(/\r?\n/).filter(Boolean);
   const importados = [];
   lineas.forEach(linea => {
     const separador = linea.includes("\t") ? "\t" : ";";
     const partes = linea.split(separador).map(parte => parte.trim());
-    if (partes.length < 4) return;
-    const escenario = { nombre: partes[0] || `Escenario ${importados.length + 1}`, demanda: numero(partes[1]), pedido: numero(partes[2]), mantenimiento: numero(partes[3]) };
+    if (partes.length < (esEpq ? 5 : 4)) return;
+    const escenario = { nombre: partes[0] || `Escenario ${importados.length + 1}`, demanda: numero(partes[1]), pedido: numero(partes[2]), mantenimiento: numero(partes[3]), produccion: esEpq ? numero(partes[4]) : null };
     if (calculoEscenario(escenario)) importados.push(escenario);
   });
   if (!importados.length) {
@@ -621,6 +744,10 @@ elementos.formulario.addEventListener("input", evento => {
   programarCalculo();
 });
 elementos.formulario.addEventListener("change", evento => {
+  if (evento.target.id === "modelo") {
+    actualizarModelo();
+    listaEscenarios = [];
+  }
   if (evento.target.name === "modoMantenimiento") actualizarModoMantenimiento();
   if (evento.target.id === "moneda") actualizarSimbolosMoneda();
   programarCalculo();
@@ -683,6 +810,7 @@ elementos.escenarios.addEventListener("click", evento => {
 });
 
 const habiaGuardado = restaurarFormulario();
+actualizarModelo();
 if (habiaGuardado) resolverFormulario(false);
 actualizarModoMantenimiento();
 actualizarSimbolosMoneda();

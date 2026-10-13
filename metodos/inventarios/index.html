@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#102d27">
-  <title>Inventarios EOQ | Investigación Operativa</title>
+  <title>Inventarios EOQ–EPQ | Investigación Operativa</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
@@ -31,14 +31,14 @@
       <a class="activo" href="../../index.html#calculadoras">Calculadoras</a>
       <a href="../../index.html#proyecto">El proyecto</a>
     </nav>
-    <span class="identificador-modulo">INVENTARIOS <b>·</b> EOQ</span>
+    <span class="identificador-modulo">INVENTARIOS <b>·</b> EOQ–EPQ</span>
   </header>
 
   <section class="cabecera-modulo">
     <div>
       <p class="etiqueta"><span></span> Política de abastecimiento</p>
-      <h1>INVENTARIOS <em>EOQ</em></h1>
-      <p>Determine cuánto pedir, cuándo hacerlo y cuánto cuesta mantener la política.</p>
+      <h1>INVENTARIOS <em>EOQ–EPQ</em></h1>
+      <p>Determine cuánto pedir o producir, cuándo iniciar y cuánto cuesta la política.</p>
     </div>
     <ol class="flujo" aria-label="Flujo de trabajo">
       <li class="activo" data-paso="datos"><span>01</span> Datos</li>
@@ -62,8 +62,8 @@
         <label class="campo campo-completo" for="modelo">Modelo
           <select id="modelo" name="modelo">
             <option value="eoq">EOQ · Demanda constante</option>
+            <option value="epq">EPQ · Producción gradual</option>
             <option disabled>EOQ con faltantes · Próximamente</option>
-            <option disabled>EPQ · Próximamente</option>
             <option disabled>Descuentos por cantidad · Próximamente</option>
           </select>
         </label>
@@ -74,6 +74,7 @@
 
         <div class="rejilla-campos">
           <label class="campo" for="demanda"><span class="rotulo-con-simbolo">Demanda anual <i class="simbolo-variable">D</i></span><span class="entrada-unidad"><input id="demanda" name="demanda" type="number" min="0" step="any" inputmode="decimal" placeholder="1200"><span>unid.</span></span></label>
+          <label id="campo-produccion" class="campo" for="tasa-produccion" hidden><span class="rotulo-con-simbolo">Producción anual <i class="simbolo-variable">P</i></span><span class="entrada-unidad"><input id="tasa-produccion" name="tasaProduccion" type="number" min="0" step="any" inputmode="decimal" placeholder="4800"><span>unid.</span></span><small>Debe ser mayor que la demanda.</small></label>
           <label class="campo" for="costo-pedido"><span class="rotulo-con-simbolo">Costo por pedido <i class="simbolo-variable">C<sub>o</sub></i></span><span class="entrada-unidad"><input id="costo-pedido" name="costoPedido" type="number" min="0" step="any" inputmode="decimal" placeholder="20"><span class="simbolo-moneda">S/</span></span></label>
           <label class="campo" for="costo-unitario"><span class="rotulo-con-simbolo">Costo unitario <i class="simbolo-variable">C</i></span><span class="entrada-unidad"><input id="costo-unitario" name="costoUnitario" type="number" min="0" step="any" inputmode="decimal" placeholder="2"><span class="simbolo-moneda">S/</span></span></label>
           <label class="campo" for="dias-laborables"><span class="rotulo-con-simbolo">Días laborables <i class="simbolo-variable">d<sub>a</sub></i></span><span class="entrada-unidad"><input id="dias-laborables" name="diasLaborables" type="number" min="1" step="1" inputmode="numeric" placeholder="240"><span>días</span></span></label>
@@ -101,7 +102,7 @@
         </fieldset>
 
         <div class="acciones-formulario">
-          <button id="cargar-ejemplo" class="boton boton-secundario" type="button">Ejemplo del docente</button>
+          <button id="cargar-ejemplo" class="boton boton-secundario" type="button">Cargar ejemplo</button>
           <button id="limpiar" class="boton boton-terciario boton-peligro" type="button">Limpiar</button>
         </div>
 
@@ -113,7 +114,7 @@
     <section class="area-analisis" aria-label="Análisis del inventario">
       <div id="estado-vacio" class="estado-vacio">
         <span class="paso-inicial">01</span>
-        <div><p class="sobretitulo">Nuevo análisis</p><h2>Ingrese los datos del producto</h2><p>Puede cargar el ejemplo del docente para explorar la política EOQ completa.</p></div>
+        <div><p class="sobretitulo">Nuevo análisis</p><h2>Ingrese los datos del producto</h2><p>Seleccione EOQ o EPQ y use el ejemplo para conocer el flujo completo.</p></div>
       </div>
 
       <section id="salida" class="salida" hidden>
@@ -126,10 +127,10 @@
         </div>
 
         <div class="resumen" aria-label="Indicadores principales">
-          <article class="tarjeta-resumen tarjeta-destacada"><span>Cantidad económica <i>Q*</i></span><strong id="lote-optimo">—</strong><small>unidades por pedido</small></article>
-          <article class="tarjeta-resumen"><span>Punto de reorden <i>r</i></span><strong id="punto-reorden">—</strong><small>unidades disponibles</small></article>
-          <article class="tarjeta-resumen"><span>Pedidos por año <i>N</i></span><strong id="numero-pedidos">—</strong><small id="pedidos-practicos">—</small></article>
-          <article class="tarjeta-resumen"><span>Tiempo entre pedidos <i>T</i></span><strong id="tiempo-ciclo">—</strong><small>días laborables</small></article>
+          <article class="tarjeta-resumen tarjeta-destacada"><span id="rotulo-lote">Cantidad económica <i>Q*</i></span><strong id="lote-optimo">—</strong><small id="detalle-lote">unidades por pedido</small></article>
+          <article class="tarjeta-resumen"><span id="rotulo-reorden">Punto de reorden <i>r</i></span><strong id="punto-reorden">—</strong><small id="detalle-reorden">unidades disponibles</small></article>
+          <article class="tarjeta-resumen"><span id="rotulo-frecuencia">Pedidos por año <i>N</i></span><strong id="numero-pedidos">—</strong><small id="pedidos-practicos">—</small></article>
+          <article class="tarjeta-resumen"><span id="rotulo-ciclo">Tiempo entre pedidos <i>T</i></span><strong id="tiempo-ciclo">—</strong><small>días laborables</small></article>
         </div>
 
         <div id="recomendacion" class="recomendacion" aria-live="polite"></div>
@@ -145,7 +146,7 @@
         <div id="panel-politica" class="panel-pestana activo" role="tabpanel" aria-labelledby="pestana-politica">
           <section class="panel panel-grafico">
             <div class="encabezado-panel">
-              <div><p class="sobretitulo">Nivel de existencias</p><h2>Cuándo realizar cada pedido</h2></div>
+              <div><p class="sobretitulo">Nivel de existencias</p><h2 id="titulo-grafico-politica">Evolución del inventario</h2></div>
               <div class="acciones-grafico">
                 <div class="leyenda"><span><i class="muestra inventario"></i> Inventario</span><span><i class="muestra reorden"></i> Punto de pedido</span></div>
                 <label class="control-compacto" for="ciclos-grafico">Ciclos
@@ -184,7 +185,7 @@
               <dl>
                 <div><dt>Pedidos al año <i>CP</i></dt><dd id="costo-ordenar">—</dd></div>
                 <div><dt>Retención al año <i>CR</i></dt><dd id="costo-mantener">—</dd></div>
-                <div class="fila-relevante"><dt>Costo anual EOQ <i>CT</i></dt><dd id="costo-relevante">—</dd></div>
+                <div class="fila-relevante"><dt id="rotulo-costo-relevante">Costo anual del modelo <i>CT</i></dt><dd id="costo-relevante">—</dd></div>
                 <div><dt>Compra anual <i>CA</i></dt><dd id="costo-adquisicion">—</dd></div>
                 <div class="fila-total"><dt>Total con compra <i>CT + CA</i></dt><dd id="costo-total">—</dd></div>
               </dl>
@@ -202,12 +203,12 @@
         <div id="panel-comparar" class="panel-pestana" role="tabpanel" aria-labelledby="pestana-comparar" hidden>
           <section class="panel panel-comparacion">
             <div class="encabezado-panel">
-              <div><p class="sobretitulo">Análisis de sensibilidad</p><h2>Compare escenarios</h2><p class="descripcion-panel">Pegue filas desde Excel o edite las celdas. (C_h) se expresa por unidad al año.</p></div>
+              <div><p class="sobretitulo">Análisis de sensibilidad</p><h2>Compare escenarios</h2><p id="ayuda-comparacion" class="descripcion-panel">Pegue filas desde Excel o edite las celdas. Cₕ se expresa por unidad al año.</p></div>
               <div class="acciones-resultados"><button id="pegar-escenarios" class="boton boton-terciario" type="button">Pegar tabla</button><button id="agregar-escenario" class="boton boton-secundario" type="button">Agregar escenario</button></div>
             </div>
             <div class="tabla-contenedor">
               <table class="tabla-comparacion">
-                <thead><tr><th>Escenario</th><th>Demanda D</th><th>Pedido C<sub>o</sub></th><th>Mant. C<sub>h</sub></th><th>Q*</th><th>Pedidos/año</th><th>Costo anual EOQ</th><th></th></tr></thead>
+                <thead><tr><th>Escenario</th><th>Demanda D</th><th>Pedido C<sub>o</sub></th><th>Mant. C<sub>h</sub></th><th class="columna-produccion" hidden>Producción P</th><th>Q*</th><th>Ciclos/año</th><th>Costo anual</th><th></th></tr></thead>
                 <tbody id="escenarios"></tbody>
               </table>
             </div>
@@ -224,18 +225,21 @@
   </button>
 
   <dialog id="dialogo-guia" class="dialogo">
-    <div class="cabecera-dialogo"><div><p class="sobretitulo">Modelo EOQ</p><h2>Teoría y notación</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div>
-    <p class="introduccion-guia">El modelo determina la cantidad económica de pedido y el nivel de inventario en el que debe emitirse una nueva orden.</p>
+    <div class="cabecera-dialogo"><div><p class="sobretitulo">Modelos EOQ y EPQ</p><h2>Teoría y notación</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div>
+    <p class="introduccion-guia">EOQ supone reposición instantánea; EPQ representa un lote que ingresa gradualmente mientras también se consume.</p>
     <div class="contenido-guia">
       <div class="preguntas-eoq">
         <article><span>a</span><div><small>Cantidad económica de pedido</small><strong>\(Q^*=\sqrt{\frac{2DC_o}{C_h}}\)</strong><p>Equilibra el costo anual de pedidos y el costo anual de retención.</p></div></article>
-        <article><span>b</span><div><small>Punto de reorden</small><strong>\(d=\frac{D}{d_a},\quad r=dm\)</strong><p>Cubre la demanda diaria durante el tiempo de entrega.</p></div></article>
+        <article><span>b</span><div><small>Lote económico de producción</small><strong>\(Q^*=\sqrt{\frac{2DC_o}{C_h(1-D/P)}}\)</strong><p>Considera que las unidades se producen y consumen simultáneamente.</p></div></article>
+        <article><span>c</span><div><small>Inventario máximo EPQ</small><strong>\(I_{max}=Q^*(1-D/P)\)</strong><p>El almacén nunca recibe todo el lote de una sola vez.</p></div></article>
+        <article><span>d</span><div><small>Punto de reorden</small><strong>\(d=\frac{D}{d_a},\quad r=dm\)</strong><p>Cubre la demanda diaria durante el tiempo de preparación o entrega.</p></div></article>
       </div>
       <section class="bloque-guia"><h3>Diccionario de símbolos</h3><div class="diccionario-simbolos">
-        <p><b>D</b><span>Demanda anual</span></p><p><b>C<sub>o</sub></b><span>Costo de emitir un pedido</span></p><p><b>C<sub>h</sub></b><span>Costo anual de retención por unidad</span></p><p><b>C</b><span>Costo unitario</span></p><p><b>I</b><span>Tasa anual de mantenimiento</span></p><p><b>m</b><span>Tiempo de entrega</span></p><p><b>d</b><span>Demanda diaria</span></p><p><b>d<sub>a</sub></b><span>Días laborables al año</span></p><p><b>N</b><span>Número de pedidos por año</span></p><p><b>T</b><span>Tiempo entre pedidos</span></p><p><b>r</b><span>Punto de reorden</span></p><p><b>Q*</b><span>Cantidad económica de pedido</span></p><p><b>C<sub>máx</sub></b><span>Capacidad máxima disponible</span></p>
+        <p><b>D</b><span>Demanda anual</span></p><p><b>P</b><span>Tasa anual de producción</span></p><p><b>C<sub>o</sub></b><span>Costo de ordenar o preparar</span></p><p><b>C<sub>h</sub></b><span>Costo anual de retención por unidad</span></p><p><b>C</b><span>Costo unitario</span></p><p><b>I</b><span>Tasa anual de mantenimiento</span></p><p><b>m</b><span>Tiempo de entrega o preparación</span></p><p><b>d</b><span>Demanda diaria</span></p><p><b>d<sub>a</sub></b><span>Días laborables al año</span></p><p><b>N</b><span>Número de ciclos por año</span></p><p><b>T</b><span>Tiempo entre ciclos</span></p><p><b>r</b><span>Punto de reorden</span></p><p><b>Q*</b><span>Lote económico</span></p><p><b>I<sub>max</sub></b><span>Inventario máximo EPQ</span></p><p><b>C<sub>máx</sub></b><span>Capacidad máxima disponible</span></p>
       </div></section>
       <section class="bloque-guia"><h3>Supuestos para usar EOQ básico</h3><ul><li>Demanda conocida y constante.</li><li>Tiempo de entrega constante.</li><li>Reposición completa del lote.</li><li>Sin faltantes ni descuentos por cantidad.</li></ul></section>
-      <div class="nota-guia"><strong>Costos anuales</strong><p>\(CP=\frac{D}{Q^*}C_o\), \(CR=\frac{Q^*}{2}C_h\) y \(CT=CP+CR\). El costo de compra \(CA=DC\) se muestra aparte.</p></div>
+      <section class="bloque-guia"><h3>Supuestos adicionales de EPQ</h3><ul><li>Producción y demanda constantes.</li><li>La tasa de producción es mayor que la demanda.</li><li>El lote ingresa gradualmente.</li><li>No se permiten faltantes.</li></ul></section>
+      <div class="nota-guia"><strong>Costos anuales</strong><p>En EOQ: \(CR=\frac{Q^*}{2}C_h\). En EPQ: \(CR=\frac{I_{max}}{2}C_h\). En ambos modelos, \(CP=\frac{D}{Q^*}C_o\), \(CT=CP+CR\) y el costo de compra \(CA=DC\) se muestra aparte.</p></div>
       <div class="nota-guia nota-redondeo"><strong>Criterio de redondeo</strong><p>La calculadora conserva todos los decimales durante el procedimiento y presenta la respuesta con dos decimales. Si un desarrollo manual trunca valores intermedios, puede diferir por algunas centésimas.</p></div>
     </div>
     <button class="boton boton-principal cerrar-dialogo" type="button">Cerrar</button>
@@ -243,7 +247,7 @@
 
   <dialog id="dialogo-pegar" class="dialogo dialogo-pegar">
     <div class="cabecera-dialogo"><div><p class="sobretitulo">Importación rápida</p><h2>Pegar escenarios desde Excel</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div>
-    <p>Orden de columnas: <strong>Escenario, Demanda, Costo por pedido, Mantenimiento por unidad</strong>.</p>
+    <p id="orden-columnas">Orden de columnas: <strong>Escenario, Demanda, Costo por pedido, Mantenimiento por unidad</strong>.</p>
     <textarea id="datos-pegados" rows="9" placeholder="Base&#9;1200&#9;20&#9;0.30&#10;Alta demanda&#9;1500&#9;20&#9;0.30"></textarea>
     <div class="pie-dialogo"><button class="boton boton-terciario cerrar-dialogo" type="button">Cancelar</button><button id="importar-escenarios" class="boton boton-principal" type="button">Importar tabla <span>→</span></button></div>
   </dialog>

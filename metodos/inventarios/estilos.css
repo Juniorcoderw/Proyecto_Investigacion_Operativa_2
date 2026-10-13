@@ -99,6 +99,7 @@ h2 { margin: 0; color: var(--tinta); font-family: "Space Grotesk"; font-size: 1.
 form { display: grid; gap: 12px; margin-top: 17px; }
 .campo { display: grid; min-width: 0; gap: 6px; color: #4d605a; font-size: .63rem; font-weight: 800; letter-spacing: .045em; text-transform: uppercase; }
 .campo-completo { width: 100%; }
+.campo > small { margin-top: -2px; color: #7d8985; font-size: .56rem; font-weight: 600; letter-spacing: 0; line-height: 1.35; text-transform: none; }
 .rotulo-con-simbolo { display: flex; min-height: 19px; align-items: center; justify-content: space-between; gap: 7px; }
 .rotulo-con-simbolo small { margin-left: auto; color: #8b9691; font-size: .5rem; font-weight: 700; letter-spacing: 0; text-transform: none; }
 .simbolo-variable { display: inline-grid; min-width: 21px; height: 19px; padding: 0 5px; place-items: center; border: 1px solid #d5d1c6; border-radius: 6px; background: #fffdf7; color: #92621b; font-family: Georgia,serif; font-size: .68rem; font-weight: 700; letter-spacing: 0; line-height: 1; text-transform: none; }
@@ -226,7 +227,7 @@ select:disabled { color: #9fa7a4; }
 .panel-comparacion .encabezado-panel { align-items: flex-start; margin-bottom: 14px; }
 .tabla-contenedor { width: 100%; overflow: auto; border: 1px solid var(--borde); border-radius: 11px; }
 table { width: 100%; border-collapse: separate; border-spacing: 0; }
-.tabla-comparacion { min-width: 790px; }
+.tabla-comparacion { min-width: 840px; }
 .tabla-comparacion th { padding: 10px 8px; border-right: 1px solid rgba(255,255,255,.12); background: var(--bosque); color: #fff; font-size: .59rem; text-transform: uppercase; white-space: nowrap; }
 .tabla-comparacion td { height: 43px; padding: 4px; border-right: 1px solid #ebe8df; border-bottom: 1px solid #e6e3db; color: #52615c; font-size: .68rem; text-align: center; }
 .tabla-comparacion tr:nth-child(even) td { background: #fbfaf6; }
@@ -276,6 +277,19 @@ table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .dialogo textarea { width: 100%; padding: 11px; resize: vertical; font-family: Consolas,monospace; font-size: .72rem; line-height: 1.5; }
 .pie-dialogo { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .pie-dialogo .boton-principal { width: auto; min-width: 170px; }
+
+.pagina-pruebas { min-height: 100vh; padding: 32px; }
+.panel-pruebas { width: min(760px,100%); margin: auto; padding: 24px; }
+.panel-pruebas h1 { margin: 0; font-family: "Space Grotesk",sans-serif; font-size: 1.55rem; }
+.panel-pruebas > p:not(.sobretitulo):not(.resumen-pruebas) { color: var(--texto); font-size: .75rem; }
+.resumen-pruebas { padding: 11px 13px; border-radius: 9px; font-size: .75rem; font-weight: 800; }
+.pruebas-superadas { border: 1px solid #b8ded2; background: #eaf7f2; color: #1e6956; }
+.pruebas-con-fallos { border: 1px solid #efc8bf; background: #fff4f0; color: var(--peligro); }
+.lista-pruebas { display: grid; gap: 7px; margin: 15px 0 20px; padding: 0; list-style: none; }
+.lista-pruebas li { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 9px; background: #fff; font-size: .72rem; }
+.lista-pruebas li strong { color: var(--bosque-claro); }
+.lista-pruebas li span { color: var(--peligro); }
+.aplicacion-pruebas { position: fixed; width: 1px; height: 1px; border: 0; opacity: 0; pointer-events: none; }
 
 @media (max-width: 1160px) {
   .espacio-trabajo { grid-template-columns: 360px minmax(0,1fr); }
