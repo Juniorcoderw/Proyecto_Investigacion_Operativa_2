@@ -77,8 +77,9 @@
           <button id="exportar-csv" type="button" class="boton boton-terciario">↓ CSV</button>
           <input id="archivo-csv" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" hidden>
         </div>
-        <div class="grupo-herramientas">
-          <button id="ejemplo" type="button" class="boton boton-terciario">↻ Ejemplo</button>
+        <div class="grupo-herramientas grupo-ejemplos">
+          <label class="selector-caso" for="caso-ejemplo"><span>Caso de práctica</span><select id="caso-ejemplo" aria-label="Caso de práctica"></select></label>
+          <button id="ejemplo" type="button" class="boton boton-terciario">Cargar</button>
           <button id="limpiar" type="button" class="boton boton-terciario boton-peligro">Limpiar</button>
         </div>
       </div>
@@ -124,7 +125,7 @@
             <div class="encabezado-panel encabezado-red">
               <div><p class="sobretitulo">Actividad en el nodo · AON</p><h2 id="titulo-red">Diagrama de red</h2></div>
               <div class="acciones-red">
-                <button id="abrir-teoria-red" type="button" class="boton boton-terciario">Teoría y modelo</button>
+                <button id="abrir-teoria-red" type="button" class="boton boton-terciario">Guía del método</button>
                 <div class="controles-red" aria-label="Controles del diagrama">
                   <button id="alejar-red" type="button" aria-label="Alejar diagrama">−</button><button id="restablecer-red" type="button">Ajustar</button><output id="escala-red" aria-live="polite">100%</output><button id="acercar-red" type="button" aria-label="Acercar diagrama">+</button>
                 </div>
@@ -174,7 +175,6 @@
           <section class="panel" aria-labelledby="titulo-desarrollo">
             <div class="encabezado-panel encabezado-desarrollo">
               <div><p class="sobretitulo">Procedimiento verificable</p><h2 id="titulo-desarrollo">Desarrollo paso a paso</h2><p class="descripcion-panel">Operaciones numéricas por actividad, en el mismo orden de la red.</p></div>
-              <div class="acciones-desarrollo"><button id="abrir-teoria" type="button" class="boton boton-terciario">Teoría y modelo</button></div>
             </div>
             <div id="desarrollo" class="desarrollo"></div>
             <details class="resumen-solucion">
@@ -198,8 +198,14 @@
     </section>
   </main>
 
+  <footer class="pie-modulo">
+    <a href="../../index.html" class="pie-modulo-marca"><img src="../../assets/institucional/logo-unjbg.png" alt=""><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
+    <p>PERT–CPM · Planificación de proyectos</p>
+    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#calculadoras">Módulos</a><a href="../../index.html#equipo">Equipo</a></nav>
+  </footer>
+
   <button id="teoria-flotante" class="teoria-flotante" type="button" aria-label="Abrir fundamentos y modelamiento matemático de PERT CPM">
-    <span aria-hidden="true">i</span><strong>Teoría y modelo</strong>
+    <span aria-hidden="true">i</span><strong>Guía del método</strong>
   </button>
 
   <dialog id="dialogo-carga" class="dialogo-carga">

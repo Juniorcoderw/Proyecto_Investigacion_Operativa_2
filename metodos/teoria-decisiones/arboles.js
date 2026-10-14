@@ -10,6 +10,11 @@ const elementosArbol = {
   tituloNodo: document.getElementById("titulo-nodo-seleccionado"),
   identificadorNodo: document.getElementById("identificador-nodo"),
   ayudaTipo: document.getElementById("ayuda-tipo"),
+  herramientasRamas: document.getElementById("herramientas-ramas"),
+  copiarTodasRamas: document.getElementById("copiar-todas-ramas"),
+  copiarRamas: document.getElementById("copiar-ramas"),
+  pegarRamas: document.getElementById("pegar-ramas"),
+  estadoPortapapeles: document.getElementById("estado-portapapeles"),
   listaRamas: document.getElementById("lista-ramas"),
   agregarRama: document.getElementById("agregar-rama"),
   eliminarNodo: document.getElementById("eliminar-nodo"),
@@ -33,6 +38,7 @@ let contadorNodos = 1;
 let calculoActual = null;
 let nivelZoom = 1;
 let temporizadorArbol = null;
+let portapapelesRamas = null;
 
 function numeroArbol(valor) {
   const convertido = Number(String(valor ?? "").trim().replace(",", "."));
@@ -63,86 +69,79 @@ function crearArbolVacio() {
   };
 }
 
-function crearEjemploArbol(clave = "lanzamiento") {
+function crearEjemploArbol(clave = "rifa") {
   const casos = {
-    lanzamiento: {
-      problema: "Lanzamiento de un producto",
+    rifa: {
+      problema: "Decisión sobre una rifa",
       objetivo: "maximizar",
       raiz: "n1",
       nodos: [
-        { id: "n1", tipo: "decision", nombre: "Estrategia inicial", ramas: [
-          { nombre: "Desarrollar", valor: -60, probabilidad: null, destino: "n2" },
-          { nombre: "Licenciar", valor: 55, probabilidad: null, destino: "n3" }
+        { id: "n1", tipo: "decision", nombre: "Participar en la rifa", ramas: [
+          { nombre: "Comprar número", valor: 0, probabilidad: null, destino: "n2" },
+          { nombre: "No comprar", valor: 0, probabilidad: null, destino: "n3" }
         ] },
-        { id: "n2", tipo: "azar", nombre: "Resultado técnico", ramas: [
-          { nombre: "Éxito", valor: 0, probabilidad: .65, destino: "n4" },
-          { nombre: "Fallo", valor: -30, probabilidad: .35, destino: "n5" }
+        { id: "n2", tipo: "azar", nombre: "Resultado de la rifa", ramas: [
+          { nombre: "Ganar", valor: 4900, probabilidad: .01, destino: "n4" },
+          { nombre: "Perder", valor: -100, probabilidad: .99, destino: "n5" }
         ] },
-        { id: "n3", tipo: "terminal", nombre: "Ingreso seguro", ramas: [] },
-        { id: "n4", tipo: "decision", nombre: "Escala de lanzamiento", ramas: [
-          { nombre: "Amplio", valor: 220, probabilidad: null, destino: "n6" },
-          { nombre: "Limitado", valor: 150, probabilidad: null, destino: "n7" }
-        ] },
-        { id: "n5", tipo: "terminal", nombre: "Proyecto detenido", ramas: [] },
-        { id: "n6", tipo: "terminal", nombre: "Mercado nacional", ramas: [] },
-        { id: "n7", tipo: "terminal", nombre: "Mercado regional", ramas: [] }
+        { id: "n3", tipo: "terminal", nombre: "No participa", ramas: [] },
+        { id: "n4", tipo: "terminal", nombre: "Premio neto", ramas: [] },
+        { id: "n5", tipo: "terminal", nombre: "Costo del número", ramas: [] }
       ]
     },
-    mantenimiento: {
-      problema: "Reparar o reemplazar un equipo",
+    vacaciones: {
+      problema: "Vacaciones en el extranjero",
       objetivo: "minimizar",
       raiz: "n1",
       nodos: [
-        { id: "n1", tipo: "decision", nombre: "Decisión de mantenimiento", ramas: [
-          { nombre: "Reparar", valor: 18, probabilidad: null, destino: "n2" },
-          { nombre: "Reemplazar", valor: 52, probabilidad: null, destino: "n3" }
+        { id: "n1", tipo: "decision", nombre: "Destino de vacaciones", ramas: [
+          { nombre: "México", valor: 0, probabilidad: null, destino: "n2" },
+          { nombre: "Panamá", valor: 0, probabilidad: null, destino: "n3" },
+          { nombre: "Venezuela", valor: 0, probabilidad: null, destino: "n4" }
         ] },
-        { id: "n2", tipo: "azar", nombre: "Resultado de la reparación", ramas: [
-          { nombre: "Funciona", valor: 12, probabilidad: .70, destino: "n4" },
-          { nombre: "Falla nuevamente", valor: 48, probabilidad: .30, destino: "n5" }
+        { id: "n2", tipo: "azar", nombre: "Dólar en México", ramas: [
+          { nombre: "Alto", valor: 0, probabilidad: .70, destino: "n5" },
+          { nombre: "Bajo", valor: 0, probabilidad: .30, destino: "n6" }
         ] },
-        { id: "n3", tipo: "terminal", nombre: "Equipo nuevo", ramas: [] },
-        { id: "n4", tipo: "terminal", nombre: "Operación estable", ramas: [] },
-        { id: "n5", tipo: "terminal", nombre: "Segunda intervención", ramas: [] }
-      ]
-    },
-    estudio: {
-      problema: "Estudio previo al lanzamiento",
-      objetivo: "maximizar",
-      raiz: "n1",
-      nodos: [
-        { id: "n1", tipo: "decision", nombre: "Información de mercado", ramas: [
-          { nombre: "Realizar estudio", valor: -8, probabilidad: null, destino: "n2" },
-          { nombre: "Omitir estudio", valor: 0, probabilidad: null, destino: "n3" }
+        { id: "n3", tipo: "azar", nombre: "Dólar en Panamá", ramas: [
+          { nombre: "Alto", valor: 0, probabilidad: .70, destino: "n7" },
+          { nombre: "Bajo", valor: 0, probabilidad: .30, destino: "n8" }
         ] },
-        { id: "n2", tipo: "azar", nombre: "Resultado del estudio", ramas: [
-          { nombre: "Favorable", valor: 0, probabilidad: .60, destino: "n4" },
-          { nombre: "Desfavorable", valor: 0, probabilidad: .40, destino: "n5" }
+        { id: "n4", tipo: "azar", nombre: "Dólar en Venezuela", ramas: [
+          { nombre: "Alto", valor: 0, probabilidad: .70, destino: "n9" },
+          { nombre: "Bajo", valor: 0, probabilidad: .30, destino: "n10" }
         ] },
-        { id: "n3", tipo: "azar", nombre: "Mercado sin estudio", ramas: [
-          { nombre: "Demanda alta", valor: 100, probabilidad: .45, destino: "n10" },
-          { nombre: "Demanda baja", valor: -35, probabilidad: .55, destino: "n11" }
+        { id: "n5", tipo: "azar", nombre: "Clima en México · dólar alto", ramas: [
+          { nombre: "Soleado", valor: 722.5, probabilidad: .60, destino: "n11" },
+          { nombre: "Lluvioso", valor: 925, probabilidad: .40, destino: "n12" }
         ] },
-        { id: "n4", tipo: "decision", nombre: "Tras informe favorable", ramas: [
-          { nombre: "Lanzar", valor: 120, probabilidad: null, destino: "n6" },
-          { nombre: "Abandonar", valor: 0, probabilidad: null, destino: "n7" }
+        { id: "n6", tipo: "azar", nombre: "Clima en México · dólar bajo", ramas: [
+          { nombre: "Soleado", valor: 425, probabilidad: .60, destino: "n13" },
+          { nombre: "Lluvioso", valor: 575, probabilidad: .40, destino: "n14" }
         ] },
-        { id: "n5", tipo: "decision", nombre: "Tras informe desfavorable", ramas: [
-          { nombre: "Lanzar", valor: -50, probabilidad: null, destino: "n8" },
-          { nombre: "Abandonar", valor: 0, probabilidad: null, destino: "n9" }
+        { id: "n7", tipo: "azar", nombre: "Clima en Panamá · dólar alto", ramas: [
+          { nombre: "Soleado", valor: 765, probabilidad: .80, destino: "n15" },
+          { nombre: "Lluvioso", valor: 975, probabilidad: .20, destino: "n16" }
         ] },
-        { id: "n6", tipo: "terminal", nombre: "Lanzamiento favorable", ramas: [] },
-        { id: "n7", tipo: "terminal", nombre: "Retiro favorable", ramas: [] },
-        { id: "n8", tipo: "terminal", nombre: "Lanzamiento adverso", ramas: [] },
-        { id: "n9", tipo: "terminal", nombre: "Retiro adverso", ramas: [] },
-        { id: "n10", tipo: "terminal", nombre: "Mercado alto", ramas: [] },
-        { id: "n11", tipo: "terminal", nombre: "Mercado bajo", ramas: [] }
+        { id: "n8", tipo: "azar", nombre: "Clima en Panamá · dólar bajo", ramas: [
+          { nombre: "Soleado", valor: 340, probabilidad: .80, destino: "n17" },
+          { nombre: "Lluvioso", valor: 475, probabilidad: .20, destino: "n18" }
+        ] },
+        { id: "n9", tipo: "azar", nombre: "Clima en Venezuela · dólar alto", ramas: [
+          { nombre: "Soleado", valor: 637.5, probabilidad: .40, destino: "n19" },
+          { nombre: "Lluvioso", valor: 825, probabilidad: .60, destino: "n20" }
+        ] },
+        { id: "n10", tipo: "azar", nombre: "Clima en Venezuela · dólar bajo", ramas: [
+          { nombre: "Soleado", valor: 382.5, probabilidad: .40, destino: "n21" },
+          { nombre: "Lluvioso", valor: 525, probabilidad: .60, destino: "n22" }
+        ] },
+        ...Array.from({ length: 12 }, (_, indice) => ({ id: `n${indice + 11}`, tipo: "terminal", nombre: `Resultado ${indice + 1}`, ramas: [] }))
       ]
     }
   };
-  const caso = casos[clave] || casos.lanzamiento;
+  const caso = casos[clave] || casos.rifa;
   contadorNodos = Math.max(...caso.nodos.map(nodo => Number(nodo.id.replace(/\D/g, "")) || 0));
-  return { ...JSON.parse(JSON.stringify(caso)), caso: casos[clave] ? clave : "lanzamiento" };
+  return { ...JSON.parse(JSON.stringify(caso)), caso: casos[clave] ? clave : "rifa" };
 }
 
 function buscarNodo(id, datos = arbol) {
@@ -237,6 +236,92 @@ function padreDe(id) {
   return null;
 }
 
+function serializarNodoParaCopia(id, datos = arbol, visitados = new Set()) {
+  if (visitados.has(id)) throw new Error("No se puede copiar una estructura con ciclos.");
+  const nodo = buscarNodo(id, datos);
+  if (!nodo) throw new Error(`No se encontró el nodo ${id}.`);
+  const rutaVisitada = new Set(visitados);
+  rutaVisitada.add(id);
+  return {
+    tipo: nodo.tipo,
+    nombre: nodo.nombre,
+    ramas: nodo.ramas.map(rama => ({
+      nombre: rama.nombre,
+      valor: rama.valor,
+      probabilidad: rama.probabilidad,
+      hijo: serializarNodoParaCopia(rama.destino, datos, rutaVisitada)
+    }))
+  };
+}
+
+function crearCopiaDeRamas(datos, idNodo, indices, modo = "conjunto") {
+  const nodo = buscarNodo(idNodo, datos);
+  if (!nodo || nodo.tipo === "terminal") throw new Error("Seleccione un nodo con ramas para copiar.");
+  const indicesValidos = [...new Set(indices)].filter(indice => Number.isInteger(indice) && nodo.ramas[indice]);
+  if (!indicesValidos.length) throw new Error("Seleccione al menos una rama.");
+  return {
+    tipoNodo: nodo.tipo,
+    modo,
+    ramas: indicesValidos.map(indice => {
+      const rama = nodo.ramas[indice];
+      return {
+        nombre: rama.nombre,
+        valor: rama.valor,
+        probabilidad: rama.probabilidad,
+        hijo: serializarNodoParaCopia(rama.destino, datos)
+      };
+    })
+  };
+}
+
+function siguienteIdEn(datos) {
+  do { contadorNodos += 1; } while (datos.nodos.some(nodo => nodo.id === `n${contadorNodos}`));
+  return `n${contadorNodos}`;
+}
+
+function materializarNodoCopiado(datos, copiaNodo) {
+  const id = siguienteIdEn(datos);
+  const nodoNuevo = { id, tipo: copiaNodo.tipo, nombre: copiaNodo.nombre, ramas: [] };
+  datos.nodos.push(nodoNuevo);
+  nodoNuevo.ramas = copiaNodo.ramas.map(rama => ({
+    nombre: rama.nombre,
+    valor: rama.valor,
+    probabilidad: rama.probabilidad,
+    destino: materializarNodoCopiado(datos, rama.hijo)
+  }));
+  return id;
+}
+
+function idsDeSubarbol(datos, id) {
+  const ids = new Set([id]);
+  const nodo = buscarNodo(id, datos);
+  nodo?.ramas.forEach(rama => idsDeSubarbol(datos, rama.destino).forEach(actual => ids.add(actual)));
+  return ids;
+}
+
+function pegarCopiaDeRamas(datos, idNodo, copia) {
+  const nodo = buscarNodo(idNodo, datos);
+  if (!nodo || nodo.tipo === "terminal") throw new Error("Seleccione un nodo de decisión o incertidumbre para pegar.");
+  if (!copia?.ramas?.length) throw new Error("Primero copie una o más ramas.");
+  if (nodo.tipo !== copia.tipoNodo) throw new Error("Solo puede pegar entre nodos del mismo tipo.");
+
+  if (copia.modo === "estructura" || copia.modo === "conjunto") {
+    const idsEliminar = new Set();
+    nodo.ramas.forEach(rama => idsDeSubarbol(datos, rama.destino).forEach(id => idsEliminar.add(id)));
+    datos.nodos = datos.nodos.filter(actual => !idsEliminar.has(actual.id));
+    nodo.ramas = [];
+  }
+
+  const nuevasRamas = copia.ramas.map(rama => ({
+    nombre: rama.nombre,
+    valor: rama.valor,
+    probabilidad: rama.probabilidad,
+    destino: materializarNodoCopiado(datos, rama.hijo)
+  }));
+  nodo.ramas.push(...nuevasRamas);
+  return nuevasRamas.map(rama => rama.destino);
+}
+
 function asegurarRamas(nodo) {
   if (nodo.tipo === "terminal" || nodo.ramas.length) return;
   for (let indice = 0; indice < 2; indice += 1) {
@@ -254,33 +339,135 @@ function renderizarEditor() {
   elementosArbol.nombreNodo.value = nodo.nombre;
   elementosArbol.tipoNodo.value = nodo.tipo;
   elementosArbol.ayudaTipo.textContent = nodo.tipo === "decision" ? "Compare las ramas y conserve la mejor." : nodo.tipo === "azar" ? "La suma de probabilidades debe ser 1 o 100 %." : "Este nodo cierra una secuencia; no tiene ramas.";
-  elementosArbol.listaRamas.innerHTML = nodo.ramas.map((rama, indice) => `<article class="rama-editor" data-rama="${indice}"><div class="cabecera-rama"><strong>Rama ${indice + 1}</strong><button class="eliminar eliminar-rama" type="button" aria-label="Eliminar rama" ${nodo.ramas.length <= 2 ? "disabled" : ""}>×</button></div><label>Nombre<input data-campo="nombre" type="text" maxlength="45" value="${escaparArbol(rama.nombre)}"></label><div class="campos-rama"><label>Valor inmediato<input data-campo="valor" type="number" step="any" value="${rama.valor}"></label>${nodo.tipo === "azar" ? `<label>Probabilidad<input data-campo="probabilidad" type="number" min="0" step="any" value="${rama.probabilidad ?? 0}"></label>` : ""}</div><button class="abrir-hijo" type="button" data-destino="${rama.destino}">Editar nodo siguiente <span>→</span></button></article>`).join("");
+  elementosArbol.listaRamas.innerHTML = nodo.ramas.map((rama, indice) => `<article class="rama-editor" data-rama="${indice}"><div class="cabecera-rama"><label class="seleccion-rama"><input class="seleccionar-rama" type="checkbox" aria-label="Seleccionar rama ${indice + 1}"><strong>Rama ${indice + 1}</strong></label><div class="acciones-rama"><button class="copiar-rama" type="button" aria-label="Copiar rama ${indice + 1}">Copiar</button><button class="eliminar eliminar-rama" type="button" aria-label="Eliminar rama" ${nodo.ramas.length <= 2 ? "disabled" : ""}>×</button></div></div><label>Nombre<input data-campo="nombre" type="text" maxlength="45" value="${escaparArbol(rama.nombre)}"></label><div class="campos-rama"><label>Valor inmediato<input data-campo="valor" type="number" step="any" value="${rama.valor}"></label>${nodo.tipo === "azar" ? `<label>Probabilidad<input data-campo="probabilidad" type="number" min="0" step="any" value="${rama.probabilidad ?? 0}"></label>` : ""}</div><button class="abrir-hijo" type="button" data-destino="${rama.destino}">Editar nodo siguiente <span>→</span></button></article>`).join("");
   elementosArbol.listaRamas.hidden = nodo.tipo === "terminal";
+  elementosArbol.herramientasRamas.hidden = nodo.tipo === "terminal";
   elementosArbol.agregarRama.hidden = nodo.tipo === "terminal";
   elementosArbol.eliminarNodo.disabled = nodo.id === arbol.raiz;
+  actualizarEstadoPortapapeles();
 }
 
-function calcularPosiciones() {
+function actualizarEstadoPortapapeles() {
+  const nodo = buscarNodo(nodoSeleccionado);
+  const seleccionadas = elementosArbol.listaRamas.querySelectorAll(".seleccionar-rama:checked").length;
+  elementosArbol.copiarTodasRamas.disabled = !nodo || nodo.tipo === "terminal" || nodo.ramas.length === 0;
+  elementosArbol.copiarRamas.disabled = !nodo || nodo.tipo === "terminal" || seleccionadas === 0;
+  const compatible = Boolean(portapapelesRamas && nodo && nodo.tipo !== "terminal" && portapapelesRamas.tipoNodo === nodo.tipo);
+  elementosArbol.pegarRamas.disabled = !compatible;
+  elementosArbol.pegarRamas.textContent = !portapapelesRamas
+    ? "Pegar en este nodo"
+    : portapapelesRamas.modo === "estructura" || portapapelesRamas.modo === "conjunto"
+      ? "Pegar estructura"
+      : "Agregar ramas";
+  if (!portapapelesRamas) {
+    elementosArbol.estadoPortapapeles.textContent = seleccionadas ? `${seleccionadas} rama${seleccionadas === 1 ? "" : "s"} seleccionada${seleccionadas === 1 ? "" : "s"}.` : "Copie toda la estructura o marque ramas específicas.";
+  } else if (!compatible) {
+    elementosArbol.estadoPortapapeles.textContent = `Copia disponible: ${portapapelesRamas.ramas.length} rama${portapapelesRamas.ramas.length === 1 ? "" : "s"}. Seleccione un nodo compatible.`;
+  } else {
+    const accion = portapapelesRamas.modo === "estructura" || portapapelesRamas.modo === "conjunto" ? "reemplazará las ramas actuales" : "se agregará al nodo";
+    elementosArbol.estadoPortapapeles.textContent = `Copia lista: ${portapapelesRamas.ramas.length} rama${portapapelesRamas.ramas.length === 1 ? "" : "s"}; al pegar ${accion}.`;
+  }
+}
+
+function copiarTodasLasRamas() {
+  const nodo = buscarNodo(nodoSeleccionado);
+  if (!nodo?.ramas.length) return;
+  portapapelesRamas = crearCopiaDeRamas(arbol, nodoSeleccionado, nodo.ramas.map((_, indice) => indice), "estructura");
+  renderizarEditor();
+}
+
+function copiarRamaIndividual(indice) {
+  portapapelesRamas = crearCopiaDeRamas(arbol, nodoSeleccionado, [indice], "individual");
+  actualizarEstadoPortapapeles();
+}
+
+function copiarRamasSeleccionadas() {
+  const indices = [...elementosArbol.listaRamas.querySelectorAll(".seleccionar-rama:checked")]
+    .map(entrada => Number(entrada.closest("[data-rama]").dataset.rama));
+  if (!indices.length) return;
+  portapapelesRamas = crearCopiaDeRamas(arbol, nodoSeleccionado, indices, "seleccion");
+  renderizarEditor();
+}
+
+function pegarRamasCopiadas() {
+  try {
+    pegarCopiaDeRamas(arbol, nodoSeleccionado, portapapelesRamas);
+    elementosArbol.mensaje.textContent = "";
+    actualizarTodo();
+  } catch (error) {
+    elementosArbol.mensaje.textContent = error.message;
+    actualizarEstadoPortapapeles();
+  }
+}
+
+function calcularPosiciones(datos = arbol) {
   const posiciones = {};
-  let hoja = 0;
   let profundidadMaxima = 0;
-  function ubicar(id, profundidad) {
-    const nodo = buscarNodo(id);
-    profundidadMaxima = Math.max(profundidadMaxima, profundidad);
+  const alturas = new Map();
+  const altoMinimo = 148;
+  const separacionHijos = 34;
+
+  function medir(id) {
+    const nodo = buscarNodo(id, datos);
     const hijos = nodo?.ramas.map(rama => rama.destino) || [];
-    let y;
-    if (!hijos.length) {
-      y = 72 + hoja * 128;
-      hoja += 1;
-    } else {
-      const posicionesHijos = hijos.map(hijo => ubicar(hijo, profundidad + 1));
-      y = posicionesHijos.reduce((suma, posicion) => suma + posicion.y, 0) / posicionesHijos.length;
+    const alto = hijos.length
+      ? Math.max(altoMinimo, hijos.reduce((suma, hijo) => suma + medir(hijo), 0) + separacionHijos * (hijos.length - 1))
+      : altoMinimo;
+    alturas.set(id, alto);
+    return alto;
+  }
+
+  function ubicar(id, profundidad, inicioY) {
+    const nodo = buscarNodo(id, datos);
+    const hijos = nodo?.ramas.map(rama => rama.destino) || [];
+    profundidadMaxima = Math.max(profundidadMaxima, profundidad);
+    const alto = alturas.get(id) || altoMinimo;
+    if (hijos.length) {
+      let cursorY = inicioY;
+      hijos.forEach(hijo => {
+        ubicar(hijo, profundidad + 1, cursorY);
+        cursorY += (alturas.get(hijo) || altoMinimo) + separacionHijos;
+      });
     }
-    posiciones[id] = { x: 62 + profundidad * 300, y };
+    const y = hijos.length
+      ? (posiciones[hijos[0]].y + posiciones[hijos[hijos.length - 1]].y) / 2
+      : inicioY + alto / 2;
+    posiciones[id] = { x: 62 + profundidad * 420, y };
     return posiciones[id];
   }
-  ubicar(arbol.raiz, 0);
-  return { posiciones, ancho: Math.max(660, 250 + profundidadMaxima * 300), alto: Math.max(310, 142 + Math.max(0, hoja - 1) * 128) };
+
+  const altoArbol = medir(datos.raiz);
+  ubicar(datos.raiz, 0, 76);
+  return {
+    posiciones,
+    ancho: Math.max(700, 310 + profundidadMaxima * 420),
+    alto: Math.max(330, altoArbol + 152)
+  };
+}
+
+function crearRutaConexion(inicioX, inicioY, finX, finY) {
+  if (Math.abs(inicioY - finY) < 1) return `M ${inicioX} ${inicioY} H ${finX}`;
+  const canalX = inicioX + Math.max(62, (finX - inicioX) * .38);
+  const radio = Math.min(14, Math.abs(finY - inicioY) / 2, Math.abs(finX - inicioX) / 5);
+  const direccion = finY > inicioY ? 1 : -1;
+  return `M ${inicioX} ${inicioY} H ${canalX - radio} Q ${canalX} ${inicioY} ${canalX} ${inicioY + direccion * radio} V ${finY - direccion * radio} Q ${canalX} ${finY} ${canalX + radio} ${finY} H ${finX}`;
+}
+
+function recortarTexto(texto, limite) {
+  const limpio = String(texto ?? "").trim();
+  return limpio.length > limite ? `${limpio.slice(0, limite - 1)}…` : limpio;
+}
+
+function lineasNombreNodo(nombre) {
+  const palabras = String(nombre ?? "").trim().split(/\s+/).filter(Boolean);
+  if (!palabras.length) return ["Sin nombre"];
+  const lineas = [""];
+  palabras.forEach(palabra => {
+    const candidata = `${lineas[lineas.length - 1]} ${palabra}`.trim();
+    if (candidata.length <= 22 || lineas.length === 2) lineas[lineas.length - 1] = candidata;
+    else lineas.push(palabra);
+  });
+  return lineas.slice(0, 2).map((linea, indice) => indice === 1 ? recortarTexto(linea, 22) : linea);
 }
 
 function ramasDeEstrategia() {
@@ -313,23 +500,44 @@ function renderizarDiagrama() {
     const esOptima = activas.has(`${nodo.id}:${indice}`);
     const clase = esOptima ? "conexion-arbol optima" : "conexion-arbol";
     const marcador = esOptima ? "flecha-arbol-optima" : "flecha-arbol";
-    const inicioX = origen.x + 163;
+    const inicioX = origen.x + 189;
     const finX = destino.x - 29;
-    const control = Math.max(55, (finX - inicioX) * .48);
-    const probabilidad = nodo.tipo === "azar" ? ` · p ${formatearArbol(numeroArbol(rama.probabilidad), 3)}` : "";
-    conexiones.push(`<g class="rama-diagrama"><path class="${clase}" d="M ${inicioX} ${origen.y} C ${inicioX + control} ${origen.y}, ${finX - control} ${destino.y}, ${finX} ${destino.y}" marker-end="url(#${marcador})"/><rect class="fondo-etiqueta-rama" x="${(inicioX + finX) / 2 - 58}" y="${(origen.y + destino.y) / 2 - 18}" width="116" height="31" rx="7"/><text class="etiqueta-rama" x="${(inicioX + finX) / 2}" y="${(origen.y + destino.y) / 2 - 5}" text-anchor="middle">${escaparArbol(rama.nombre).slice(0, 17)}</text><text class="valor-rama" x="${(inicioX + finX) / 2}" y="${(origen.y + destino.y) / 2 + 7}" text-anchor="middle">${formatearArbol(numeroArbol(rama.valor))}${probabilidad}</text></g>`);
+    const etiquetaX = finX - 78;
+    const etiquetaY = destino.y - 61;
+    const nodoDestino = buscarNodo(rama.destino);
+    const detalles = [];
+    if (nodo.tipo === "azar") detalles.push(`p = ${formatearArbol(numeroArbol(rama.probabilidad), 3)}`);
+    if (nodoDestino?.tipo !== "terminal" && Math.abs(numeroArbol(rama.valor)) > 1e-12) detalles.push(`valor = ${formatearArbol(numeroArbol(rama.valor))}`);
+    const detalle = detalles.join(" · ");
+    const altoEtiqueta = detalle ? 42 : 30;
+    const inicioEtiquetaY = etiquetaY - altoEtiqueta / 2;
+    conexiones.push(`<g class="rama-diagrama${esOptima ? " optima" : ""}"><path class="${clase}" d="${crearRutaConexion(inicioX, origen.y, finX, destino.y)}" marker-end="url(#${marcador})"/><rect class="fondo-etiqueta-rama" x="${etiquetaX - 71}" y="${inicioEtiquetaY}" width="142" height="${altoEtiqueta}" rx="7"/><text class="etiqueta-rama" x="${etiquetaX}" y="${detalle ? etiquetaY - 4 : etiquetaY + 4}" text-anchor="middle">${escaparArbol(recortarTexto(rama.nombre, 24))}</text>${detalle ? `<text class="valor-rama" x="${etiquetaX}" y="${etiquetaY + 10}" text-anchor="middle">${escaparArbol(detalle)}</text>` : ""}</g>`);
   }));
+  const nodosEstrategia = new Set([arbol.raiz]);
+  activas.forEach(clave => {
+    const [id, indiceTexto] = clave.split(":");
+    const rama = buscarNodo(id)?.ramas[Number(indiceTexto)];
+    if (rama) nodosEstrategia.add(rama.destino);
+  });
   const nodos = arbol.nodos.map(nodo => {
     const posicion = posiciones[nodo.id];
     if (!posicion) return "";
     const valor = calculoActual?.valores[nodo.id];
     const seleccionado = nodo.id === nodoSeleccionado ? " seleccionado" : "";
+    const enEstrategia = calculoActual && nodosEstrategia.has(nodo.id) ? " en-estrategia" : "";
     const figura = nodo.tipo === "decision" ? `<rect class="simbolo decision" x="-17" y="-17" width="34" height="34" rx="5"/>` : nodo.tipo === "azar" ? `<circle class="simbolo azar" r="17"/>` : `<polygon class="simbolo terminal" points="0,-18 18,0 0,18 -18,0"/>`;
-    return `<g class="nodo-arbol${seleccionado}" data-nodo="${nodo.id}" transform="translate(${posicion.x} ${posicion.y})" tabindex="0" role="button" aria-label="Editar ${escaparArbol(nodo.nombre)}"><rect class="tarjeta-nodo" x="-29" y="-31" width="192" height="62" rx="12"/>${figura}<text class="id-nodo" x="0" y="4" text-anchor="middle">${nodo.id.replace("n", "")}</text><text class="nombre-nodo" x="28" y="-5">${escaparArbol(nodo.nombre).slice(0, 21)}</text><text class="valor-nodo" x="28" y="14">${Number.isFinite(valor) ? `Valor ${formatearArbol(valor)}` : nodo.tipo === "terminal" ? "Fin" : "Sin evaluar"}</text></g>`;
+    const lineas = lineasNombreNodo(nodo.nombre);
+    const padre = nodo.tipo === "terminal" ? padreDe(nodo.id) : null;
+    const resultadoTerminal = padre ? numeroArbol(padre.nodo.ramas[padre.indice].valor) : NaN;
+    const textoValor = Number.isFinite(valor)
+      ? nodo.tipo === "azar" ? `VME ${formatearArbol(valor)}` : nodo.tipo === "decision" ? `VME óptimo ${formatearArbol(valor)}` : `Valor final ${formatearArbol(resultadoTerminal)}`
+      : nodo.tipo === "terminal" && Number.isFinite(resultadoTerminal) ? `Valor final ${formatearArbol(resultadoTerminal)}` : nodo.tipo === "terminal" ? "Resultado final" : "Sin evaluar";
+    const nombreSvg = lineas.map((linea, indice) => `<tspan x="30" y="${lineas.length === 1 ? -5 : -13 + indice * 14}">${escaparArbol(linea)}</tspan>`).join("");
+    return `<g class="nodo-arbol${seleccionado}${enEstrategia}" data-nodo="${nodo.id}" transform="translate(${posicion.x} ${posicion.y})" tabindex="0" role="button" aria-label="Editar ${escaparArbol(nodo.nombre)}"><rect class="tarjeta-nodo" x="-29" y="-39" width="218" height="78" rx="12"/>${figura}<text class="id-nodo" x="0" y="4" text-anchor="middle">${nodo.id.replace("n", "")}</text><text class="nombre-nodo">${nombreSvg}</text><text class="valor-nodo" x="30" y="25">${escaparArbol(textoValor)}</text></g>`;
   }).join("");
   elementosArbol.lienzo.dataset.ancho = ancho;
   elementosArbol.lienzo.dataset.alto = alto;
-  elementosArbol.lienzo.innerHTML = `<svg viewBox="0 0 ${ancho} ${alto}" aria-label="Árbol de decisión"><defs><marker id="flecha-arbol" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9a8d94"/></marker><marker id="flecha-arbol-optima" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#e3b447"/></marker></defs>${conexiones.join("")}${nodos}</svg>`;
+  elementosArbol.lienzo.innerHTML = `<svg viewBox="0 0 ${ancho} ${alto}" aria-label="Árbol de decisión"><defs><marker id="flecha-arbol" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9a8d94"/></marker><marker id="flecha-arbol-optima" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#e3b447"/></marker></defs>${conexiones.join("")}${nodos}</svg>`;
   aplicarZoom();
 }
 
@@ -527,12 +735,20 @@ elementosArbol.objetivo.addEventListener("change", actualizarPosterior);
 elementosArbol.nombreNodo.addEventListener("input", () => { const nodo = buscarNodo(nodoSeleccionado); nodo.nombre = elementosArbol.nombreNodo.value; elementosArbol.tituloNodo.textContent = nodo.nombre || "Sin nombre"; actualizarPosterior(); });
 elementosArbol.tipoNodo.addEventListener("change", cambiarTipoNodo);
 elementosArbol.listaRamas.addEventListener("input", actualizarRama);
+elementosArbol.listaRamas.addEventListener("change", evento => {
+  if (evento.target.matches(".seleccionar-rama")) actualizarEstadoPortapapeles();
+});
 elementosArbol.listaRamas.addEventListener("click", evento => {
   const abrir = evento.target.closest(".abrir-hijo");
   if (abrir) seleccionarNodo(abrir.dataset.destino);
+  const copiar = evento.target.closest(".copiar-rama");
+  if (copiar) copiarRamaIndividual(Number(copiar.closest("[data-rama]").dataset.rama));
   const eliminar = evento.target.closest(".eliminar-rama");
   if (eliminar) eliminarRama(Number(eliminar.closest("[data-rama]").dataset.rama));
 });
+elementosArbol.copiarTodasRamas.addEventListener("click", copiarTodasLasRamas);
+elementosArbol.copiarRamas.addEventListener("click", copiarRamasSeleccionadas);
+elementosArbol.pegarRamas.addEventListener("click", pegarRamasCopiadas);
 elementosArbol.agregarRama.addEventListener("click", agregarRama);
 elementosArbol.eliminarNodo.addEventListener("click", eliminarNodoSeleccionado);
 elementosArbol.lienzo.addEventListener("click", evento => { const nodo = evento.target.closest("[data-nodo]"); if (nodo) seleccionarNodo(nodo.dataset.nodo); });

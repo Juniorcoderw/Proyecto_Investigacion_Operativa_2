@@ -39,41 +39,27 @@ let ultimoResultado = null;
 let temporizador = null;
 
 const CASOS_DECISION = {
-  expansion: {
-    problema: "Expansión de capacidad",
+  rifa: {
+    problema: "Decisión sobre una rifa",
     tipoMatriz: "beneficios",
     alfa: .60,
-    estados: ["Demanda alta", "Demanda media", "Demanda baja"],
+    estados: ["Ganar", "Perder"],
     alternativas: [
-      { nombre: "Planta grande", valores: [200, 80, -120] },
-      { nombre: "Planta mediana", valores: [140, 90, -20] },
-      { nombre: "No ampliar", valores: [40, 40, 40] }
+      { nombre: "Comprar número", valores: [4900, -100] },
+      { nombre: "No comprar", valores: [0, 0] }
     ],
-    probabilidades: [.30, .50, .20]
+    probabilidades: [.01, .99]
   },
-  proveedor: {
-    problema: "Selección de proveedor",
-    tipoMatriz: "costos",
-    alfa: .55,
-    estados: ["Exigencia alta", "Exigencia normal", "Exigencia baja"],
-    alternativas: [
-      { nombre: "Proveedor A", valores: [175, 120, 95] },
-      { nombre: "Proveedor B", valores: [155, 123, 108] },
-      { nombre: "Producción interna", valores: [210, 115, 80] }
-    ],
-    probabilidades: [.25, .50, .25]
-  },
-  lanzamiento: {
-    problema: "Lanzamiento comercial",
+  inversion: {
+    problema: "Inversión de $10 000 en acciones",
     tipoMatriz: "beneficios",
-    alfa: .65,
-    estados: ["Muy favorable", "Favorable", "Estable", "Adverso"],
+    alfa: .60,
+    estados: ["Mercado alcista", "Mercado bajista"],
     alternativas: [
-      { nombre: "Lanzamiento nacional", valores: [260, 150, 55, -110] },
-      { nombre: "Lanzamiento regional", valores: [170, 115, 70, -25] },
-      { nombre: "Prueba piloto", valores: [90, 80, 60, 25] }
+      { nombre: "Compañía A", valores: [5000, -2000] },
+      { nombre: "Compañía B", valores: [1500, 500] }
     ],
-    probabilidades: [.15, .35, .30, .20]
+    probabilidades: [.60, .40]
   }
 };
 
@@ -142,8 +128,8 @@ function calcularDecision(datos) {
   return { ...datos, elegirMayor, filas, mejores, peores, promedios, hurwicz, valoresEsperados, referenciaEstados, arrepentimientos, arrepentimientosMaximos, criterios, criterioEsperado, valorInformacionPerfecta, evpi: Math.max(0, evpi), indiceConsenso, votos: votos[indiceConsenso] };
 }
 
-function aplicarCasoDecision(clave = "expansion") {
-  const caso = CASOS_DECISION[clave] || CASOS_DECISION.expansion;
+function aplicarCasoDecision(clave = "rifa") {
+  const caso = CASOS_DECISION[clave] || CASOS_DECISION.rifa;
   estados = caso.estados.map(nombre => ({ nombre }));
   alternativas = caso.alternativas.map(alternativa => ({ nombre: alternativa.nombre, valores: [...alternativa.valores] }));
   probabilidades = [...caso.probabilidades];
@@ -151,7 +137,7 @@ function aplicarCasoDecision(clave = "expansion") {
 }
 
 function datosIniciales() {
-  aplicarCasoDecision("expansion");
+  aplicarCasoDecision("rifa");
 }
 
 function renderizarTabla() {
@@ -405,7 +391,7 @@ document.getElementById("cargar-ejemplo").addEventListener("click", cargarEjempl
 document.getElementById("limpiar").addEventListener("click", limpiar);
 document.getElementById("pegar-matriz").addEventListener("click", () => elementos.dialogoPegar.showModal());
 document.getElementById("importar-matriz").addEventListener("click", importarMatriz);
-document.getElementById("abrir-guia").addEventListener("click", abrirGuia);
+document.getElementById("abrir-guia")?.addEventListener("click", abrirGuia);
 document.getElementById("teoria-flotante").addEventListener("click", abrirGuia);
 document.getElementById("imprimir").addEventListener("click", () => window.print());
 document.querySelectorAll(".cerrar-dialogo").forEach(boton => boton.addEventListener("click", cerrarDialogo));
@@ -413,7 +399,7 @@ document.querySelectorAll("dialog").forEach(dialogo => dialogo.addEventListener(
 document.querySelectorAll(".pestana").forEach(boton => boton.addEventListener("click", () => activarPestana(boton.dataset.panel)));
 
 if (!restaurar()) {
-  const casoInicial = aplicarCasoDecision("expansion");
+  const casoInicial = aplicarCasoDecision("rifa");
   elementos.problema.value = casoInicial.problema;
   elementos.tipoMatriz.value = casoInicial.tipoMatriz;
   elementos.alfa.value = String(casoInicial.alfa);

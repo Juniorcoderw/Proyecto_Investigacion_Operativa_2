@@ -35,7 +35,7 @@
     <aside class="panel panel-configuracion editor-arbol" aria-labelledby="titulo-editor">
       <div class="encabezado-panel"><div><p class="sobretitulo">Construcción</p><h2 id="titulo-editor">Datos del árbol</h2><p class="descripcion-panel">Seleccione un nodo del diagrama para editarlo.</p></div><span class="indicador-guardado"><i></i> Local</span></div>
       <form id="formulario-arbol" novalidate>
-        <div class="selector-caso"><label class="campo" for="caso-arbol">Caso de práctica<select id="caso-arbol"><option value="lanzamiento">01 · Lanzamiento de producto</option><option value="mantenimiento">02 · Reparar o reemplazar</option><option value="estudio">03 · Estudio de mercado</option></select></label><button id="ejemplo-arbol" class="boton boton-cargar" type="button">Cargar</button></div>
+        <div class="selector-caso"><label class="campo" for="caso-arbol">Caso de práctica<select id="caso-arbol"><option value="rifa">01 · Decisión sobre una rifa</option><option value="vacaciones">02 · Vacaciones en el extranjero</option></select></label><button id="ejemplo-arbol" class="boton boton-cargar" type="button">Cargar</button></div>
         <label class="campo" for="problema-arbol">Problema o caso<input id="problema-arbol" type="text" maxlength="80" placeholder="Ej. Lanzamiento de un producto"></label>
         <label class="campo" for="objetivo-arbol">Objetivo<select id="objetivo-arbol"><option value="maximizar">Maximizar beneficios</option><option value="minimizar">Minimizar costos</option></select></label>
         <div class="acciones-formulario"><button id="limpiar-arbol" class="boton boton-terciario boton-peligro boton-ancho" type="button">Nuevo árbol</button></div>
@@ -46,6 +46,12 @@
         <label class="campo" for="nombre-nodo">Nombre<input id="nombre-nodo" type="text" maxlength="60"></label>
         <label class="campo" for="tipo-nodo">Tipo<select id="tipo-nodo"><option value="decision">Decisión · elegir una rama</option><option value="azar">Azar · ponderar probabilidades</option><option value="terminal">Resultado final</option></select></label>
         <div id="ayuda-tipo" class="ayuda-nodo"></div>
+        <div id="herramientas-ramas" class="herramientas-ramas">
+          <button id="copiar-todas-ramas" class="boton boton-terciario" type="button">Copiar todas</button>
+          <button id="copiar-ramas" class="boton boton-terciario" type="button" disabled>Copiar selección</button>
+          <button id="pegar-ramas" class="boton boton-terciario" type="button" disabled>Pegar en este nodo</button>
+          <small id="estado-portapapeles" aria-live="polite">Copie toda la estructura o marque ramas específicas.</small>
+        </div>
         <div id="lista-ramas" class="lista-ramas"></div>
         <button id="agregar-rama" class="boton boton-secundario boton-ancho" type="button">+ Agregar rama</button>
         <button id="eliminar-nodo" class="boton boton-terciario boton-peligro boton-ancho" type="button">Eliminar este nodo</button>
@@ -69,7 +75,13 @@
     </section>
   </main>
 
-  <button id="teoria-arbol" class="teoria-flotante" type="button" aria-label="Abrir fundamentos de árboles de decisión"><span>i</span><strong>Teoría y símbolos</strong></button>
+  <footer class="pie-modulo">
+    <a href="../../index.html" class="pie-modulo-marca"><img src="../../assets/institucional/logo-unjbg.png" alt=""><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
+    <p>Teoría de decisiones · Árboles de decisión</p>
+    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#calculadoras">Módulos</a><a href="../../index.html#equipo">Equipo</a></nav>
+  </footer>
+
+  <button id="teoria-arbol" class="teoria-flotante" type="button" aria-label="Abrir fundamentos de árboles de decisión"><span>i</span><strong>Guía del método</strong></button>
   <dialog id="dialogo-arbol" class="dialogo"><div class="cabecera-dialogo"><div><p class="sobretitulo">Fundamentos y modelamiento</p><h2>Árboles de decisión</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div><p class="introduccion-guia">Un árbol ordena decisiones y sucesos en el tiempo. La solución se obtiene desde los resultados terminales hasta el nodo inicial.</p><div class="contenido-guia">
     <section class="historia"><article><b>□ Decisión</b><span>Se compara cada rama y se conserva la mejor.</span></article><article><b>○ Azar</b><span>Se multiplican los resultados por sus probabilidades.</span></article><article><b>◇ Terminal</b><span>Marca el final de una secuencia.</span></article></section>
     <div class="formulas-guia"><article><small>Nodo de azar</small><strong>\(V(N)=\sum p_r[c_r+V(h_r)]\)</strong><p>Suma los valores de las ramas ponderados por su probabilidad.</p></article><article><small>Nodo de decisión</small><strong>\(V(N)=mejor\{c_r+V(h_r)\}\)</strong><p>Conserva el mayor beneficio o el menor costo.</p></article></div>

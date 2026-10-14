@@ -50,6 +50,16 @@ function ejecutarPruebas() {
   const calculadora = aplicacionPruebas.contentWindow;
   const pruebas = [
     {
+      nombre: "EOQ de la práctica Veinteluces",
+      ejecutar() {
+        const resultado = calculadora.calcularEoq(datosBase({ demanda: 1200, costoPedido: 20, costoUnitario: 2, mantenimientoUnitario: .30, valorMantenimiento: .30, diasLaborables: 240, tiempoEntrega: 7 }));
+        afirmarCasiIgual(resultado.loteOptimo, 400, "Q* debe ser 400");
+        afirmarCasiIgual(resultado.numeroPedidos, 3, "Deben resultar 3 pedidos al año");
+        afirmarCasiIgual(resultado.tiempoCiclo, 80, "El ciclo debe ser de 80 días");
+        afirmarCasiIgual(resultado.puntoReorden, 35, "El punto de reorden debe ser 35");
+      }
+    },
+    {
       nombre: "EOQ del ejercicio R&B Beverage Company",
       ejecutar() {
         const resultado = calculadora.calcularEoq(datosBase());
@@ -78,6 +88,15 @@ function ejecutarPruebas() {
       }
     },
     {
+      nombre: "segundo caso de contraste EPQ",
+      ejecutar() {
+        const resultado = calculadora.calcularEpq(datosBase({ modelo: "epq", demanda: 24000, tasaProduccion: 60000, costoPedido: 80, costoUnitario: 6, mantenimientoUnitario: 1.2, valorMantenimiento: 1.2, diasLaborables: 300, tiempoEntrega: 4 }));
+        afirmarCasiIgual(resultado.factorProduccion, .6, "La fracción almacenada debe ser 0.60");
+        afirmarCasiIgual(resultado.loteOptimo, Math.sqrt(3840000 / .72), "El lote EPQ no coincide");
+        afirmarCasiIgual(resultado.puntoReorden, 320, "El punto de reorden debe ser 320");
+      }
+    },
+    {
       nombre: "capacidad EPQ evaluada con inventario máximo",
       ejecutar() {
         const datos = datosBase({ modelo: "epq", demanda: 10000, tasaProduccion: 40000, costoPedido: 100, mantenimientoUnitario: 2, valorMantenimiento: 2, capacidadMaxima: 900 });
@@ -97,6 +116,15 @@ function ejecutarPruebas() {
         afirmarCasiIgual(resultado.faltanteMaximo, loteEsperado * .25, "El faltante máximo no coincide");
         afirmarCasiIgual(resultado.puntoReorden, 40 - resultado.faltanteMaximo, "El punto de reorden debe descontar el faltante máximo");
         afirmarCasiIgual(resultado.costoRelevante, resultado.costoOrdenar + resultado.costoMantener + resultado.costoFaltantes, "El costo debe incluir las tres componentes");
+      }
+    },
+    {
+      nombre: "segundo caso de contraste con faltantes",
+      ejecutar() {
+        const resultado = calculadora.calcularEoqFaltantes(datosBase({ modelo: "faltantes", demanda: 5000, costoPedido: 40, costoUnitario: 20, mantenimientoUnitario: 4, valorMantenimiento: 4, costoFaltante: 16, diasLaborables: 250, tiempoEntrega: 4 }));
+        afirmarCasiIgual(resultado.loteOptimo, Math.sqrt(125000), "El lote con faltantes no coincide");
+        afirmarCasiIgual(resultado.inventarioMaximo, resultado.loteOptimo * .8, "El inventario máximo no coincide");
+        afirmarCasiIgual(resultado.faltanteMaximo, resultado.loteOptimo * .2, "El faltante máximo no coincide");
       }
     },
     {

@@ -37,7 +37,7 @@
     <aside class="panel panel-configuracion" aria-labelledby="titulo-configuracion">
       <div class="encabezado-panel"><div><p class="sobretitulo">Configuración</p><h2 id="titulo-configuracion">Datos del problema</h2><p class="descripcion-panel">La matriz se actualiza mientras escribe.</p></div><span class="indicador-guardado"><i></i> Local</span></div>
       <form id="formulario-decision" novalidate>
-        <div class="selector-caso"><label class="campo" for="caso-decision">Caso de práctica<select id="caso-decision"><option value="expansion">01 · Expansión de capacidad</option><option value="proveedor">02 · Selección de proveedor</option><option value="lanzamiento">03 · Lanzamiento comercial</option></select></label><button id="cargar-ejemplo" class="boton boton-cargar" type="button">Cargar</button></div>
+        <div class="selector-caso"><label class="campo" for="caso-decision">Caso de práctica<select id="caso-decision"><option value="rifa">01 · Decisión sobre una rifa</option><option value="inversion">02 · Inversión en acciones</option></select></label><button id="cargar-ejemplo" class="boton boton-cargar" type="button">Cargar</button></div>
         <label class="campo" for="problema">Problema o caso<input id="problema" name="problema" type="text" maxlength="80" placeholder="Ej. Capacidad de una nueva planta"></label>
         <label class="campo" for="tipo-matriz">Interpretación de los valores<select id="tipo-matriz" name="tipoMatriz"><option value="beneficios">Beneficios · elegir el mayor</option><option value="costos">Costos · elegir el menor</option></select></label>
         <label class="campo" for="alfa-hurwicz"><span class="rotulo-con-valor">Optimismo de Hurwicz <i>α</i><output id="valor-alfa">0.60</output></span><input id="alfa-hurwicz" name="alfaHurwicz" type="range" min="0" max="1" step="0.05" value="0.60"><small>0 prioriza el peor resultado; 1 prioriza el mejor.</small></label>
@@ -55,7 +55,7 @@
       </section>
 
       <section id="salida" class="salida" hidden>
-        <div class="encabezado-resultados"><div><p class="sobretitulo">Lectura del modelo</p><h2 id="titulo-resultado">Resultado de la decisión</h2></div><div class="acciones-resultados"><button id="abrir-guia" class="boton boton-terciario" type="button">Teoría y símbolos</button><button id="imprimir" class="boton boton-terciario" type="button">Imprimir</button></div></div>
+        <div class="encabezado-resultados"><div><p class="sobretitulo">Lectura del modelo</p><h2 id="titulo-resultado">Resultado de la decisión</h2></div><div class="acciones-resultados"><button id="imprimir" class="boton boton-terciario" type="button">Imprimir</button></div></div>
         <div class="resumen"><article class="tarjeta-resumen tarjeta-destacada"><span>Valor esperado</span><strong id="decision-esperada">—</strong><small id="detalle-esperado">—</small></article><article class="tarjeta-resumen"><span>Mejor valor esperado</span><strong id="mejor-valor">—</strong><small>según probabilidades</small></article><article class="tarjeta-resumen"><span>Valor de información <i>EVPI</i></span><strong id="evpi">—</strong><small>máximo razonable por información perfecta</small></article><article class="tarjeta-resumen"><span>Consenso de criterios</span><strong id="consenso">—</strong><small id="detalle-consenso">—</small></article></div>
         <div id="recomendacion" class="recomendacion"></div>
 
@@ -77,7 +77,13 @@
     </section>
   </main>
 
-  <button id="teoria-flotante" class="teoria-flotante" type="button" aria-label="Abrir fundamentos de teoría de decisiones"><span>i</span><strong>Teoría y símbolos</strong></button>
+  <footer class="pie-modulo">
+    <a href="../../index.html" class="pie-modulo-marca"><img src="../../assets/institucional/logo-unjbg.png" alt=""><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
+    <p>Teoría de decisiones · Tablas de decisión</p>
+    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#calculadoras">Módulos</a><a href="../../index.html#equipo">Equipo</a></nav>
+  </footer>
+
+  <button id="teoria-flotante" class="teoria-flotante" type="button" aria-label="Abrir fundamentos de teoría de decisiones"><span>i</span><strong>Guía del método</strong></button>
 
   <dialog id="dialogo-guia" class="dialogo"><div class="cabecera-dialogo"><div><p class="sobretitulo">Fundamentos y modelamiento</p><h2>Teoría de decisiones</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div><p class="introduccion-guia">La disciplina formaliza elecciones cuando el resultado depende de eventos que el decisor no controla. Wald, Hurwicz, Laplace, Savage y Bayes aportaron criterios que hoy siguen usándose para comparar alternativas.</p><div class="contenido-guia">
     <section class="historia"><article><b>1950</b><span>Abraham Wald formaliza el criterio conservador.</span></article><article><b>1951</b><span>Leonard Savage propone minimizar el arrepentimiento máximo.</span></article><article><b>Riesgo</b><span>Con probabilidades conocidas se aplica el valor esperado.</span></article></section>

@@ -69,6 +69,40 @@ function ejecutarPruebas() {
       }
     },
     {
+      nombre: "práctica CPM del laboratorio de cómputo",
+      ejecutar() {
+        const actividades = [
+          crearActividad("A", 3),
+          crearActividad("B", 6, ["A"]),
+          crearActividad("C", 8, ["A"]),
+          crearActividad("D", 5, ["C"]),
+          crearActividad("E", 4, ["C", "D"]),
+          crearActividad("F", 3, ["B", "E"]),
+          crearActividad("G", 2, ["F"])
+        ];
+        const solucion = calculadora.resolverProyecto(actividades);
+        afirmarCasiIgual(solucion.duracionTotal, 25, "La duración total debe ser 25");
+        afirmar(solucion.rutas[0].join("-") === "A-C-D-E-F-G", "La ruta crítica no coincide");
+      }
+    },
+    {
+      nombre: "práctica PERT de software con incertidumbre",
+      ejecutar() {
+        const estimaciones = [[2, 4, 6], [3, 5, 9], [2, 3, 4], [5, 8, 11], [2, 4, 6], [1, 2, 3]].map(valores => calculadora.calcularEstimacionPert(...valores));
+        const actividades = [
+          crearActividad("A", estimaciones[0].duracion),
+          crearActividad("B", estimaciones[1].duracion, ["A"]),
+          crearActividad("C", estimaciones[2].duracion, ["A"]),
+          crearActividad("D", estimaciones[3].duracion, ["B", "C"]),
+          crearActividad("E", estimaciones[4].duracion, ["D"]),
+          crearActividad("F", estimaciones[5].duracion, ["E"])
+        ];
+        const solucion = calculadora.resolverProyecto(actividades);
+        afirmarCasiIgual(solucion.duracionTotal, 70 / 3, "La duración esperada debe ser 23.3333");
+        afirmar(solucion.rutas[0].join("-") === "A-B-D-E-F", "La ruta crítica PERT no coincide");
+      }
+    },
+    {
       nombre: "detección de ciclos",
       ejecutar() {
         let detectado = false;

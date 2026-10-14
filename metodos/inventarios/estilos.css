@@ -123,6 +123,8 @@ select:disabled { color: #9fa7a4; }
 .selector-segmentado input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .selector-segmentado span { display: grid; min-height: 31px; place-items: center; border-radius: 6px; color: #68736f; font-size: .64rem; font-weight: 800; }
 .selector-segmentado input:checked + span { background: var(--bosque); color: #fff; box-shadow: 0 4px 10px rgba(16,45,39,.16); }
+.selector-caso-inventario { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 7px; padding: 10px; border: 1px solid #d8dfda; border-radius: 11px; background: #f7faf8; }
+.selector-caso-inventario .boton { height: 40px; background: var(--bosque); color: #fff; }
 .acciones-formulario, .acciones-resultados { display: flex; align-items: center; gap: 7px; }
 .boton { min-height: 38px; padding: 0 12px; border: 1px solid transparent; border-radius: 9px; font-size: .68rem; font-weight: 800; transition: transform .17s ease, box-shadow .17s ease, background .17s ease; }
 .boton:hover { transform: translateY(-1px); }
@@ -358,3 +360,19 @@ table { width: 100%; border-collapse: separate; border-spacing: 0; }
   .panel { border-color: #bbb; box-shadow: none; }
   .grafico { min-height: 260px; }
 }
+
+.pie-modulo { display: grid; min-height: 112px; padding: 24px max(24px, calc((100% - 1580px) / 2)); grid-template-columns: 1fr auto 1fr; align-items: center; gap: 28px; border-top: 1px solid rgba(231, 185, 73, .38); background: #102d27; color: #fff; }
+.pie-modulo-marca { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; }
+.pie-modulo-marca img { width: 38px; height: 43px; object-fit: contain; }
+.pie-modulo-marca span { display: grid; gap: 2px; }
+.pie-modulo-marca strong { font-size: .68rem; letter-spacing: .045em; text-transform: uppercase; }
+.pie-modulo-marca small, .pie-modulo > p { color: #b1c5bf; font-size: .61rem; }
+.pie-modulo > p { margin: 0; }
+.pie-modulo nav { display: flex; justify-self: end; gap: 20px; }
+.pie-modulo nav a { color: #d0ddd9; font-size: .64rem; font-weight: 700; text-decoration: none; }
+.pie-modulo nav a:hover { color: var(--oro); }
+.teoria-flotante { animation: respirar-guia 4.8s ease-in-out infinite; }
+@keyframes respirar-guia { 0%, 72%, 100% { box-shadow: 0 8px 22px rgba(10, 42, 34, .2); } 84% { box-shadow: 0 8px 22px rgba(10, 42, 34, .2), 0 0 0 7px rgba(231, 185, 73, .12); } }
+@media (max-width: 720px) { .pie-modulo { grid-template-columns: 1fr; gap: 15px; } .pie-modulo nav { justify-self: start; } }
+@media (prefers-reduced-motion: reduce) { .teoria-flotante { animation: none; } }
+@media print { .pie-modulo { display: none !important; } }

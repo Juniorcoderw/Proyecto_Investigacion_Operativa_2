@@ -35,30 +35,23 @@ aplicacionPruebasArbol.addEventListener("load", () => {
       }
     },
     {
-      nombre: "caso secuencial de lanzamiento",
+      nombre: "árbol del ejercicio de la rifa",
       ejecutar() {
         const resultado = calculadora.calcularArbol(calculadora.crearEjemploArbol());
-        casiArbol(resultado.valor, 72.5, "Valor del nodo inicial");
-        afirmarArbol(resultado.decisiones.n1 === 0, "Debe elegir desarrollar");
-        afirmarArbol(resultado.decisiones.n4 === 0, "Tras el éxito debe elegir lanzamiento amplio");
+        casiArbol(resultado.valores.n2, -50, "Valor esperado de jugar");
+        casiArbol(resultado.valor, 0, "Valor del nodo inicial");
+        afirmarArbol(resultado.decisiones.n1 === 1, "Debe elegir no comprar");
       }
     },
     {
-      nombre: "caso de reparar o reemplazar",
+      nombre: "árbol del ejercicio de vacaciones",
       ejecutar() {
-        const resultado = calculadora.calcularArbol(calculadora.crearEjemploArbol("mantenimiento"));
-        casiArbol(resultado.valor, 40.8, "Costo esperado de reparar");
-        afirmarArbol(resultado.decisiones.n1 === 0, "Debe elegir reparar");
-      }
-    },
-    {
-      nombre: "caso de estudio de mercado",
-      ejecutar() {
-        const resultado = calculadora.calcularArbol(calculadora.crearEjemploArbol("estudio"));
-        casiArbol(resultado.valor, 64, "Valor esperado de realizar el estudio");
-        afirmarArbol(resultado.decisiones.n1 === 0, "Debe elegir realizar el estudio");
-        afirmarArbol(resultado.decisiones.n4 === 0, "Con resultado favorable debe lanzar");
-        afirmarArbol(resultado.decisiones.n5 === 1, "Con resultado desfavorable debe abandonar");
+        const resultado = calculadora.calcularArbol(calculadora.crearEjemploArbol("vacaciones"));
+        casiArbol(resultado.valores.n2, 707.95, "Costo esperado de México");
+        casiArbol(resultado.valores.n3, 675, "Costo esperado de Panamá");
+        casiArbol(resultado.valores.n4, 665.4, "Costo esperado de Venezuela");
+        casiArbol(resultado.valor, 665.4, "Costo mínimo del viaje");
+        afirmarArbol(resultado.decisiones.n1 === 2, "Debe elegir Venezuela");
       }
     },
     {
@@ -91,6 +84,75 @@ aplicacionPruebasArbol.addEventListener("load", () => {
         let detectado = false;
         try { calculadora.calcularArbol(datos); } catch { detectado = true; }
         afirmarArbol(detectado, "Debe rechazar probabilidades cuya suma no sea uno");
+      }
+    },
+    {
+      nombre: "copia profunda de un conjunto de ramas",
+      ejecutar() {
+        const datos = calculadora.crearEjemploArbol("vacaciones");
+        const origen = datos.nodos.find(nodo => nodo.id === "n5");
+        const destino = datos.nodos.find(nodo => nodo.id === "n6");
+        const idsOriginales = origen.ramas.map(rama => rama.destino);
+        const copia = calculadora.crearCopiaDeRamas(datos, origen.id, [0, 1], "estructura");
+        calculadora.pegarCopiaDeRamas(datos, destino.id, copia);
+        afirmarArbol(destino.ramas.length === 2, "Debe reemplazar el conjunto de ramas del destino");
+        afirmarArbol(destino.ramas[0].nombre === origen.ramas[0].nombre, "Debe conservar el nombre de la rama");
+        casiArbol(destino.ramas[1].probabilidad, origen.ramas[1].probabilidad, "Debe conservar la probabilidad");
+        afirmarArbol(!idsOriginales.includes(destino.ramas[0].destino), "Debe crear nodos independientes");
+        destino.ramas[0].nombre = "Nombre editado";
+        destino.ramas[0].probabilidad = .1;
+        datos.nodos.find(nodo => nodo.id === destino.ramas[0].destino).nombre = "Terminal editado";
+        afirmarArbol(origen.ramas[0].nombre !== destino.ramas[0].nombre, "Editar la copia no debe modificar la rama original");
+        afirmarArbol(origen.ramas[0].probabilidad !== destino.ramas[0].probabilidad, "Editar la probabilidad copiada no debe modificar la original");
+        afirmarArbol(datos.nodos.find(nodo => nodo.id === idsOriginales[0]).nombre !== "Terminal editado", "Editar el subárbol copiado no debe modificar el original");
+      }
+    },
+    {
+      nombre: "copia de una rama individual",
+      ejecutar() {
+        const datos = calculadora.crearEjemploArbol();
+        const nodo = datos.nodos.find(actual => actual.id === "n2");
+        const destinoOriginal = nodo.ramas[0].destino;
+        const copia = calculadora.crearCopiaDeRamas(datos, nodo.id, [0], "individual");
+        calculadora.pegarCopiaDeRamas(datos, nodo.id, copia);
+        afirmarArbol(nodo.ramas.length === 3, "Debe agregar la rama sin eliminar las existentes");
+        afirmarArbol(nodo.ramas[2].destino !== destinoOriginal, "El nodo terminal copiado debe tener una identidad nueva");
+        afirmarArbol(nodo.ramas[2].nombre === nodo.ramas[0].nombre, "Debe conservar los datos de la rama");
+      }
+    },
+    {
+      nombre: "copia de una selección agrega las ramas elegidas",
+      ejecutar() {
+        const datos = calculadora.crearEjemploArbol("vacaciones");
+        const origen = datos.nodos.find(nodo => nodo.id === "n5");
+        const destino = datos.nodos.find(nodo => nodo.id === "n6");
+        const cantidadInicial = destino.ramas.length;
+        const copia = calculadora.crearCopiaDeRamas(datos, origen.id, [0, 1], "seleccion");
+        calculadora.pegarCopiaDeRamas(datos, destino.id, copia);
+        afirmarArbol(destino.ramas.length === cantidadInicial + 2, "Debe agregar las ramas seleccionadas sin borrar las existentes");
+        afirmarArbol(destino.ramas[cantidadInicial].destino !== origen.ramas[0].destino, "La selección pegada debe conservar independencia");
+      }
+    },
+    {
+      nombre: "distribución sin superposición por nivel",
+      ejecutar() {
+        const datos = calculadora.crearEjemploArbol("vacaciones");
+        const distribucion = calculadora.calcularPosiciones(datos);
+        const posiciones = Object.values(distribucion.posiciones);
+        const grupos = new Map();
+        posiciones.forEach(posicion => {
+          if (!grupos.has(posicion.x)) grupos.set(posicion.x, []);
+          grupos.get(posicion.x).push(posicion.y);
+        });
+        grupos.forEach(valores => {
+          valores.sort((a, b) => a - b);
+          for (let indice = 1; indice < valores.length; indice += 1) {
+            afirmarArbol(valores[indice] - valores[indice - 1] >= 78, "Los nodos de un mismo nivel no deben superponerse");
+          }
+        });
+        datos.nodos.forEach(nodo => nodo.ramas.forEach(rama => {
+          afirmarArbol(distribucion.posiciones[rama.destino].x > distribucion.posiciones[nodo.id].x, "Cada sucesor debe ubicarse a la derecha");
+        }));
       }
     }
   ];

@@ -6,6 +6,7 @@ const CAMPOS_NUMERICOS = ["demanda", "tasa-produccion", "costo-faltante", "costo
 const elementos = {
   formulario: document.getElementById("formulario-inventario"),
   modelo: document.getElementById("modelo"),
+  caso: document.getElementById("caso-inventario"),
   producto: document.getElementById("producto"),
   demanda: document.getElementById("demanda"),
   tasaProduccion: document.getElementById("tasa-produccion"),
@@ -69,6 +70,16 @@ let ultimoResultado = null;
 let temporizadorCalculo = null;
 let listaEscenarios = [];
 let loteExplorado = null;
+
+const CASOS_INVENTARIO = {
+  "eoq-veinteluces": { modelo: "eoq", etiqueta: "Práctica 04 · Veinteluces", producto: "Veinteluces", demanda: 1200, costoPedido: 20, costoUnitario: 2, diasLaborables: 240, tiempoEntrega: 7, mantenimiento: .30, modoMantenimiento: "unidad", moneda: "USD" },
+  "eoq-rb": { modelo: "eoq", etiqueta: "Práctica 04 · R&B Beverage", producto: "R&B Beverage Company", demanda: 3600, costoPedido: 20, costoUnitario: 3, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 25, modoMantenimiento: "porcentaje", moneda: "USD" },
+  "eoq-panda": { modelo: "eoq", etiqueta: "Práctica 04 · Panda Auto", producto: "Panda Auto", demanda: 12000, costoPedido: 25, costoUnitario: 2.50, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 20, modoMantenimiento: "porcentaje", moneda: "USD" },
+  "epq-produccion": { modelo: "epq", etiqueta: "Contraste POM-QM · Producción 1", producto: "Producción por lotes", demanda: 10000, tasaProduccion: 40000, costoPedido: 100, costoUnitario: 10, diasLaborables: 250, tiempoEntrega: 2, mantenimiento: 2, modoMantenimiento: "unidad", moneda: "USD" },
+  "epq-taller": { modelo: "epq", etiqueta: "Contraste POM-QM · Producción 2", producto: "Taller de componentes", demanda: 24000, tasaProduccion: 60000, costoPedido: 80, costoUnitario: 6, diasLaborables: 300, tiempoEntrega: 4, mantenimiento: 1.20, modoMantenimiento: "unidad", moneda: "USD" },
+  "faltantes-espera": { modelo: "faltantes", etiqueta: "Contraste POM-QM · Faltantes 1", producto: "Pedidos con espera planificada", demanda: 2000, costoFaltante: 30, costoPedido: 25, costoUnitario: 50, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 10, modoMantenimiento: "unidad", moneda: "USD" },
+  "faltantes-repuestos": { modelo: "faltantes", etiqueta: "Contraste POM-QM · Faltantes 2", producto: "Repuestos bajo pedido", demanda: 5000, costoFaltante: 16, costoPedido: 40, costoUnitario: 20, diasLaborables: 250, tiempoEntrega: 4, mantenimiento: 4, modoMantenimiento: "unidad", moneda: "USD" }
+};
 
 function numero(valor) {
   const convertido = Number(String(valor ?? "").replace(",", "."));
@@ -427,22 +438,41 @@ function programarCalculo() {
   temporizadorCalculo = setTimeout(() => resolverFormulario(false), 220);
 }
 
+function actualizarCasosInventario() {
+  const seleccionAnterior = elementos.caso.value;
+  const casos = Object.entries(CASOS_INVENTARIO).filter(([, caso]) => caso.modelo === elementos.modelo.value);
+  elementos.caso.replaceChildren(...casos.map(([clave, caso]) => {
+    const opcion = document.createElement("option");
+    opcion.value = clave;
+    opcion.textContent = caso.etiqueta;
+    return opcion;
+  }));
+  if (casos.some(([clave]) => clave === seleccionAnterior)) elementos.caso.value = seleccionAnterior;
+}
+
+function obtenerCasoInventario(clave = elementos.caso.value) {
+  const caso = CASOS_INVENTARIO[clave];
+  return caso ? JSON.parse(JSON.stringify(caso)) : null;
+}
+
 function cargarEjemplo() {
-  const esEpq = elementos.modelo.value === "epq";
-  const esFaltantes = elementos.modelo.value === "faltantes";
-  elementos.producto.value = esEpq ? "Producción por lotes" : esFaltantes ? "Pedidos con espera planificada" : "R&B Beverage Company";
-  elementos.demanda.value = esEpq ? "10000" : esFaltantes ? "2000" : "3600";
-  elementos.tasaProduccion.value = esEpq ? "40000" : "";
-  elementos.costoFaltante.value = esFaltantes ? "30" : "";
-  elementos.costoPedido.value = esEpq ? "100" : esFaltantes ? "25" : "20";
-  elementos.costoUnitario.value = esEpq ? "10" : esFaltantes ? "50" : "3";
-  elementos.diasLaborables.value = "250";
-  elementos.tiempoEntrega.value = esEpq ? "2" : "5";
-  elementos.capacidadMaxima.value = "";
-  elementos.mantenimiento.value = esEpq ? "2" : esFaltantes ? "10" : "25";
-  elementos.moneda.value = "USD";
-  elementos.formulario.elements.modoMantenimiento.value = esEpq || esFaltantes ? "unidad" : "porcentaje";
+  const caso = obtenerCasoInventario();
+  if (!caso) return;
+  elementos.modelo.value = caso.modelo;
+  elementos.producto.value = caso.producto;
+  elementos.demanda.value = String(caso.demanda);
+  elementos.tasaProduccion.value = caso.tasaProduccion == null ? "" : String(caso.tasaProduccion);
+  elementos.costoFaltante.value = caso.costoFaltante == null ? "" : String(caso.costoFaltante);
+  elementos.costoPedido.value = String(caso.costoPedido);
+  elementos.costoUnitario.value = String(caso.costoUnitario);
+  elementos.diasLaborables.value = String(caso.diasLaborables);
+  elementos.tiempoEntrega.value = String(caso.tiempoEntrega);
+  elementos.capacidadMaxima.value = caso.capacidadMaxima == null ? "" : String(caso.capacidadMaxima);
+  elementos.mantenimiento.value = String(caso.mantenimiento);
+  elementos.moneda.value = caso.moneda;
+  elementos.formulario.elements.modoMantenimiento.value = caso.modoMantenimiento;
   listaEscenarios = [];
+  actualizarModelo();
   actualizarModoMantenimiento();
   actualizarSimbolosMoneda();
   resolverFormulario();
@@ -889,6 +919,7 @@ elementos.formulario.addEventListener("input", evento => {
 elementos.formulario.addEventListener("change", evento => {
   if (evento.target.id === "modelo") {
     actualizarModelo();
+    actualizarCasosInventario();
     listaEscenarios = [];
   }
   if (evento.target.name === "modoMantenimiento") actualizarModoMantenimiento();
@@ -899,7 +930,7 @@ elementos.formulario.addEventListener("change", evento => {
 document.getElementById("cargar-ejemplo").addEventListener("click", cargarEjemplo);
 document.getElementById("limpiar").addEventListener("click", limpiarFormulario);
 document.getElementById("imprimir").addEventListener("click", () => window.print());
-document.getElementById("abrir-guia").addEventListener("click", abrirGuia);
+document.getElementById("abrir-guia")?.addEventListener("click", abrirGuia);
 document.getElementById("teoria-flotante").addEventListener("click", abrirGuia);
 document.getElementById("pegar-escenarios").addEventListener("click", () => elementos.dialogoPegar.showModal());
 document.getElementById("agregar-escenario").addEventListener("click", agregarEscenario);
@@ -954,6 +985,7 @@ elementos.escenarios.addEventListener("click", evento => {
 
 const habiaGuardado = restaurarFormulario();
 actualizarModelo();
+actualizarCasosInventario();
 if (habiaGuardado) resolverFormulario(false);
 actualizarModoMantenimiento();
 actualizarSimbolosMoneda();

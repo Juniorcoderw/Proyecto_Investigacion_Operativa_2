@@ -44,13 +44,17 @@ aplicacion.addEventListener("load", () => {
       }
     },
     {
-      nombre: "valor esperado del caso de expansión",
+      nombre: "valor esperado del ejercicio de la rifa",
       ejecutar() {
-        const resultado = calculadora.calcularDecision(base);
-        casi(resultado.valoresEsperados[0], 76, "VE de planta grande");
-        casi(resultado.valoresEsperados[1], 83, "VE de planta mediana");
-        casi(resultado.valoresEsperados[2], 40, "VE de no ampliar");
-        afirmar(resultado.criterioEsperado.indice === 1, "Debe elegir planta mediana");
+        const resultado = calculadora.calcularDecision({
+          ...base,
+          estados: [{ nombre: "Ganar" }, { nombre: "Perder" }],
+          alternativas: [{ nombre: "Comprar", valores: [4900, -100] }, { nombre: "No comprar", valores: [0, 0] }],
+          probabilidades: [.01, .99]
+        });
+        casi(resultado.valoresEsperados[0], -50, "VE de comprar");
+        casi(resultado.valoresEsperados[1], 0, "VE de no comprar");
+        afirmar(resultado.criterioEsperado.indice === 1, "Debe elegir no comprar");
       }
     },
     {
@@ -82,48 +86,23 @@ aplicacion.addEventListener("load", () => {
       }
     },
     {
-      nombre: "caso de selección de proveedor",
+      nombre: "ejercicio de inversión en acciones",
       ejecutar() {
         const datos = {
           ...base,
-          tipoMatriz: "costos",
-          estados: [{ nombre: "Alta exigencia" }, { nombre: "Normal" }, { nombre: "Baja" }],
+          estados: [{ nombre: "Mercado alcista" }, { nombre: "Mercado bajista" }],
           alternativas: [
-            { nombre: "Proveedor A", valores: [175, 120, 95] },
-            { nombre: "Proveedor B", valores: [155, 123, 108] },
-            { nombre: "Producción interna", valores: [210, 115, 80] }
+            { nombre: "Compañía A", valores: [5000, -2000] },
+            { nombre: "Compañía B", valores: [1500, 500] }
           ],
-          probabilidades: [.25, .5, .25]
+          probabilidades: [.60, .40]
         };
         const resultado = calculadora.calcularDecision(datos);
-        casi(resultado.valoresEsperados[0], 127.5, "Costo esperado de A");
-        casi(resultado.valoresEsperados[1], 127.25, "Costo esperado de B");
-        casi(resultado.valoresEsperados[2], 130, "Costo esperado de producción interna");
-        afirmar(resultado.criterioEsperado.indice === 1, "Debe elegir proveedor B");
-        casi(resultado.valorInformacionPerfecta, 116.25, "Costo con información perfecta");
-        casi(resultado.evpi, 11, "EVPI del caso de proveedor");
-      }
-    },
-    {
-      nombre: "caso de lanzamiento comercial",
-      ejecutar() {
-        const datos = {
-          ...base,
-          estados: [{ nombre: "Muy favorable" }, { nombre: "Favorable" }, { nombre: "Estable" }, { nombre: "Adverso" }],
-          alternativas: [
-            { nombre: "Nacional", valores: [260, 150, 55, -110] },
-            { nombre: "Regional", valores: [170, 115, 70, -25] },
-            { nombre: "Piloto", valores: [90, 80, 60, 25] }
-          ],
-          probabilidades: [.15, .35, .3, .2]
-        };
-        const resultado = calculadora.calcularDecision(datos);
-        casi(resultado.valoresEsperados[0], 86, "VE de lanzamiento nacional");
-        casi(resultado.valoresEsperados[1], 81.75, "VE de lanzamiento regional");
-        casi(resultado.valoresEsperados[2], 64.5, "VE del piloto");
-        afirmar(resultado.criterioEsperado.indice === 0, "Debe elegir lanzamiento nacional");
-        casi(resultado.valorInformacionPerfecta, 117.5, "VE con información perfecta");
-        casi(resultado.evpi, 31.5, "EVPI del lanzamiento");
+        casi(resultado.valoresEsperados[0], 2200, "VE de la compañía A");
+        casi(resultado.valoresEsperados[1], 1100, "VE de la compañía B");
+        afirmar(resultado.criterioEsperado.indice === 0, "Debe elegir la compañía A");
+        casi(resultado.valorInformacionPerfecta, 3200, "VE con información perfecta");
+        casi(resultado.evpi, 1000, "EVPI de la inversión");
       }
     }
   ];

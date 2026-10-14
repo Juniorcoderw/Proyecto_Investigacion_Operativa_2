@@ -2,6 +2,7 @@
 
 const elementos = {
   tipo: document.getElementById("tipo"),
+  casoEjemplo: document.getElementById("caso-ejemplo"),
   grupoPlazo: document.getElementById("grupo-plazo"),
   plazo: document.getElementById("plazo"),
   encabezados: document.getElementById("encabezados"),
@@ -44,6 +45,66 @@ let dimensionesGantt = { ancho: 0, alto: 0 };
 let svgGantt = null;
 let temporizadorEnfoqueNodo = null;
 let borradoresPorTipo = { cpm: null, pert: null };
+
+const CASOS_PROYECTO = {
+  "cpm-sistema": {
+    tipo: "cpm",
+    etiqueta: "01 · Sistema informático",
+    actividades: [
+      { nombre: "A", descripcion: "Análisis de requerimientos", predecesoras: "", duracion: 4 },
+      { nombre: "B", descripcion: "Diseño del sistema", predecesoras: "A", duracion: 5 },
+      { nombre: "C", descripcion: "Diseño de base de datos", predecesoras: "A", duracion: 3 },
+      { nombre: "D", descripcion: "Programación", predecesoras: "B, C", duracion: 8 },
+      { nombre: "E", descripcion: "Pruebas", predecesoras: "D", duracion: 4 },
+      { nombre: "F", descripcion: "Implementación", predecesoras: "E", duracion: 2 }
+    ]
+  },
+  "cpm-laboratorio": {
+    tipo: "cpm",
+    etiqueta: "02 · Laboratorio de cómputo",
+    actividades: [
+      { nombre: "A", descripcion: "Elaboración del proyecto", predecesoras: "", duracion: 3 },
+      { nombre: "B", descripcion: "Adquisición de equipos", predecesoras: "A", duracion: 6 },
+      { nombre: "C", descripcion: "Adecuación del ambiente", predecesoras: "A", duracion: 8 },
+      { nombre: "D", descripcion: "Instalación eléctrica", predecesoras: "C", duracion: 5 },
+      { nombre: "E", descripcion: "Instalación de red", predecesoras: "C, D", duracion: 4 },
+      { nombre: "F", descripcion: "Instalación de computadoras", predecesoras: "B, E", duracion: 3 },
+      { nombre: "G", descripcion: "Pruebas", predecesoras: "F", duracion: 2 }
+    ]
+  },
+  "pert-software": {
+    tipo: "pert",
+    etiqueta: "06 · Software con incertidumbre",
+    plazo: 30,
+    actividades: [
+      { nombre: "A", descripcion: "Análisis inicial", predecesoras: "", optimista: 2, probable: 4, pesimista: 6 },
+      { nombre: "B", descripcion: "Diseño principal", predecesoras: "A", optimista: 3, probable: 5, pesimista: 9 },
+      { nombre: "C", descripcion: "Diseño complementario", predecesoras: "A", optimista: 2, probable: 3, pesimista: 4 },
+      { nombre: "D", descripcion: "Desarrollo", predecesoras: "B, C", optimista: 5, probable: 8, pesimista: 11 },
+      { nombre: "E", descripcion: "Pruebas", predecesoras: "D", optimista: 2, probable: 4, pesimista: 6 },
+      { nombre: "F", descripcion: "Entrega", predecesoras: "E", optimista: 1, probable: 2, pesimista: 3 }
+    ]
+  },
+  "pert-transformacion": {
+    tipo: "pert",
+    etiqueta: "10 · Centro de transformación digital",
+    plazo: 65,
+    actividades: [
+      { nombre: "A", descripcion: "Diagnóstico inicial", predecesoras: "", optimista: 4, probable: 6, pesimista: 10 },
+      { nombre: "B", descripcion: "Diseño de solución", predecesoras: "A", optimista: 5, probable: 7, pesimista: 11 },
+      { nombre: "C", descripcion: "Evaluación presupuestal", predecesoras: "A", optimista: 3, probable: 5, pesimista: 9 },
+      { nombre: "D", descripcion: "Adquisición tecnológica", predecesoras: "B, C", optimista: 7, probable: 10, pesimista: 15 },
+      { nombre: "E", descripcion: "Adecuación de infraestructura", predecesoras: "B", optimista: 6, probable: 8, pesimista: 12 },
+      { nombre: "F", descripcion: "Instalación tecnológica", predecesoras: "D, E", optimista: 5, probable: 7, pesimista: 11 },
+      { nombre: "G", descripcion: "Configuración de sistemas", predecesoras: "F", optimista: 4, probable: 6, pesimista: 10 },
+      { nombre: "H", descripcion: "Integración de sistemas", predecesoras: "G", optimista: 5, probable: 8, pesimista: 13 },
+      { nombre: "I", descripcion: "Capacitación", predecesoras: "H", optimista: 3, probable: 5, pesimista: 7 },
+      { nombre: "J", descripcion: "Pruebas piloto", predecesoras: "H", optimista: 4, probable: 6, pesimista: 9 },
+      { nombre: "K", descripcion: "Correcciones", predecesoras: "I, J", optimista: 3, probable: 5, pesimista: 8 },
+      { nombre: "L", descripcion: "Puesta en producción", predecesoras: "K", optimista: 2, probable: 3, pesimista: 5 }
+    ]
+  }
+};
 let redFueArrastrada = false;
 let omitirSiguienteClicNodo = false;
 
@@ -243,6 +304,7 @@ function cambiarTipoEstimacion() {
   borradoresPorTipo[tipoAnterior] = filasAnteriores;
   elementos.actividades.replaceChildren();
   actualizarEncabezados();
+  actualizarCasosProyecto();
 
   const borradorExistente = borradoresPorTipo[nuevoTipo];
   const filasNuevas = borradorExistente ?? filasAnteriores.map(actividad => {
@@ -2043,31 +2105,40 @@ function restaurarEstado() {
   }
 }
 
-function cargarEjemplo() {
+function actualizarCasosProyecto() {
+  const seleccionAnterior = elementos.casoEjemplo.value;
+  const casos = Object.entries(CASOS_PROYECTO).filter(([, caso]) => caso.tipo === elementos.tipo.value);
+  elementos.casoEjemplo.replaceChildren(...casos.map(([clave, caso]) => {
+    const opcion = document.createElement("option");
+    opcion.value = clave;
+    opcion.textContent = caso.etiqueta;
+    return opcion;
+  }));
+  if (casos.some(([clave]) => clave === seleccionAnterior)) elementos.casoEjemplo.value = seleccionAnterior;
+}
+
+function obtenerCasoProyecto(clave = elementos.casoEjemplo.value) {
+  const caso = CASOS_PROYECTO[clave];
+  if (!caso) return null;
+  return JSON.parse(JSON.stringify(caso));
+}
+
+function cargarEjemplo(clave = elementos.casoEjemplo.value) {
+  const caso = obtenerCasoProyecto(clave)
+    ?? obtenerCasoProyecto(elementos.tipo.value === "pert" ? "pert-software" : "cpm-sistema");
+  if (!caso) return;
+  if (elementos.tipo.value !== caso.tipo) {
+    elementos.tipo.value = caso.tipo;
+    tipoAnterior = caso.tipo;
+    actualizarEncabezados();
+    actualizarCasosProyecto();
+    elementos.casoEjemplo.value = clave;
+  }
   elementos.actividades.replaceChildren();
   elementos.mensaje.textContent = "";
-
-  if (elementos.tipo.value === "pert") {
-    elementos.plazo.value = "30";
-    [
-      { nombre: "A", descripcion: "Análisis inicial", predecesoras: "", optimista: 2, probable: 4, pesimista: 6 },
-      { nombre: "B", descripcion: "Diseño principal", predecesoras: "A", optimista: 3, probable: 5, pesimista: 9 },
-      { nombre: "C", descripcion: "Diseño complementario", predecesoras: "A", optimista: 2, probable: 3, pesimista: 4 },
-      { nombre: "D", descripcion: "Desarrollo", predecesoras: "B, C", optimista: 5, probable: 8, pesimista: 11 },
-      { nombre: "E", descripcion: "Pruebas", predecesoras: "D", optimista: 2, probable: 4, pesimista: 6 },
-      { nombre: "F", descripcion: "Entrega", predecesoras: "E", optimista: 1, probable: 2, pesimista: 3 }
-    ].forEach(actividad => agregarActividad(actividad));
-  } else {
-    elementos.plazo.value = "";
-    [
-      { nombre: "A", descripcion: "Análisis de requerimientos", predecesoras: "", duracion: 4 },
-      { nombre: "B", descripcion: "Diseño del sistema", predecesoras: "A", duracion: 5 },
-      { nombre: "C", descripcion: "Diseño de base de datos", predecesoras: "A", duracion: 3 },
-      { nombre: "D", descripcion: "Programación", predecesoras: "B, C", duracion: 8 },
-      { nombre: "E", descripcion: "Pruebas", predecesoras: "D", duracion: 4 },
-      { nombre: "F", descripcion: "Implementación", predecesoras: "E", duracion: 2 }
-    ].forEach(actividad => agregarActividad(actividad));
-  }
+  elementos.plazo.value = caso.tipo === "pert" ? String(caso.plazo ?? "") : "";
+  caso.actividades.forEach(actividad => agregarActividad(actividad));
+  borradoresPorTipo[caso.tipo] = capturarFilasVisuales(caso.tipo);
 
   ocultarResultados();
   programarGuardado();
@@ -2358,7 +2429,7 @@ document.getElementById("agregar").addEventListener("click", () => {
   ocultarResultados();
   programarGuardado();
 });
-document.getElementById("ejemplo").addEventListener("click", cargarEjemplo);
+document.getElementById("ejemplo").addEventListener("click", () => cargarEjemplo());
 document.getElementById("limpiar").addEventListener("click", limpiarFormulario);
 document.getElementById("resolver").addEventListener("click", resolverFormulario);
 document.getElementById("abrir-carga").addEventListener("click", configurarDialogoCarga);
@@ -2381,7 +2452,7 @@ function abrirTeoria() {
   renderizarMatematicas([elementos.dialogoTeoria]);
 }
 
-document.getElementById("abrir-teoria").addEventListener("click", abrirTeoria);
+document.getElementById("abrir-teoria")?.addEventListener("click", abrirTeoria);
 document.getElementById("abrir-teoria-red").addEventListener("click", abrirTeoria);
 document.getElementById("teoria-flotante").addEventListener("click", abrirTeoria);
 elementos.dialogoTeoria.querySelectorAll("details").forEach(detalle => {
@@ -2516,4 +2587,6 @@ window.addEventListener("resize", () => {
 
 activarArrastreRed();
 actualizarEncabezados();
-if (!restaurarEstado()) cargarEjemplo();
+const estadoRestaurado = restaurarEstado();
+actualizarCasosProyecto();
+if (!estadoRestaurado) cargarEjemplo();

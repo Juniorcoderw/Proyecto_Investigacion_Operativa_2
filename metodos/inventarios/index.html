@@ -101,8 +101,11 @@
           <p id="ayuda-mantenimiento">Use el costo anual de conservar una unidad en inventario.</p>
         </fieldset>
 
+        <div class="selector-caso-inventario">
+          <label class="campo" for="caso-inventario">Caso precargado<select id="caso-inventario"></select></label>
+          <button id="cargar-ejemplo" class="boton boton-secundario" type="button">Cargar</button>
+        </div>
         <div class="acciones-formulario">
-          <button id="cargar-ejemplo" class="boton boton-secundario" type="button">Cargar ejemplo</button>
           <button id="limpiar" class="boton boton-terciario boton-peligro" type="button">Limpiar</button>
         </div>
 
@@ -121,7 +124,6 @@
         <div class="encabezado-resultados">
           <div><p class="sobretitulo">Política recomendada</p><h2 id="titulo-resultado">Resultado del inventario</h2></div>
           <div class="acciones-resultados">
-            <button id="abrir-guia" class="boton boton-terciario" type="button">Teoría y símbolos</button>
             <button id="imprimir" class="boton boton-terciario" type="button">Imprimir informe</button>
           </div>
         </div>
@@ -220,9 +222,15 @@
     </section>
   </main>
 
+  <footer class="pie-modulo">
+    <a href="../../index.html" class="pie-modulo-marca"><img src="../../assets/institucional/logo-unjbg.png" alt=""><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
+    <p>Inventarios · EOQ, EPQ y faltantes</p>
+    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#calculadoras">Módulos</a><a href="../../index.html#equipo">Equipo</a></nav>
+  </footer>
+
   <button id="teoria-flotante" class="teoria-flotante" type="button" aria-label="Abrir teoría y símbolos de inventarios">
     <span class="teoria-icono" aria-hidden="true">i</span>
-    <strong>Teoría y símbolos</strong>
+    <strong>Guía del método</strong>
   </button>
 
   <dialog id="dialogo-guia" class="dialogo">

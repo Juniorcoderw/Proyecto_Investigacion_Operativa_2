@@ -1,221 +1,257 @@
-# Casos de contraste con POM-QM
+# Casos precargados y contraste con POM-QM
 
-Estos casos permiten ingresar los mismos datos en POM-QM y en la aplicación. La comparación debe hacerse con los valores sin redondear o con la misma cantidad de decimales.
+Los casos marcados como **Práctica del curso** fueron transcritos de las guías compartidas por el docente. Los casos marcados como **Contraste POM-QM** se incluyen para comprobar modelos que la aplicación soporta, pero que no aparecen desarrollados con datos completos en las prácticas disponibles.
 
-## 1. Inventarios — Economic Order Quantity Model
+Use la misma cantidad de decimales en ambas herramientas. La aplicación conserva la precisión interna y redondea solo al mostrar.
 
-Datos:
+## 1. PERT–CPM
 
-| Parámetro | Valor |
+### 1.1 CPM · Sistema informático — Práctica del curso, ejercicio 1
+
+En POM-QM: `Project Management (PERT/CPM) > Single time estimate`.
+
+| Actividad | Predecesoras | Duración |
+|---|---|---:|
+| A | — | 4 |
+| B | A | 5 |
+| C | A | 3 |
+| D | B, C | 8 |
+| E | D | 4 |
+| F | E | 2 |
+
+Comprobación: duración `23`, ruta crítica `A–B–D–E–F` y holgura de C `2`.
+
+### 1.2 CPM · Laboratorio de cómputo — Práctica del curso, ejercicio 2
+
+| Actividad | Predecesoras | Duración |
+|---|---|---:|
+| A | — | 3 |
+| B | A | 6 |
+| C | A | 8 |
+| D | C | 5 |
+| E | C, D | 4 |
+| F | B, E | 3 |
+| G | F | 2 |
+
+Comprobación: duración `25` y ruta crítica `A–C–D–E–F–G`.
+
+### 1.3 PERT · Software con incertidumbre — Práctica del curso, ejercicio 6
+
+En POM-QM: `Project Management (PERT/CPM) > Triple time estimate`. Plazo de evaluación: `30` días.
+
+| Actividad | Predecesoras | Optimista a | Más probable m | Pesimista b |
+|---|---|---:|---:|---:|
+| A | — | 2 | 4 | 6 |
+| B | A | 3 | 5 | 9 |
+| C | A | 2 | 3 | 4 |
+| D | B, C | 5 | 8 | 11 |
+| E | D | 2 | 4 | 6 |
+| F | E | 1 | 2 | 3 |
+
+Comprobación: duración esperada `23.3333`, ruta crítica `A–B–D–E–F`, varianza de la ruta `3`, desviación `1.7321`, `Z = 3.849` y probabilidad aproximada `99.99 %`.
+
+### 1.4 PERT · Centro de transformación digital — Práctica del curso, ejercicio 10
+
+Plazo de evaluación: `65` días.
+
+| Act. | Actividad | Predecesoras | a | m | b |
+|---|---|---|---:|---:|---:|
+| A | Diagnóstico inicial | — | 4 | 6 | 10 |
+| B | Diseño de solución | A | 5 | 7 | 11 |
+| C | Evaluación presupuestal | A | 3 | 5 | 9 |
+| D | Adquisición tecnológica | B, C | 7 | 10 | 15 |
+| E | Adecuación de infraestructura | B | 6 | 8 | 12 |
+| F | Instalación tecnológica | D, E | 5 | 7 | 11 |
+| G | Configuración de sistemas | F | 4 | 6 | 10 |
+| H | Integración de sistemas | G | 5 | 8 | 13 |
+| I | Capacitación | H | 3 | 5 | 7 |
+| J | Pruebas piloto | H | 4 | 6 | 9 |
+| K | Correcciones | I, J | 3 | 5 | 8 |
+| L | Puesta en producción | K | 2 | 3 | 5 |
+
+Comprobación: duración esperada `60.5`, ruta crítica `A–B–D–F–G–H–J–K–L`, varianza de la ruta `10.1944`, desviación `3.1929` y probabilidad aproximada de cumplir 65 días `92.05 %`.
+
+## 2. Inventarios EOQ — prácticas del curso
+
+En POM-QM: `Inventory > Economic Order Quantity (EOQ) Model`.
+
+### 2.1 Veinteluces
+
+| Entrada POM-QM | Valor |
 |---|---:|
-| Demanda anual | 3600 |
-| Costo por pedido | 20 |
-| Costo anual de mantenimiento por unidad | 0.75 |
-| Días laborables | 250 |
-| Tiempo de entrega | 5 |
+| Demand rate | 1200 |
+| Setup/ordering cost | 20 |
+| Holding cost | 0.30 |
+| Unit cost | 2 |
+| Working days | 240 |
+| Lead time | 7 |
 
-Resultados esperados:
+Resultados: `Q = 400`, `N = 3`, ciclo `80`, reorden `35`, costo relevante `120` y costo total con compra `2520`.
 
-| Resultado | Valor |
+### 2.2 R&B Beverage Company
+
+El mantenimiento es `25 %` de un precio unitario de `3`, por lo que en POM-QM puede ingresarse `H = 0.75`.
+
+| Entrada POM-QM | Valor |
 |---|---:|
-| Lote económico | 438.1780 |
-| Pedidos por año | 8.2158 |
-| Tiempo entre pedidos | 30.4290 días |
-| Punto de reorden | 72 |
-| Costo anual relevante | 328.6335 |
+| Demand rate | 3600 |
+| Setup/ordering cost | 20 |
+| Holding cost | 0.75 |
+| Unit cost | 3 |
+| Working days | 250 |
+| Lead time | 5 |
 
-## 2. Inventarios — Production Order Quantity Model
+Resultados: `Q = 438.1780`, `N = 8.2158`, ciclo `30.4290`, reorden `72` y costo relevante `328.6335`.
 
-Datos:
+### 2.3 Panda Auto
+
+El mantenimiento es `20 %` de un precio unitario de `2.50`, por lo que `H = 0.50`.
+
+| Entrada POM-QM | Valor |
+|---|---:|
+| Demand rate | 12000 |
+| Setup/ordering cost | 25 |
+| Holding cost | 0.50 |
+| Unit cost | 2.50 |
+| Working days | 250 |
+| Lead time | 5 |
+
+Resultados: `Q = 1095.4451`, `N = 10.9545`, ciclo `22.8218`, reorden `240` y costo relevante `547.7226`.
+
+## 3. Inventarios EPQ — casos de contraste
+
+Estos datos no proceden de una práctica completa encontrada en Drive. Se mantienen identificados como casos de contraste para `Inventory > Production Order Quantity Model`.
+
+### 3.1 Producción por lotes
 
 | Parámetro | Valor |
 |---|---:|
 | Demanda anual | 10000 |
 | Tasa anual de producción | 40000 |
 | Costo de preparación | 100 |
-| Costo anual de mantenimiento por unidad | 2 |
+| Mantenimiento anual por unidad | 2 |
+| Costo unitario | 10 |
+| Días laborables | 250 |
+| Tiempo de entrega | 2 |
 
-Resultados esperados:
+Resultados: lote `1154.7005`, inventario máximo `866.0254`, pedidos `8.6603`, ciclo `28.8675`, reorden `80` y costo relevante `1732.0508`.
 
-| Resultado | Valor |
+### 3.2 Taller de componentes
+
+| Parámetro | Valor |
 |---|---:|
-| Lote de producción | 1154.7005 |
-| Inventario máximo | 866.0254 |
-| Factor almacenado | 0.75 |
-| Costo anual relevante | 1732.0508 |
+| Demanda anual | 24000 |
+| Tasa anual de producción | 60000 |
+| Costo de preparación | 80 |
+| Mantenimiento anual por unidad | 1.20 |
+| Costo unitario | 6 |
+| Días laborables | 300 |
+| Tiempo de entrega | 4 |
 
-## 3. Inventarios — Back Order Inventory Model
+Resultados: lote `2309.4011`, inventario máximo `1385.6406`, pedidos `10.3923`, ciclo `28.8675`, reorden `320` y costo relevante `1662.7688`.
 
-Datos:
+## 4. Inventarios con faltantes — casos de contraste
+
+Estos datos tampoco aparecen como ejercicios completos en la práctica disponible. En POM-QM use `Inventory > Back Order Inventory Model`.
+
+### 4.1 Pedidos con espera planificada
 
 | Parámetro | Valor |
 |---|---:|
 | Demanda anual | 2000 |
 | Costo por pedido | 25 |
-| Costo anual de mantenimiento por unidad | 10 |
+| Mantenimiento anual por unidad | 10 |
 | Costo anual por unidad pendiente | 30 |
+| Costo unitario | 50 |
+| Días laborables | 250 |
+| Tiempo de entrega | 5 |
 
-Resultados esperados:
+Resultados: lote `115.4701`, inventario máximo `86.6025`, faltante máximo `28.8675`, pedidos `17.3205`, reorden neto `11.1325` y costo relevante `866.0254`.
 
-| Resultado | Valor |
+### 4.2 Repuestos bajo pedido
+
+| Parámetro | Valor |
 |---|---:|
-| Lote óptimo | 115.4701 |
-| Inventario máximo | 86.6025 |
-| Faltante máximo | 28.8675 |
-| Costo anual relevante | 866.0254 |
+| Demanda anual | 5000 |
+| Costo por pedido | 40 |
+| Mantenimiento anual por unidad | 4 |
+| Costo anual por unidad pendiente | 16 |
+| Costo unitario | 20 |
+| Días laborables | 250 |
+| Tiempo de entrega | 4 |
 
-## 4. Decisiones — Decision Tables
+Resultados: lote `353.5534`, inventario máximo `282.8427`, faltante máximo `70.7107`, pedidos `14.1421`, reorden neto `9.2893` y costo relevante `1131.3708`.
 
-En POM-QM abra `Decision Analysis > Decision Tables`. Indique si la matriz contiene beneficios o costos antes de ingresar los valores.
+## 5. Tablas de decisión — prácticas del curso
 
-### 4.1. Expansión de capacidad
+En POM-QM: `Decision Analysis > Decision Tables` y seleccione maximización de beneficios.
 
-Objetivo: maximizar beneficios. Coeficiente de Hurwicz: 0.60.
+### 5.1 Rifa
 
-| Alternativa | Demanda alta | Demanda media | Demanda baja |
-|---|---:|---:|---:|
-| Planta grande | 200 | 80 | -120 |
-| Planta mediana | 140 | 90 | -20 |
-| No ampliar | 40 | 40 | 40 |
-| Probabilidad | 0.30 | 0.50 | 0.20 |
+| Alternativa | Ganar | Perder |
+|---|---:|---:|
+| Comprar número | 4900 | -100 |
+| No comprar | 0 | 0 |
+| Probabilidad | 0.01 | 0.99 |
 
-Resultados esperados:
+Resultados: valor esperado de comprar `-50`, no comprar `0`; decisión recomendada `No comprar`. Valor esperado con información perfecta `49` y EVPI `49`.
 
-| Resultado | Valor |
-|---|---:|
-| Valor esperado de planta grande | 76 |
-| Valor esperado de planta mediana | 83 |
-| Valor esperado de no ampliar | 40 |
-| Alternativa por valor esperado | Planta mediana |
-| Valor esperado con información perfecta | 113 |
-| EVPI | 30 |
-| Alternativa por minimax de arrepentimiento | Planta mediana |
+### 5.2 Inversión de 10 000 dólares
 
-### 4.2. Selección de proveedor
+Los pagos son la ganancia o pérdida monetaria, no el capital final.
 
-Objetivo: minimizar costos. Coeficiente de Hurwicz: 0.55.
+| Alternativa | Mercado alcista | Mercado bajista |
+|---|---:|---:|
+| Compañía A | 5000 | -2000 |
+| Compañía B | 1500 | 500 |
+| Probabilidad | 0.60 | 0.40 |
 
-| Alternativa | Exigencia alta | Exigencia normal | Exigencia baja |
-|---|---:|---:|---:|
-| Proveedor A | 175 | 120 | 95 |
-| Proveedor B | 155 | 123 | 108 |
-| Producción interna | 210 | 115 | 80 |
-| Probabilidad | 0.25 | 0.50 | 0.25 |
+Resultados: valor esperado de A `2200`, de B `1100`; decisión recomendada `Compañía A`. Valor esperado con información perfecta `3200` y EVPI `1000`.
 
-Resultados esperados:
+## 6. Árboles de decisión — prácticas del curso
 
-| Resultado | Valor |
-|---|---:|
-| Costo esperado del proveedor A | 127.50 |
-| Costo esperado del proveedor B | 127.25 |
-| Costo esperado de producción interna | 130.00 |
-| Alternativa por valor esperado | Proveedor B |
-| Costo esperado con información perfecta | 116.25 |
-| EVPI | 11.00 |
-| Alternativa por minimax de arrepentimiento | Proveedor A |
+En POM-QM: `Decision Analysis > Decision Trees (Graphical)`. Los valores de una rama se acumulan con los valores posteriores.
 
-### 4.3. Lanzamiento comercial
+### 6.1 Rifa
 
-Objetivo: maximizar beneficios. Coeficiente de Hurwicz: 0.65.
+```text
+Decisión
+├── Comprar número
+│   └── Resultado de la rifa
+│       ├── Ganar: p = 0.01; pago = 4900
+│       └── Perder: p = 0.99; pago = -100
+└── No comprar: pago = 0
+```
 
-| Alternativa | Muy favorable | Favorable | Estable | Adverso |
+El nodo de azar vale `-50`; al compararlo con `0`, la estrategia es no comprar.
+
+### 6.2 Vacaciones en el extranjero
+
+Objetivo: minimizar costos. Para los tres destinos, dólar alto `0.70` y bajo `0.30`.
+
+| Destino | Costo con dólar alto | Costo con dólar bajo | P. soleado | P. lluvioso |
 |---|---:|---:|---:|---:|
-| Lanzamiento nacional | 260 | 150 | 55 | -110 |
-| Lanzamiento regional | 170 | 115 | 70 | -25 |
-| Prueba piloto | 90 | 80 | 60 | 25 |
-| Probabilidad | 0.15 | 0.35 | 0.30 | 0.20 |
+| México | 850 | 500 | 0.60 | 0.40 |
+| Panamá | 900 | 400 | 0.80 | 0.20 |
+| Venezuela | 750 | 450 | 0.40 | 0.60 |
 
-Resultados esperados:
+Si está soleado, multiplique el costo base por `0.85`; si está lluvioso, sume `75`.
 
-| Resultado | Valor |
-|---|---:|
-| Valor esperado del lanzamiento nacional | 86.00 |
-| Valor esperado del lanzamiento regional | 81.75 |
-| Valor esperado de la prueba piloto | 64.50 |
-| Alternativa por valor esperado | Lanzamiento nacional |
-| Valor esperado con información perfecta | 117.50 |
-| EVPI | 31.50 |
-| Alternativa por minimax de arrepentimiento | Lanzamiento regional |
+Pagos terminales:
 
-## 5. Decisiones — Decision Trees (Graphical)
+| Destino | Alto/soleado | Alto/lluvioso | Bajo/soleado | Bajo/lluvioso |
+|---|---:|---:|---:|---:|
+| México | 722.50 | 925.00 | 425.00 | 575.00 |
+| Panamá | 765.00 | 975.00 | 340.00 | 475.00 |
+| Venezuela | 637.50 | 825.00 | 382.50 | 525.00 |
 
-En POM-QM abra `Decision Analysis > Decision Trees (Graphical)`. Registre primero las decisiones, después los eventos inciertos y finalmente sus pagos. Los valores escritos sobre una rama se acumulan con los valores posteriores.
-
-### 5.1. Desarrollo y licencia
-
-Objetivo: maximizar beneficios.
-
-```text
-Estrategia inicial
-├── Desarrollar: -60
-│   └── Resultado técnico
-│       ├── Éxito: p = 0.65
-│       │   └── Escala de lanzamiento
-│       │       ├── Amplio: 220
-│       │       └── Limitado: 150
-│       └── Fallo: p = 0.35; valor = -30
-└── Licenciar: 55
-```
-
-Resolución esperada:
-
-1. En éxito, elegir lanzamiento amplio: `220`.
-2. Valor de resultado técnico: `0.65(220) + 0.35(-30) = 132.50`.
-3. Valor de desarrollar: `-60 + 132.50 = 72.50`.
-4. Comparar desarrollar `72.50` con licenciar `55`.
-5. Estrategia recomendada: desarrollar; si existe éxito, realizar lanzamiento amplio.
-
-### 5.2. Reparar o reemplazar
-
-Objetivo: minimizar costos.
-
-```text
-Decisión de mantenimiento
-├── Reparar: 18
-│   └── Resultado de la reparación
-│       ├── Funciona: p = 0.70; costo adicional = 12
-│       └── Falla nuevamente: p = 0.30; costo adicional = 48
-└── Reemplazar: 52
-```
-
-Resolución esperada:
-
-1. Costo esperado después de reparar: `0.70(12) + 0.30(48) = 22.80`.
-2. Costo total de reparar: `18 + 22.80 = 40.80`.
-3. Comparar reparar `40.80` con reemplazar `52.00`.
-4. Estrategia recomendada: reparar.
-
-### 5.3. Estudio de mercado
-
-Objetivo: maximizar beneficios.
-
-```text
-Decisión inicial
-├── Realizar estudio: -8
-│   └── Resultado del estudio
-│       ├── Favorable: p = 0.60
-│       │   └── Lanzar: 120 / Abandonar: 0
-│       └── Desfavorable: p = 0.40
-│           └── Lanzar: -50 / Abandonar: 0
-└── Omitir estudio
-    └── Mercado
-        ├── Alto: p = 0.45; beneficio = 100
-        └── Bajo: p = 0.55; beneficio = -35
-```
-
-Resolución esperada:
-
-1. Con informe favorable, elegir lanzar: `120`.
-2. Con informe desfavorable, elegir abandonar: `0`.
-3. Valor del estudio: `-8 + 0.60(120) + 0.40(0) = 64.00`.
-4. Valor de omitir el estudio: `0.45(100) + 0.55(-35) = 25.75`.
-5. Estrategia recomendada: realizar el estudio; lanzar solo si el resultado es favorable.
+Resultados: México `707.95`, Panamá `675.00`, Venezuela `665.40`; elegir Venezuela.
 
 ## Protocolo de comparación
 
-1. Seleccione el modelo equivalente indicado en cada título.
-2. Mantenga la misma interpretación de beneficios o costos.
+1. Abra el módulo de POM-QM indicado en cada sección.
+2. Mantenga la misma interpretación de costos o beneficios.
 3. Ingrese probabilidades como decimales y confirme que sumen uno.
-4. Configure la misma cantidad de decimales en POM-QM.
-5. Compare resultados intermedios antes del resultado final.
-6. Si existe una diferencia menor, revise si POM-QM muestra valores redondeados aunque calcule con precisión interna.
+4. En EOQ convierta el porcentaje anual de mantenimiento a costo monetario cuando POM-QM solicite `Holding cost`.
+5. Configure cuatro decimales para revisar diferencias de redondeo.
+6. Compare primero resultados intermedios y luego la recomendación final.
