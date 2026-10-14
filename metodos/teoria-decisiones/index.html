@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#251b25">
+  <title>Teoría de decisiones | Investigación Operativa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" }, startup: { typeset: false } };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
+  <script src="decisiones.js" defer></script>
+</head>
+<body>
+  <header class="cabecera-aplicacion">
+    <a class="marca" href="../../index.html" aria-label="Volver al inicio"><span class="marca-simbolo">IO</span><span><strong>Investigación Operativa</strong><small>Laboratorio de modelado</small></span></a>
+    <nav aria-label="Navegación principal"><a href="../../index.html">Inicio</a><a class="activo" href="../../index.html#calculadoras">Calculadoras</a><a href="../../index.html#proyecto">El proyecto</a></nav>
+    <span class="identificador-modulo">TEORÍA <b>·</b> DECISIONES</span>
+  </header>
+
+  <section class="cabecera-modulo">
+    <div><p class="etiqueta"><span></span> Análisis bajo incertidumbre y riesgo</p><h1>TEORÍA DE <em>DECISIONES</em></h1><p>Compare alternativas, mida el arrepentimiento y justifique una elección con criterios clásicos.</p></div>
+    <ol class="flujo" aria-label="Flujo de trabajo"><li class="activo" data-paso="datos"><span>01</span> Matriz</li><li data-paso="criterios"><span>02</span> Criterios</li><li data-paso="analisis"><span>03</span> Análisis</li></ol>
+  </section>
+
+  <main class="espacio-trabajo">
+    <aside class="panel panel-configuracion" aria-labelledby="titulo-configuracion">
+      <div class="encabezado-panel"><div><p class="sobretitulo">Configuración</p><h2 id="titulo-configuracion">Datos del problema</h2><p class="descripcion-panel">La matriz se actualiza mientras escribe.</p></div><span class="indicador-guardado"><i></i> Local</span></div>
+      <form id="formulario-decision" novalidate>
+        <label class="campo" for="problema">Problema o caso<input id="problema" name="problema" type="text" maxlength="80" placeholder="Ej. Capacidad de una nueva planta"></label>
+        <label class="campo" for="tipo-matriz">Interpretación de los valores<select id="tipo-matriz" name="tipoMatriz"><option value="beneficios">Beneficios · elegir el mayor</option><option value="costos">Costos · elegir el menor</option></select></label>
+        <label class="campo" for="alfa-hurwicz"><span class="rotulo-con-valor">Optimismo de Hurwicz <i>α</i><output id="valor-alfa">0.60</output></span><input id="alfa-hurwicz" name="alfaHurwicz" type="range" min="0" max="1" step="0.05" value="0.60"><small>0 prioriza el peor resultado; 1 prioriza el mejor.</small></label>
+        <section class="ayuda-probabilidades"><strong>Probabilidades</strong><p>Son necesarias para valor esperado y EVPI. Deben sumar 1 o 100 %.</p><span id="suma-probabilidades">Suma: 100 %</span></section>
+        <div class="acciones-formulario"><button id="cargar-ejemplo" class="boton boton-secundario" type="button">Ejemplo</button><button id="pegar-matriz" class="boton boton-terciario" type="button">Pegar Excel</button><button id="limpiar" class="boton boton-terciario boton-peligro" type="button">Limpiar</button></div>
+        <p id="mensaje" class="mensaje" role="alert" aria-live="assertive"></p>
+        <button class="boton boton-principal" type="submit">Evaluar decisiones <span>→</span></button>
+      </form>
+      <section class="nota-pom"><span>POM-QM</span><p>Esta primera versión corresponde a <strong>Decision Tables</strong>. Conserva las alternativas en filas y los estados en columnas.</p></section>
+    </aside>
+
+    <section class="area-analisis">
+      <section class="panel panel-matriz" aria-labelledby="titulo-matriz">
+        <div class="encabezado-panel"><div><p class="sobretitulo">Matriz de pagos</p><h2 id="titulo-matriz">Alternativas y estados de la naturaleza</h2><p class="descripcion-panel">Use Tab para avanzar. Puede cambiar nombres y valores directamente.</p></div><div class="acciones-tabla"><button id="agregar-alternativa" class="boton boton-terciario" type="button">+ Alternativa</button><button id="agregar-estado" class="boton boton-secundario" type="button">+ Estado</button></div></div>
+        <div class="tabla-contenedor"><table id="tabla-decision" class="tabla-decision"><thead id="cabecera-tabla"></thead><tbody id="cuerpo-tabla"></tbody><tfoot id="pie-tabla"></tfoot></table></div>
+      </section>
+
+      <section id="salida" class="salida" hidden>
+        <div class="encabezado-resultados"><div><p class="sobretitulo">Lectura del modelo</p><h2 id="titulo-resultado">Resultado de la decisión</h2></div><div class="acciones-resultados"><button id="abrir-guia" class="boton boton-terciario" type="button">Teoría y símbolos</button><button id="imprimir" class="boton boton-terciario" type="button">Imprimir</button></div></div>
+        <div class="resumen"><article class="tarjeta-resumen tarjeta-destacada"><span>Valor esperado</span><strong id="decision-esperada">—</strong><small id="detalle-esperado">—</small></article><article class="tarjeta-resumen"><span>Mejor valor esperado</span><strong id="mejor-valor">—</strong><small>según probabilidades</small></article><article class="tarjeta-resumen"><span>Valor de información <i>EVPI</i></span><strong id="evpi">—</strong><small>máximo razonable por información perfecta</small></article><article class="tarjeta-resumen"><span>Consenso de criterios</span><strong id="consenso">—</strong><small id="detalle-consenso">—</small></article></div>
+        <div id="recomendacion" class="recomendacion"></div>
+
+        <div class="navegacion-pestanas" role="tablist" aria-label="Vistas del análisis"><button class="pestana activo" type="button" role="tab" aria-selected="true" data-panel="panel-criterios">Criterios</button><button class="pestana" type="button" role="tab" aria-selected="false" data-panel="panel-arrepentimiento" tabindex="-1">Arrepentimiento</button><button class="pestana" type="button" role="tab" aria-selected="false" data-panel="panel-desarrollo" tabindex="-1">Desarrollo</button></div>
+
+        <div id="panel-criterios" class="panel-pestana activo" role="tabpanel">
+          <div id="tarjetas-criterios" class="tarjetas-criterios"></div>
+          <section class="panel panel-grafico"><div class="encabezado-panel"><div><p class="sobretitulo">Comparación ponderada</p><h2>Valor esperado por alternativa</h2></div><span class="sello">Probabilidades activas</span></div><div id="grafico-valores" class="grafico" role="img" aria-label="Gráfico del valor esperado de cada alternativa"></div></section>
+        </div>
+
+        <div id="panel-arrepentimiento" class="panel-pestana" role="tabpanel" hidden>
+          <section class="panel panel-arrepentimiento"><div class="encabezado-panel"><div><p class="sobretitulo">Costo de oportunidad</p><h2>Matriz de arrepentimiento</h2><p class="descripcion-panel">Cero identifica el mejor resultado de cada estado.</p></div></div><div class="tabla-contenedor"><table class="tabla-resultados"><thead id="cabecera-arrepentimiento"></thead><tbody id="cuerpo-arrepentimiento"></tbody></table></div></section>
+        </div>
+
+        <div id="panel-desarrollo" class="panel-pestana" role="tabpanel" hidden>
+          <section class="panel panel-desarrollo"><div class="encabezado-panel"><div><p class="sobretitulo">Procedimiento verificable</p><h2>Desarrollo paso a paso</h2><p class="descripcion-panel">Cada criterio se calcula con la misma matriz de entrada.</p></div></div><div id="desarrollo" class="desarrollo"></div></section>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <button id="teoria-flotante" class="teoria-flotante" type="button" aria-label="Abrir fundamentos de teoría de decisiones"><span>i</span><strong>Teoría y símbolos</strong></button>
+
+  <dialog id="dialogo-guia" class="dialogo"><div class="cabecera-dialogo"><div><p class="sobretitulo">Fundamentos y modelamiento</p><h2>Teoría de decisiones</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div><p class="introduccion-guia">La disciplina formaliza elecciones cuando el resultado depende de eventos que el decisor no controla. Wald, Hurwicz, Laplace, Savage y Bayes aportaron criterios que hoy siguen usándose para comparar alternativas.</p><div class="contenido-guia">
+    <section class="historia"><article><b>1950</b><span>Abraham Wald formaliza el criterio conservador.</span></article><article><b>1951</b><span>Leonard Savage propone minimizar el arrepentimiento máximo.</span></article><article><b>Riesgo</b><span>Con probabilidades conocidas se aplica el valor esperado.</span></article></section>
+    <div class="formulas-guia"><article><small>Valor esperado</small><strong>\(VE_i=\sum_j p_jx_{ij}\)</strong><p>Pondera cada resultado por la probabilidad de su estado.</p></article><article><small>Hurwicz</small><strong>\(H_i=\alpha M_i+(1-\alpha)m_i\)</strong><p>Combina el mejor y el peor resultado mediante el optimismo α.</p></article><article><small>Arrepentimiento</small><strong>\(R_{ij}=x_j^*-x_{ij}\)</strong><p>Mide lo que se deja de ganar frente a la mejor decisión de cada estado.</p></article><article><small>Información perfecta</small><strong>\(EVPI=VE_{PI}-VE^*\)</strong><p>Establece cuánto convendría pagar por conocer el estado futuro.</p></article></div>
+    <section class="bloque-guia"><h3>Diccionario de símbolos</h3><div class="diccionario"><p><b>A<sub>i</sub></b><span>Alternativa i</span></p><p><b>E<sub>j</sub></b><span>Estado de la naturaleza j</span></p><p><b>x<sub>ij</sub></b><span>Pago o costo de Aᵢ en Eⱼ</span></p><p><b>p<sub>j</sub></b><span>Probabilidad del estado j</span></p><p><b>α</b><span>Coeficiente de optimismo</span></p><p><b>EVPI</b><span>Valor esperado de información perfecta</span></p></div></section>
+    <section class="bloque-guia"><h3>Antes de interpretar</h3><ul><li>Las alternativas deben ser mutuamente excluyentes.</li><li>Los estados deben cubrir los escenarios relevantes.</li><li>No mezcle beneficios y costos en una misma matriz.</li><li>Las probabilidades deben sumar uno.</li></ul></section>
+    <div class="nota-guia"><strong>Equivalencia con POM-QM</strong><p>Corresponde al módulo <em>Decision Analysis → Decision Tables</em>. Para comparar resultados, conserve el mismo tipo de matriz, coeficiente α y probabilidades.</p></div>
+  </div><button class="boton boton-principal cerrar-dialogo" type="button">Cerrar</button></dialog>
+
+  <dialog id="dialogo-pegar" class="dialogo dialogo-pegar"><div class="cabecera-dialogo"><div><p class="sobretitulo">Importación rápida</p><h2>Pegar matriz desde Excel</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div><p>Primera fila: nombres de estados. Primera columna: alternativas. La última fila puede llamarse <strong>Probabilidad</strong>.</p><textarea id="datos-pegados" rows="9" placeholder="Alternativa&#9;Demanda alta&#9;Demanda media&#9;Demanda baja&#10;Planta grande&#9;200&#9;80&#9;-120&#10;Planta mediana&#9;140&#9;90&#9;-20&#10;No ampliar&#9;40&#9;40&#9;40&#10;Probabilidad&#9;0.30&#9;0.50&#9;0.20"></textarea><div class="pie-dialogo"><button class="boton boton-terciario cerrar-dialogo" type="button">Cancelar</button><button id="importar-matriz" class="boton boton-principal" type="button">Importar matriz <span>→</span></button></div></dialog>
+</body>
+</html>

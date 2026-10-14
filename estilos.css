@@ -183,7 +183,7 @@ footer > p { color: #7282a5; font-size: .75rem; }
   .visual-portada { min-height: 460px; }
   .cabecera-seccion { grid-template-columns: 1fr; }
   .rejilla-metodos { grid-template-columns: 1fr 1fr; }
-  .metodo-activo { grid-column: 1 / -1; }
+  .tarjeta-metodo:first-child { grid-column: 1 / -1; }
 }
 
 @media (max-width: 650px) {
@@ -202,7 +202,7 @@ footer > p { color: #7282a5; font-size: .75rem; }
   .tarjeta-flotante { right: 0; bottom: 3%; }
   .seccion { padding: 78px 0; }
   .rejilla-metodos, .pilares { grid-template-columns: 1fr; }
-  .metodo-activo { grid-column: auto; }
+  .tarjeta-metodo:first-child { grid-column: auto; }
   .tarjeta-metodo { min-height: 390px; }
   .manifiesto { width: 100%; padding-right: 20px; padding-left: 20px; }
   footer { align-items: flex-start; flex-direction: column; gap: 24px; }

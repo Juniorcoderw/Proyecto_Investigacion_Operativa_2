@@ -64,7 +64,6 @@
             <option value="eoq">EOQ · Demanda constante</option>
             <option value="epq">EPQ · Producción gradual</option>
             <option value="faltantes">EOQ · Faltantes planificados</option>
-            <option disabled>Descuentos por cantidad · Próximamente</option>
           </select>
         </label>
 
@@ -244,6 +243,7 @@
       <section class="bloque-guia"><h3>Supuestos para usar EOQ básico</h3><ul><li>Demanda conocida y constante.</li><li>Tiempo de entrega constante.</li><li>Reposición completa del lote.</li><li>Sin faltantes ni descuentos por cantidad.</li></ul></section>
       <section class="bloque-guia"><h3>Supuestos adicionales de EPQ</h3><ul><li>Producción y demanda constantes.</li><li>La tasa de producción es mayor que la demanda.</li><li>El lote ingresa gradualmente.</li><li>No se permiten faltantes.</li></ul></section>
       <section class="bloque-guia"><h3>Supuestos del modelo con faltantes</h3><ul><li>La demanda no atendida queda pendiente; no se pierde la venta.</li><li>La reposición es instantánea.</li><li>Demanda, entrega y costos son conocidos.</li><li>Cada unidad pendiente genera un costo anual.</li></ul></section>
+      <section class="bloque-guia"><h3>Equivalencia con POM-QM</h3><div class="diccionario-simbolos"><p><b>EOQ</b><span>Economic Order Quantity Model</span></p><p><b>EPQ</b><span>Production Order Quantity Model</span></p><p><b>Falt.</b><span>Back Order Inventory Model</span></p><p><b>Datos</b><span>Use la misma unidad de tiempo y los mismos costos en ambos programas.</span></p></div></section>
       <div class="nota-guia"><strong>Costos anuales</strong><p>En EOQ: \(CR=\frac{Q^*}{2}C_h\). En EPQ: \(CR=\frac{I_{max}}{2}C_h\). Con faltantes: \(CR=\frac{I_{max}^2}{2Q^*}C_h\) y \(CF=\frac{{B^*}^2}{2Q^*}C_s\). Siempre se suma \(CP=\frac{D}{Q^*}C_o\); la compra \(CA=DC\) se muestra aparte.</p></div>
       <div class="nota-guia nota-redondeo"><strong>Criterio de redondeo</strong><p>La calculadora conserva todos los decimales durante el procedimiento y presenta la respuesta con dos decimales. Si un desarrollo manual trunca valores intermedios, puede diferir por algunas centésimas.</p></div>
     </div>

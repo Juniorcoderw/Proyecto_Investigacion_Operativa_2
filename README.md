@@ -1,13 +1,13 @@
 # Investigación Operativa II — Métodos cuantitativos
 
-Aplicación web académica para resolver y analizar modelos de Investigación Operativa II. Incluye módulos interactivos de PERT–CPM e inventarios EOQ, EPQ y faltantes planificados.
+Aplicación web académica para resolver y analizar modelos de Investigación Operativa II. Incluye módulos interactivos de PERT–CPM, inventarios y teoría de decisiones.
 
 ## Estado del proyecto
 
 - PERT–CPM: módulo funcional con cálculo CPM y PERT, desarrollo matemático y red AON.
 - Inventarios: módulo funcional con EOQ básico, EPQ y EOQ con faltantes planificados, además de costos, gráficos y comparación de escenarios.
-- Teoría de decisiones: propuesta para una etapa posterior.
-- Pruebas realizadas: redes PERT–CPM, casos manuales EOQ, producción EPQ, faltantes planificados, capacidad y mínimo de costos.
+- Teoría de decisiones: tablas de pago con criterios clásicos, valor esperado, arrepentimiento y EVPI.
+- Pruebas realizadas: redes PERT–CPM, casos manuales EOQ, producción EPQ, faltantes planificados, capacidad, matrices de beneficios y costos, valor esperado, arrepentimiento y EVPI.
 
 ## Estructura
 
@@ -20,10 +20,16 @@ Aplicación web académica para resolver y analizar modelos de Investigación Op
 │   │   ├── index.html
 │   │   ├── estilos.css
 │   │   └── pert-cpm.js
-│   └── inventarios/
+│   ├── inventarios/
+│   │   ├── index.html
+│   │   ├── estilos.css
+│   │   ├── inventarios.js
+│   │   ├── pruebas.html
+│   │   └── pruebas.js
+│   └── teoria-decisiones/
 │       ├── index.html
 │       ├── estilos.css
-│       ├── inventarios.js
+│       ├── decisiones.js
 │       ├── pruebas.html
 │       └── pruebas.js
 ```
@@ -104,6 +110,12 @@ EOQ calcula el lote económico con reposición instantánea. EPQ modela una prod
 
 La herramienta incluye una gráfica dinámica adaptada al tipo de reposición, curva de costos con simulador de lotes alternativos, desarrollo matemático con LaTeX, interpretación automática y una tabla compatible con datos pegados desde Excel para comparar escenarios. Los cálculos conservan su precisión interna y el redondeo se aplica únicamente en la presentación.
 
+## Módulo de teoría de decisiones
+
+La calculadora trabaja con alternativas en filas y estados de la naturaleza en columnas, de manera equivalente a `Decision Analysis → Decision Tables` de POM-QM. Acepta matrices de beneficios o costos, probabilidades en decimales o porcentajes, coeficiente de optimismo de Hurwicz e importación directa desde Excel.
+
+Presenta Maximax o Minimin, Wald, Hurwicz, Laplace, Savage y valor esperado, además de la matriz de arrepentimiento, EVPI, gráfico comparativo y desarrollo matemático con LaTeX.
+
 ## Preparación para despliegue
 
 El proyecto es estático y puede desplegarse directamente desde la raíz del repositorio en Vercel, sin comando de compilación. Antes del despliegue final se debe verificar la carga de MathJax y Google Fonts desde la red de producción.
@@ -111,10 +123,9 @@ El proyecto es estático y puede desplegarse directamente desde la raíz del rep
 ## Próximos pasos
 
 1. Contrastar ejemplos adicionales de inventarios con los resultados esperados de POM-QM.
-2. Incorporar descuentos por cantidad.
+2. Contrastar tablas de decisión adicionales con POM-QM.
 3. Realizar la revisión final de contenido y accesibilidad.
 4. Desplegar la rama aprobada en Vercel.
-5. Continuar con el módulo de teoría de decisiones.
 
 ## Referencia académica
 
