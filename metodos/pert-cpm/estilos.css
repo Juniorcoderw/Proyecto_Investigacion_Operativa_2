@@ -58,10 +58,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   display: flex;
   width: min(1560px, calc(100% - 48px));
   min-height: 104px;
+  padding: 0 20px;
   align-items: center;
   justify-content: space-between;
   gap: 30px;
   margin: auto;
+  border-bottom: 1px solid rgba(26, 59, 91, .09);
+  background: linear-gradient(90deg, rgba(247, 244, 237, .99) 0%, rgba(247, 244, 237, .94) 43%, rgba(247, 244, 237, .62) 100%), url("../../assets/matematicas/modelamiento-operaciones.png") right 42% / 720px auto no-repeat;
 }
 .etiqueta, .sobretitulo { margin: 0 0 7px; color: var(--indigo); font-size: .62rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .etiqueta span { display: inline-block; width: 18px; height: 2px; margin: 0 7px 3px 0; background: var(--oro); }
@@ -69,7 +72,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .cabecera-modulo h1 em { color: var(--oro); font-style: normal; }
 .cabecera-modulo > div > p:last-child { margin: 10px 0 0; color: var(--suave); font-size: .8rem; }
 .flujo { display: flex; margin: 0; padding: 0; list-style: none; }
-.flujo li { position: relative; display: grid; min-width: 106px; grid-template-columns: auto 1fr; align-items: center; gap: 7px; padding: 11px 15px; border: 1px solid #dbe3f0; background: rgba(255, 255, 255, .58); color: #75839c; font-size: .68rem; font-weight: 800; }
+.flujo li { position: relative; display: grid; min-width: 106px; grid-template-columns: auto 1fr; align-items: center; gap: 7px; padding: 11px 15px; border: 1px solid #dbe3f0; background: rgba(255, 255, 255, .9); color: #75839c; font-size: .68rem; font-weight: 800; }
 .flujo li:first-child { border-radius: 10px 0 0 10px; }
 .flujo li:last-child { border-radius: 0 10px 10px 0; }
 .flujo li + li { border-left: 0; }
