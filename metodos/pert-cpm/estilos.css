@@ -42,6 +42,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   box-shadow: 0 8px 30px rgba(7, 23, 53, .2);
 }
 .marca { display: inline-flex; align-items: center; gap: 11px; color: #fff; text-decoration: none; }
+.marca-imagen { width: 42px; height: 47px; flex: 0 0 auto; object-fit: contain; filter: drop-shadow(0 3px 7px rgba(0, 0, 0, .2)); }
 .marca-simbolo { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(214, 173, 75, .6); border-radius: 50%; background: rgba(255, 255, 255, .06); color: #f1c861; font-family: "Space Grotesk"; font-weight: 700; }
 .marca > span:last-child { display: grid; gap: 2px; }
 .marca strong { font-size: .72rem; letter-spacing: .045em; text-transform: uppercase; }

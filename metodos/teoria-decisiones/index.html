@@ -18,7 +18,7 @@
 </head>
 <body>
   <header class="cabecera-aplicacion">
-    <a class="marca" href="../../index.html" aria-label="Volver al inicio"><span class="marca-simbolo">IO</span><span><strong>Investigación Operativa</strong><small>Laboratorio de modelado</small></span></a>
+    <a class="marca" href="../../index.html" aria-label="Volver al inicio"><img class="marca-imagen" src="../../assets/institucional/logo-unjbg.png" alt="Escudo de la UNJBG"><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
     <nav aria-label="Navegación principal"><a href="../../index.html">Inicio</a><a class="activo" href="../../index.html#calculadoras">Calculadoras</a><a href="../../index.html#proyecto">El proyecto</a></nav>
     <span class="identificador-modulo">TEORÍA <b>·</b> DECISIONES</span>
   </header>
@@ -45,12 +45,11 @@
         <p id="mensaje" class="mensaje" role="alert" aria-live="assertive"></p>
         <button class="boton boton-principal" type="submit">Evaluar decisiones <span>→</span></button>
       </form>
-      <section class="nota-pom"><span>POM-QM</span><p>Esta primera versión corresponde a <strong>Decision Tables</strong>. Conserva las alternativas en filas y los estados en columnas.</p></section>
     </aside>
 
     <section class="area-analisis">
       <section class="panel panel-matriz" aria-labelledby="titulo-matriz">
-        <div class="encabezado-panel"><div><p class="sobretitulo">Matriz de pagos</p><h2 id="titulo-matriz">Alternativas y estados de la naturaleza</h2><p class="descripcion-panel">Use Tab para avanzar. Puede cambiar nombres y valores directamente.</p></div><div class="acciones-tabla"><button id="agregar-alternativa" class="boton boton-terciario" type="button">+ Alternativa</button><button id="agregar-estado" class="boton boton-secundario" type="button">+ Estado</button></div></div>
+        <div class="encabezado-panel"><div><p class="sobretitulo">Matriz de pagos</p><h2 id="titulo-matriz">Alternativas y estados de la naturaleza</h2><p class="descripcion-panel">Edite nombres y valores directamente en la tabla.</p></div><div class="acciones-tabla"><button id="agregar-alternativa" class="boton boton-terciario" type="button">+ Alternativa</button><button id="agregar-estado" class="boton boton-secundario" type="button">+ Estado</button></div></div>
         <div class="tabla-contenedor"><table id="tabla-decision" class="tabla-decision"><thead id="cabecera-tabla"></thead><tbody id="cuerpo-tabla"></tbody><tfoot id="pie-tabla"></tfoot></table></div>
       </section>
 

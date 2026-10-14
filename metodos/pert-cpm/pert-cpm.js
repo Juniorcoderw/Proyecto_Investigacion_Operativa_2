@@ -696,12 +696,6 @@ function presentarInterpretacion(solucion, rutasDetalladas, plazoObjetivo) {
     elementos.interpretacion.append(tarjeta);
   });
 
-  const nota = crearElemento(
-    "p",
-    "nota-supuesto",
-    "Los resultados dependen de las precedencias y estimaciones ingresadas. PERT usa la aproximación normal y supone independencia entre duraciones para cada ruta analizada."
-  );
-  elementos.interpretacion.append(nota);
 }
 
 function presentarRutas(solucion, rutasDetalladas, plazoObjetivo) {

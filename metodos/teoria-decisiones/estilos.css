@@ -18,3 +18,4 @@ form{display:grid;gap:13px;margin-top:17px}.campo{display:grid;min-width:0;gap:6
 @media(max-width:1160px){.espacio-arbol{grid-template-columns:340px minmax(0,1fr)}}
 @media(max-width:900px){.espacio-arbol{grid-template-columns:1fr}.editor-arbol{position:static;max-height:none}.visor-arbol{min-height:380px}}
 @media(max-width:620px){.resumen-arbol{grid-template-columns:1fr}.controles-zoom{align-self:stretch}.campos-rama{grid-template-columns:1fr 1fr}.visor-arbol{min-height:350px}}
+.marca-imagen{width:42px;height:47px;flex:0 0 auto;object-fit:contain;filter:drop-shadow(0 3px 7px rgba(0,0,0,.2))}
