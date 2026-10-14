@@ -28,6 +28,11 @@
     <ol class="flujo" aria-label="Flujo de trabajo"><li class="activo" data-paso="datos"><span>01</span> Matriz</li><li data-paso="criterios"><span>02</span> Criterios</li><li data-paso="analisis"><span>03</span> Análisis</li></ol>
   </section>
 
+  <nav class="selector-modelo" aria-label="Modelo de teoría de decisiones">
+    <a class="activo" href="index.html"><span>▦</span><strong>Tablas de decisión</strong><small>Una decisión y varios estados</small></a>
+    <a href="arboles.html"><span>◇</span><strong>Árboles de decisión</strong><small>Decisiones y eventos sucesivos</small></a>
+  </nav>
+
   <main class="espacio-trabajo">
     <aside class="panel panel-configuracion" aria-labelledby="titulo-configuracion">
       <div class="encabezado-panel"><div><p class="sobretitulo">Configuración</p><h2 id="titulo-configuracion">Datos del problema</h2><p class="descripcion-panel">La matriz se actualiza mientras escribe.</p></div><span class="indicador-guardado"><i></i> Local</span></div>
@@ -79,6 +84,7 @@
     <div class="formulas-guia"><article><small>Valor esperado</small><strong>\(VE_i=\sum_j p_jx_{ij}\)</strong><p>Pondera cada resultado por la probabilidad de su estado.</p></article><article><small>Hurwicz</small><strong>\(H_i=\alpha M_i+(1-\alpha)m_i\)</strong><p>Combina el mejor y el peor resultado mediante el optimismo α.</p></article><article><small>Arrepentimiento</small><strong>\(R_{ij}=x_j^*-x_{ij}\)</strong><p>Mide lo que se deja de ganar frente a la mejor decisión de cada estado.</p></article><article><small>Información perfecta</small><strong>\(EVPI=VE_{PI}-VE^*\)</strong><p>Establece cuánto convendría pagar por conocer el estado futuro.</p></article></div>
     <section class="bloque-guia"><h3>Diccionario de símbolos</h3><div class="diccionario"><p><b>A<sub>i</sub></b><span>Alternativa i</span></p><p><b>E<sub>j</sub></b><span>Estado de la naturaleza j</span></p><p><b>x<sub>ij</sub></b><span>Pago o costo de Aᵢ en Eⱼ</span></p><p><b>p<sub>j</sub></b><span>Probabilidad del estado j</span></p><p><b>α</b><span>Coeficiente de optimismo</span></p><p><b>EVPI</b><span>Valor esperado de información perfecta</span></p></div></section>
     <section class="bloque-guia"><h3>Antes de interpretar</h3><ul><li>Las alternativas deben ser mutuamente excluyentes.</li><li>Los estados deben cubrir los escenarios relevantes.</li><li>No mezcle beneficios y costos en una misma matriz.</li><li>Las probabilidades deben sumar uno.</li></ul></section>
+    <section class="bloque-guia"><h3>¿Tabla o árbol?</h3><ul><li>Use una tabla cuando todas las alternativas se eligen al inicio.</li><li>Use un árbol cuando una decisión futura dependa de un evento anterior.</li><li>En un nodo de azar se ponderan resultados por probabilidad.</li><li>En un nodo de decisión se conserva la rama de mayor beneficio o menor costo.</li></ul></section>
     <div class="nota-guia"><strong>Equivalencia con POM-QM</strong><p>Corresponde al módulo <em>Decision Analysis → Decision Tables</em>. Para comparar resultados, conserve el mismo tipo de matriz, coeficiente α y probabilidades.</p></div>
   </div><button class="boton boton-principal cerrar-dialogo" type="button">Cerrar</button></dialog>
 

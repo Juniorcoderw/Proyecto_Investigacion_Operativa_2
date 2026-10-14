@@ -6,8 +6,8 @@ Aplicación web académica para resolver y analizar modelos de Investigación Op
 
 - PERT–CPM: módulo funcional con cálculo CPM y PERT, desarrollo matemático y red AON.
 - Inventarios: módulo funcional con EOQ básico, EPQ y EOQ con faltantes planificados, además de costos, gráficos y comparación de escenarios.
-- Teoría de decisiones: tablas de pago con criterios clásicos, valor esperado, arrepentimiento y EVPI.
-- Pruebas realizadas: redes PERT–CPM, casos manuales EOQ, producción EPQ, faltantes planificados, capacidad, matrices de beneficios y costos, valor esperado, arrepentimiento y EVPI.
+- Teoría de decisiones: tablas de pago y árboles secuenciales con criterios clásicos, valor esperado, arrepentimiento, EVPI y resolución por retroceso.
+- Pruebas realizadas: redes PERT–CPM, casos manuales EOQ, producción EPQ, faltantes planificados, capacidad, matrices de beneficios y costos, valor esperado, arrepentimiento, EVPI y árboles con decisiones y azar.
 
 ## Estructura
 
@@ -30,8 +30,14 @@ Aplicación web académica para resolver y analizar modelos de Investigación Op
 │       ├── index.html
 │       ├── estilos.css
 │       ├── decisiones.js
+│       ├── arboles.html
+│       ├── arboles.js
 │       ├── pruebas.html
-│       └── pruebas.js
+│       ├── pruebas.js
+│       ├── pruebas-arboles.html
+│       └── pruebas-arboles.js
+└── docs/
+    └── casos-contraste-pom-qm.md
 ```
 
 ## Cómo ejecutar
@@ -114,7 +120,9 @@ La herramienta incluye una gráfica dinámica adaptada al tipo de reposición, c
 
 La calculadora trabaja con alternativas en filas y estados de la naturaleza en columnas, de manera equivalente a `Decision Analysis → Decision Tables` de POM-QM. Acepta matrices de beneficios o costos, probabilidades en decimales o porcentajes, coeficiente de optimismo de Hurwicz e importación directa desde Excel.
 
-Presenta Maximax o Minimin, Wald, Hurwicz, Laplace, Savage y valor esperado, además de la matriz de arrepentimiento, EVPI, gráfico comparativo y desarrollo matemático con LaTeX.
+Presenta Maximax o Minimin, Wald, Hurwicz, Laplace, Savage y valor esperado, además de la matriz de arrepentimiento, EVPI, gráfico comparativo y desarrollo matemático con LaTeX. El segundo modelo permite construir árboles con nodos de decisión, azar y resultados terminales, resolverlos por retroceso y destacar la estrategia óptima.
+
+Los casos reproducibles para contrastar los tres modelos de inventario, las tablas y los árboles con POM-QM se encuentran en `docs/casos-contraste-pom-qm.md`.
 
 ## Preparación para despliegue
 
@@ -122,10 +130,9 @@ El proyecto es estático y puede desplegarse directamente desde la raíz del rep
 
 ## Próximos pasos
 
-1. Contrastar ejemplos adicionales de inventarios con los resultados esperados de POM-QM.
-2. Contrastar tablas de decisión adicionales con POM-QM.
-3. Realizar la revisión final de contenido y accesibilidad.
-4. Desplegar la rama aprobada en Vercel.
+1. Registrar capturas de la ejecución de los casos de contraste en POM-QM.
+2. Realizar la revisión final de contenido y accesibilidad.
+3. Desplegar la rama aprobada en Vercel.
 
 ## Referencia académica
 
