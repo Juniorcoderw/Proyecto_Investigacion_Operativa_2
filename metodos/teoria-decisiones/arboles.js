@@ -2,6 +2,7 @@
 
 const CLAVE_ARBOL = "teoria-decisiones-arbol-v1";
 const elementosArbol = {
+  caso: document.getElementById("caso-arbol"),
   problema: document.getElementById("problema-arbol"),
   objetivo: document.getElementById("objetivo-arbol"),
   nombreNodo: document.getElementById("nombre-nodo"),
@@ -62,31 +63,86 @@ function crearArbolVacio() {
   };
 }
 
-function crearEjemploArbol() {
-  contadorNodos = 7;
-  return {
-    problema: "Lanzamiento de un producto",
-    objetivo: "maximizar",
-    raiz: "n1",
-    nodos: [
-      { id: "n1", tipo: "decision", nombre: "Estrategia inicial", ramas: [
-        { nombre: "Desarrollar", valor: -60, probabilidad: null, destino: "n2" },
-        { nombre: "Licenciar", valor: 55, probabilidad: null, destino: "n3" }
-      ] },
-      { id: "n2", tipo: "azar", nombre: "Resultado técnico", ramas: [
-        { nombre: "Éxito", valor: 0, probabilidad: .65, destino: "n4" },
-        { nombre: "Fallo", valor: -30, probabilidad: .35, destino: "n5" }
-      ] },
-      { id: "n3", tipo: "terminal", nombre: "Ingreso seguro", ramas: [] },
-      { id: "n4", tipo: "decision", nombre: "Escala de lanzamiento", ramas: [
-        { nombre: "Amplio", valor: 220, probabilidad: null, destino: "n6" },
-        { nombre: "Limitado", valor: 150, probabilidad: null, destino: "n7" }
-      ] },
-      { id: "n5", tipo: "terminal", nombre: "Proyecto detenido", ramas: [] },
-      { id: "n6", tipo: "terminal", nombre: "Mercado nacional", ramas: [] },
-      { id: "n7", tipo: "terminal", nombre: "Mercado regional", ramas: [] }
-    ]
+function crearEjemploArbol(clave = "lanzamiento") {
+  const casos = {
+    lanzamiento: {
+      problema: "Lanzamiento de un producto",
+      objetivo: "maximizar",
+      raiz: "n1",
+      nodos: [
+        { id: "n1", tipo: "decision", nombre: "Estrategia inicial", ramas: [
+          { nombre: "Desarrollar", valor: -60, probabilidad: null, destino: "n2" },
+          { nombre: "Licenciar", valor: 55, probabilidad: null, destino: "n3" }
+        ] },
+        { id: "n2", tipo: "azar", nombre: "Resultado técnico", ramas: [
+          { nombre: "Éxito", valor: 0, probabilidad: .65, destino: "n4" },
+          { nombre: "Fallo", valor: -30, probabilidad: .35, destino: "n5" }
+        ] },
+        { id: "n3", tipo: "terminal", nombre: "Ingreso seguro", ramas: [] },
+        { id: "n4", tipo: "decision", nombre: "Escala de lanzamiento", ramas: [
+          { nombre: "Amplio", valor: 220, probabilidad: null, destino: "n6" },
+          { nombre: "Limitado", valor: 150, probabilidad: null, destino: "n7" }
+        ] },
+        { id: "n5", tipo: "terminal", nombre: "Proyecto detenido", ramas: [] },
+        { id: "n6", tipo: "terminal", nombre: "Mercado nacional", ramas: [] },
+        { id: "n7", tipo: "terminal", nombre: "Mercado regional", ramas: [] }
+      ]
+    },
+    mantenimiento: {
+      problema: "Reparar o reemplazar un equipo",
+      objetivo: "minimizar",
+      raiz: "n1",
+      nodos: [
+        { id: "n1", tipo: "decision", nombre: "Decisión de mantenimiento", ramas: [
+          { nombre: "Reparar", valor: 18, probabilidad: null, destino: "n2" },
+          { nombre: "Reemplazar", valor: 52, probabilidad: null, destino: "n3" }
+        ] },
+        { id: "n2", tipo: "azar", nombre: "Resultado de la reparación", ramas: [
+          { nombre: "Funciona", valor: 12, probabilidad: .70, destino: "n4" },
+          { nombre: "Falla nuevamente", valor: 48, probabilidad: .30, destino: "n5" }
+        ] },
+        { id: "n3", tipo: "terminal", nombre: "Equipo nuevo", ramas: [] },
+        { id: "n4", tipo: "terminal", nombre: "Operación estable", ramas: [] },
+        { id: "n5", tipo: "terminal", nombre: "Segunda intervención", ramas: [] }
+      ]
+    },
+    estudio: {
+      problema: "Estudio previo al lanzamiento",
+      objetivo: "maximizar",
+      raiz: "n1",
+      nodos: [
+        { id: "n1", tipo: "decision", nombre: "Información de mercado", ramas: [
+          { nombre: "Realizar estudio", valor: -8, probabilidad: null, destino: "n2" },
+          { nombre: "Omitir estudio", valor: 0, probabilidad: null, destino: "n3" }
+        ] },
+        { id: "n2", tipo: "azar", nombre: "Resultado del estudio", ramas: [
+          { nombre: "Favorable", valor: 0, probabilidad: .60, destino: "n4" },
+          { nombre: "Desfavorable", valor: 0, probabilidad: .40, destino: "n5" }
+        ] },
+        { id: "n3", tipo: "azar", nombre: "Mercado sin estudio", ramas: [
+          { nombre: "Demanda alta", valor: 100, probabilidad: .45, destino: "n10" },
+          { nombre: "Demanda baja", valor: -35, probabilidad: .55, destino: "n11" }
+        ] },
+        { id: "n4", tipo: "decision", nombre: "Tras informe favorable", ramas: [
+          { nombre: "Lanzar", valor: 120, probabilidad: null, destino: "n6" },
+          { nombre: "Abandonar", valor: 0, probabilidad: null, destino: "n7" }
+        ] },
+        { id: "n5", tipo: "decision", nombre: "Tras informe desfavorable", ramas: [
+          { nombre: "Lanzar", valor: -50, probabilidad: null, destino: "n8" },
+          { nombre: "Abandonar", valor: 0, probabilidad: null, destino: "n9" }
+        ] },
+        { id: "n6", tipo: "terminal", nombre: "Lanzamiento favorable", ramas: [] },
+        { id: "n7", tipo: "terminal", nombre: "Retiro favorable", ramas: [] },
+        { id: "n8", tipo: "terminal", nombre: "Lanzamiento adverso", ramas: [] },
+        { id: "n9", tipo: "terminal", nombre: "Retiro adverso", ramas: [] },
+        { id: "n10", tipo: "terminal", nombre: "Mercado alto", ramas: [] },
+        { id: "n11", tipo: "terminal", nombre: "Mercado bajo", ramas: [] }
+      ]
+    }
   };
+  const caso = casos[clave] || casos.lanzamiento;
+  contadorNodos = Math.max(...caso.nodos.map(nodo => Number(nodo.id.replace(/\D/g, "")) || 0));
+  return { ...JSON.parse(JSON.stringify(caso)), caso: casos[clave] ? clave : "lanzamiento" };
 }
 
 function buscarNodo(id, datos = arbol) {
@@ -314,6 +370,12 @@ function restaurarArbol() {
 }
 
 function cargarInterfaz() {
+  const casoReconocido = arbol.caso || ({
+    "Lanzamiento de un producto": "lanzamiento",
+    "Reparar o reemplazar un equipo": "mantenimiento",
+    "Estudio previo al lanzamiento": "estudio"
+  })[arbol.problema];
+  if (casoReconocido) elementosArbol.caso.value = casoReconocido;
   elementosArbol.problema.value = arbol.problema || "";
   elementosArbol.objetivo.value = arbol.objetivo || "maximizar";
   nodoSeleccionado = arbol.raiz;
@@ -476,7 +538,7 @@ elementosArbol.eliminarNodo.addEventListener("click", eliminarNodoSeleccionado);
 elementosArbol.lienzo.addEventListener("click", evento => { const nodo = evento.target.closest("[data-nodo]"); if (nodo) seleccionarNodo(nodo.dataset.nodo); });
 elementosArbol.lienzo.addEventListener("keydown", evento => { if ((evento.key === "Enter" || evento.key === " ") && evento.target.matches("[data-nodo]")) seleccionarNodo(evento.target.dataset.nodo); });
 document.getElementById("resolver-arbol").addEventListener("click", () => resolverArbol(true));
-document.getElementById("ejemplo-arbol").addEventListener("click", () => { arbol = crearEjemploArbol(); localStorage.removeItem(CLAVE_ARBOL); cargarInterfaz(); resolverArbol(false); ajustarZoom(); });
+document.getElementById("ejemplo-arbol").addEventListener("click", () => { arbol = crearEjemploArbol(elementosArbol.caso.value); localStorage.removeItem(CLAVE_ARBOL); cargarInterfaz(); resolverArbol(false); ajustarZoom(); });
 document.getElementById("limpiar-arbol").addEventListener("click", () => { arbol = crearArbolVacio(); asegurarRamas(buscarNodo(arbol.raiz)); localStorage.removeItem(CLAVE_ARBOL); cargarInterfaz(); ajustarZoom(); });
 document.getElementById("alejar-arbol").addEventListener("click", () => { nivelZoom = Math.max(.4, nivelZoom - .1); aplicarZoom(); });
 document.getElementById("acercar-arbol").addEventListener("click", () => { nivelZoom = Math.min(1.8, nivelZoom + .1); aplicarZoom(); });

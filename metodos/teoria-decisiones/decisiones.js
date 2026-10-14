@@ -3,6 +3,7 @@
 const CLAVE_GUARDADO = "teoria-decisiones-v1";
 const elementos = {
   formulario: document.getElementById("formulario-decision"),
+  caso: document.getElementById("caso-decision"),
   problema: document.getElementById("problema"),
   tipoMatriz: document.getElementById("tipo-matriz"),
   alfa: document.getElementById("alfa-hurwicz"),
@@ -36,6 +37,45 @@ let alternativas = [];
 let probabilidades = [];
 let ultimoResultado = null;
 let temporizador = null;
+
+const CASOS_DECISION = {
+  expansion: {
+    problema: "Expansión de capacidad",
+    tipoMatriz: "beneficios",
+    alfa: .60,
+    estados: ["Demanda alta", "Demanda media", "Demanda baja"],
+    alternativas: [
+      { nombre: "Planta grande", valores: [200, 80, -120] },
+      { nombre: "Planta mediana", valores: [140, 90, -20] },
+      { nombre: "No ampliar", valores: [40, 40, 40] }
+    ],
+    probabilidades: [.30, .50, .20]
+  },
+  proveedor: {
+    problema: "Selección de proveedor",
+    tipoMatriz: "costos",
+    alfa: .55,
+    estados: ["Exigencia alta", "Exigencia normal", "Exigencia baja"],
+    alternativas: [
+      { nombre: "Proveedor A", valores: [175, 120, 95] },
+      { nombre: "Proveedor B", valores: [155, 123, 108] },
+      { nombre: "Producción interna", valores: [210, 115, 80] }
+    ],
+    probabilidades: [.25, .50, .25]
+  },
+  lanzamiento: {
+    problema: "Lanzamiento comercial",
+    tipoMatriz: "beneficios",
+    alfa: .65,
+    estados: ["Muy favorable", "Favorable", "Estable", "Adverso"],
+    alternativas: [
+      { nombre: "Lanzamiento nacional", valores: [260, 150, 55, -110] },
+      { nombre: "Lanzamiento regional", valores: [170, 115, 70, -25] },
+      { nombre: "Prueba piloto", valores: [90, 80, 60, 25] }
+    ],
+    probabilidades: [.15, .35, .30, .20]
+  }
+};
 
 function numero(valor) {
   const convertido = Number(String(valor ?? "").trim().replace(",", "."));
@@ -102,14 +142,16 @@ function calcularDecision(datos) {
   return { ...datos, elegirMayor, filas, mejores, peores, promedios, hurwicz, valoresEsperados, referenciaEstados, arrepentimientos, arrepentimientosMaximos, criterios, criterioEsperado, valorInformacionPerfecta, evpi: Math.max(0, evpi), indiceConsenso, votos: votos[indiceConsenso] };
 }
 
+function aplicarCasoDecision(clave = "expansion") {
+  const caso = CASOS_DECISION[clave] || CASOS_DECISION.expansion;
+  estados = caso.estados.map(nombre => ({ nombre }));
+  alternativas = caso.alternativas.map(alternativa => ({ nombre: alternativa.nombre, valores: [...alternativa.valores] }));
+  probabilidades = [...caso.probabilidades];
+  return caso;
+}
+
 function datosIniciales() {
-  estados = [{ nombre: "Demanda alta" }, { nombre: "Demanda media" }, { nombre: "Demanda baja" }];
-  alternativas = [
-    { nombre: "Planta grande", valores: [200, 80, -120] },
-    { nombre: "Planta mediana", valores: [140, 90, -20] },
-    { nombre: "No ampliar", valores: [40, 40, 40] }
-  ];
-  probabilidades = [.30, .50, .20];
+  aplicarCasoDecision("expansion");
 }
 
 function renderizarTabla() {
@@ -217,10 +259,10 @@ function dibujarGrafico(resultado) {
     const yValor = margen.superior + (maximo - valor) / amplitud * altoUtil;
     const y = Math.min(ceroY, yValor);
     const altoBarra = Math.max(2, Math.abs(ceroY - yValor));
-    const color = indice === indiceOptimo ? "#e3b447" : "#76415c";
-    return `<rect x="${x}" y="${y}" width="${anchoGrupo * .64}" height="${altoBarra}" rx="7" fill="${color}"><title>${escaparHtml(resultado.alternativas[indice].nombre)}: ${formatear(valor)}</title></rect><text x="${x + anchoGrupo * .32}" y="${valor >= 0 ? y - 8 : y + altoBarra + 15}" text-anchor="middle" fill="#51464c" font-size="11" font-weight="700">${formatear(valor)}</text><text x="${x + anchoGrupo * .32}" y="${alto - 29}" text-anchor="middle" fill="#6f656a" font-size="10">${escaparHtml(resultado.alternativas[indice].nombre).slice(0,18)}</text>`;
+    const relleno = indice === indiceOptimo ? "url(#barra-optima)" : "url(#barra-base)";
+    return `<rect class="barra-valor" x="${x}" y="${y}" width="${anchoGrupo * .64}" height="${altoBarra}" rx="7" fill="${relleno}" aria-label="${escaparHtml(resultado.alternativas[indice].nombre)}: ${formatear(valor)}"><title>${escaparHtml(resultado.alternativas[indice].nombre)}: ${formatear(valor)}</title></rect><text x="${x + anchoGrupo * .32}" y="${valor >= 0 ? y - 8 : y + altoBarra + 15}" text-anchor="middle" fill="#51464c" font-size="11" font-weight="700">${formatear(valor)}</text><text x="${x + anchoGrupo * .32}" y="${alto - 29}" text-anchor="middle" fill="#6f656a" font-size="10">${escaparHtml(resultado.alternativas[indice].nombre).slice(0,18)}</text>`;
   }).join("");
-  elementos.graficoValores.innerHTML = `<svg viewBox="0 0 ${ancho} ${alto}" role="img" aria-labelledby="titulo-grafico-ve"><title id="titulo-grafico-ve">Valor esperado por alternativa</title>${[0,.25,.5,.75,1].map(proporcion => { const valor = minimo + amplitud * proporcion; const y = margen.superior + (maximo - valor) / amplitud * altoUtil; return `<line x1="${margen.izquierda}" y1="${y}" x2="${ancho-margen.derecha}" y2="${y}" stroke="#e3ddd8"/><text x="${margen.izquierda-9}" y="${y+4}" text-anchor="end" fill="#80767b" font-size="10">${formatear(valor,0)}</text>`; }).join("")}<line x1="${margen.izquierda}" y1="${ceroY}" x2="${ancho-margen.derecha}" y2="${ceroY}" stroke="#695d63" stroke-width="1.5"/>${barras}</svg>`;
+  elementos.graficoValores.innerHTML = `<svg viewBox="0 0 ${ancho} ${alto}" role="img" aria-labelledby="titulo-grafico-ve"><title id="titulo-grafico-ve">Valor esperado por alternativa</title><defs><linearGradient id="barra-base" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8d5874"/><stop offset="1" stop-color="#5d3349"/></linearGradient><linearGradient id="barra-optima" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4d9a82"/><stop offset="1" stop-color="#286351"/></linearGradient></defs>${[0,.25,.5,.75,1].map(proporcion => { const valor = minimo + amplitud * proporcion; const y = margen.superior + (maximo - valor) / amplitud * altoUtil; return `<line x1="${margen.izquierda}" y1="${y}" x2="${ancho-margen.derecha}" y2="${y}" stroke="#e3ddd8"/><text x="${margen.izquierda-9}" y="${y+4}" text-anchor="end" fill="#80767b" font-size="10">${formatear(valor,0)}</text>`; }).join("")}<line x1="${margen.izquierda}" y1="${ceroY}" x2="${ancho-margen.derecha}" y2="${ceroY}" stroke="#695d63" stroke-width="1.5"/>${barras}</svg>`;
 }
 
 function actualizarSumaProbabilidades() {
@@ -287,17 +329,19 @@ function reportarImportacion(mensaje) {
 }
 
 function cargarEjemplo() {
-  datosIniciales();
-  elementos.problema.value = "Expansión de capacidad";
-  elementos.tipoMatriz.value = "beneficios";
-  elementos.alfa.value = ".60";
-  elementos.valorAlfa.value = ".60";
+  const caso = aplicarCasoDecision(elementos.caso.value);
+  elementos.problema.value = caso.problema;
+  elementos.tipoMatriz.value = caso.tipoMatriz;
+  elementos.alfa.value = String(caso.alfa);
+  elementos.valorAlfa.value = caso.alfa.toFixed(2);
   renderizarTabla();
   resolver();
 }
 
 function limpiar() {
-  datosIniciales();
+  estados = [{ nombre: "Estado 1" }, { nombre: "Estado 2" }];
+  alternativas = [{ nombre: "Alternativa 1", valores: [0, 0] }, { nombre: "Alternativa 2", valores: [0, 0] }];
+  probabilidades = [.5, .5];
   elementos.formulario.reset();
   elementos.problema.value = "";
   elementos.salida.hidden = true;
@@ -308,7 +352,7 @@ function limpiar() {
 }
 
 function guardar() {
-  localStorage.setItem(CLAVE_GUARDADO, JSON.stringify({ problema: elementos.problema.value, tipoMatriz: elementos.tipoMatriz.value, alfa: elementos.alfa.value, estados, alternativas, probabilidades }));
+  localStorage.setItem(CLAVE_GUARDADO, JSON.stringify({ caso: elementos.caso.value, problema: elementos.problema.value, tipoMatriz: elementos.tipoMatriz.value, alfa: elementos.alfa.value, estados, alternativas, probabilidades }));
 }
 
 function restaurar() {
@@ -318,6 +362,8 @@ function restaurar() {
     estados = datos.estados;
     alternativas = datos.alternativas;
     probabilidades = datos.probabilidades;
+    const casoReconocido = datos.caso || Object.entries(CASOS_DECISION).find(([, caso]) => caso.problema === datos.problema)?.[0];
+    if (casoReconocido && CASOS_DECISION[casoReconocido]) elementos.caso.value = casoReconocido;
     elementos.problema.value = datos.problema || "";
     elementos.tipoMatriz.value = datos.tipoMatriz || "beneficios";
     elementos.alfa.value = datos.alfa || ".60";
@@ -366,6 +412,12 @@ document.querySelectorAll(".cerrar-dialogo").forEach(boton => boton.addEventList
 document.querySelectorAll("dialog").forEach(dialogo => dialogo.addEventListener("click", evento => { if (evento.target === dialogo) dialogo.close(); }));
 document.querySelectorAll(".pestana").forEach(boton => boton.addEventListener("click", () => activarPestana(boton.dataset.panel)));
 
-if (!restaurar()) datosIniciales();
+if (!restaurar()) {
+  const casoInicial = aplicarCasoDecision("expansion");
+  elementos.problema.value = casoInicial.problema;
+  elementos.tipoMatriz.value = casoInicial.tipoMatriz;
+  elementos.alfa.value = String(casoInicial.alfa);
+  elementos.valorAlfa.value = casoInicial.alfa.toFixed(2);
+}
 renderizarTabla();
 resolver(false);

@@ -44,6 +44,24 @@ aplicacionPruebasArbol.addEventListener("load", () => {
       }
     },
     {
+      nombre: "caso de reparar o reemplazar",
+      ejecutar() {
+        const resultado = calculadora.calcularArbol(calculadora.crearEjemploArbol("mantenimiento"));
+        casiArbol(resultado.valor, 40.8, "Costo esperado de reparar");
+        afirmarArbol(resultado.decisiones.n1 === 0, "Debe elegir reparar");
+      }
+    },
+    {
+      nombre: "caso de estudio de mercado",
+      ejecutar() {
+        const resultado = calculadora.calcularArbol(calculadora.crearEjemploArbol("estudio"));
+        casiArbol(resultado.valor, 64, "Valor esperado de realizar el estudio");
+        afirmarArbol(resultado.decisiones.n1 === 0, "Debe elegir realizar el estudio");
+        afirmarArbol(resultado.decisiones.n4 === 0, "Con resultado favorable debe lanzar");
+        afirmarArbol(resultado.decisiones.n5 === 1, "Con resultado desfavorable debe abandonar");
+      }
+    },
+    {
       nombre: "nodo de azar",
       ejecutar() {
         const datos = { objetivo: "maximizar", raiz: "n1", nodos: [{ id: "n1", tipo: "azar", nombre: "Demanda", ramas: [{ nombre: "Alta", valor: 100, probabilidad: .3, destino: "n2" }, { nombre: "Baja", valor: 20, probabilidad: .7, destino: "n3" }] }, terminal("n2"), terminal("n3")] };

@@ -58,13 +58,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   display: flex;
   width: min(1560px, calc(100% - 48px));
   min-height: 104px;
-  padding: 0 20px;
   align-items: center;
   justify-content: space-between;
   gap: 30px;
   margin: auto;
-  border-bottom: 1px solid rgba(26, 59, 91, .09);
-  background: linear-gradient(90deg, rgba(247, 244, 237, .99) 0%, rgba(247, 244, 237, .94) 43%, rgba(247, 244, 237, .62) 100%), url("../../assets/matematicas/modelamiento-operaciones.png") right 42% / 720px auto no-repeat;
 }
 .etiqueta, .sobretitulo { margin: 0 0 7px; color: var(--indigo); font-size: .62rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .etiqueta span { display: inline-block; width: 18px; height: 2px; margin: 0 7px 3px 0; background: var(--oro); }

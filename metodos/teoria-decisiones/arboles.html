@@ -35,9 +35,10 @@
     <aside class="panel panel-configuracion editor-arbol" aria-labelledby="titulo-editor">
       <div class="encabezado-panel"><div><p class="sobretitulo">Construcción</p><h2 id="titulo-editor">Datos del árbol</h2><p class="descripcion-panel">Seleccione un nodo del diagrama para editarlo.</p></div><span class="indicador-guardado"><i></i> Local</span></div>
       <form id="formulario-arbol" novalidate>
+        <div class="selector-caso"><label class="campo" for="caso-arbol">Caso de práctica<select id="caso-arbol"><option value="lanzamiento">01 · Lanzamiento de producto</option><option value="mantenimiento">02 · Reparar o reemplazar</option><option value="estudio">03 · Estudio de mercado</option></select></label><button id="ejemplo-arbol" class="boton boton-cargar" type="button">Cargar</button></div>
         <label class="campo" for="problema-arbol">Problema o caso<input id="problema-arbol" type="text" maxlength="80" placeholder="Ej. Lanzamiento de un producto"></label>
         <label class="campo" for="objetivo-arbol">Objetivo<select id="objetivo-arbol"><option value="maximizar">Maximizar beneficios</option><option value="minimizar">Minimizar costos</option></select></label>
-        <div class="acciones-formulario"><button id="ejemplo-arbol" class="boton boton-secundario" type="button">Ejemplo</button><button id="limpiar-arbol" class="boton boton-terciario boton-peligro" type="button">Nuevo</button></div>
+        <div class="acciones-formulario"><button id="limpiar-arbol" class="boton boton-terciario boton-peligro boton-ancho" type="button">Nuevo árbol</button></div>
       </form>
 
       <section class="edicion-nodo" aria-labelledby="titulo-nodo-seleccionado">
@@ -74,7 +75,6 @@
     <div class="formulas-guia"><article><small>Nodo de azar</small><strong>\(V(N)=\sum p_r[c_r+V(h_r)]\)</strong><p>Suma los valores de las ramas ponderados por su probabilidad.</p></article><article><small>Nodo de decisión</small><strong>\(V(N)=mejor\{c_r+V(h_r)\}\)</strong><p>Conserva el mayor beneficio o el menor costo.</p></article></div>
     <section class="bloque-guia"><h3>Reglas de construcción</h3><ul><li>Las ramas salen de izquierda a derecha.</li><li>Las probabilidades de cada nodo de azar suman uno.</li><li>Los ingresos y costos inmediatos se colocan en las ramas.</li><li>Una rama puede conducir a otra decisión posterior.</li></ul></section>
     <section class="bloque-guia"><h3>Interpretación</h3><ul><li>La línea dorada señala la estrategia seleccionada.</li><li>En un nodo de azar se mantienen todas las posibilidades.</li><li>Los valores negativos representan pérdidas si se maximizan beneficios.</li><li>Al minimizar costos, se conserva el menor valor en cada decisión.</li></ul></section>
-    <div class="nota-guia"><strong>Equivalencia con POM-QM</strong><p>Use los mismos tipos de nodo, probabilidades y valores de rama en <em>Decision Analysis → Decision Trees (Graphical)</em>. El valor del nodo inicial y las ramas elegidas deben coincidir.</p></div>
   </div><button class="boton boton-principal cerrar-dialogo" type="button">Cerrar</button></dialog>
 </body>
 </html>

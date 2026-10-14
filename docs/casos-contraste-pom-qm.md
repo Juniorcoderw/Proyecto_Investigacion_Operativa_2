@@ -66,6 +66,10 @@ Resultados esperados:
 
 ## 4. Decisiones — Decision Tables
 
+En POM-QM abra `Decision Analysis > Decision Tables`. Indique si la matriz contiene beneficios o costos antes de ingresar los valores.
+
+### 4.1. Expansión de capacidad
+
 Objetivo: maximizar beneficios. Coeficiente de Hurwicz: 0.60.
 
 | Alternativa | Demanda alta | Demanda media | Demanda baja |
@@ -87,7 +91,57 @@ Resultados esperados:
 | EVPI | 30 |
 | Alternativa por minimax de arrepentimiento | Planta mediana |
 
+### 4.2. Selección de proveedor
+
+Objetivo: minimizar costos. Coeficiente de Hurwicz: 0.55.
+
+| Alternativa | Exigencia alta | Exigencia normal | Exigencia baja |
+|---|---:|---:|---:|
+| Proveedor A | 175 | 120 | 95 |
+| Proveedor B | 155 | 123 | 108 |
+| Producción interna | 210 | 115 | 80 |
+| Probabilidad | 0.25 | 0.50 | 0.25 |
+
+Resultados esperados:
+
+| Resultado | Valor |
+|---|---:|
+| Costo esperado del proveedor A | 127.50 |
+| Costo esperado del proveedor B | 127.25 |
+| Costo esperado de producción interna | 130.00 |
+| Alternativa por valor esperado | Proveedor B |
+| Costo esperado con información perfecta | 116.25 |
+| EVPI | 11.00 |
+| Alternativa por minimax de arrepentimiento | Proveedor A |
+
+### 4.3. Lanzamiento comercial
+
+Objetivo: maximizar beneficios. Coeficiente de Hurwicz: 0.65.
+
+| Alternativa | Muy favorable | Favorable | Estable | Adverso |
+|---|---:|---:|---:|---:|
+| Lanzamiento nacional | 260 | 150 | 55 | -110 |
+| Lanzamiento regional | 170 | 115 | 70 | -25 |
+| Prueba piloto | 90 | 80 | 60 | 25 |
+| Probabilidad | 0.15 | 0.35 | 0.30 | 0.20 |
+
+Resultados esperados:
+
+| Resultado | Valor |
+|---|---:|
+| Valor esperado del lanzamiento nacional | 86.00 |
+| Valor esperado del lanzamiento regional | 81.75 |
+| Valor esperado de la prueba piloto | 64.50 |
+| Alternativa por valor esperado | Lanzamiento nacional |
+| Valor esperado con información perfecta | 117.50 |
+| EVPI | 31.50 |
+| Alternativa por minimax de arrepentimiento | Lanzamiento regional |
+
 ## 5. Decisiones — Decision Trees (Graphical)
+
+En POM-QM abra `Decision Analysis > Decision Trees (Graphical)`. Registre primero las decisiones, después los eventos inciertos y finalmente sus pagos. Los valores escritos sobre una rama se acumulan con los valores posteriores.
+
+### 5.1. Desarrollo y licencia
 
 Objetivo: maximizar beneficios.
 
@@ -110,6 +164,52 @@ Resolución esperada:
 3. Valor de desarrollar: `-60 + 132.50 = 72.50`.
 4. Comparar desarrollar `72.50` con licenciar `55`.
 5. Estrategia recomendada: desarrollar; si existe éxito, realizar lanzamiento amplio.
+
+### 5.2. Reparar o reemplazar
+
+Objetivo: minimizar costos.
+
+```text
+Decisión de mantenimiento
+├── Reparar: 18
+│   └── Resultado de la reparación
+│       ├── Funciona: p = 0.70; costo adicional = 12
+│       └── Falla nuevamente: p = 0.30; costo adicional = 48
+└── Reemplazar: 52
+```
+
+Resolución esperada:
+
+1. Costo esperado después de reparar: `0.70(12) + 0.30(48) = 22.80`.
+2. Costo total de reparar: `18 + 22.80 = 40.80`.
+3. Comparar reparar `40.80` con reemplazar `52.00`.
+4. Estrategia recomendada: reparar.
+
+### 5.3. Estudio de mercado
+
+Objetivo: maximizar beneficios.
+
+```text
+Decisión inicial
+├── Realizar estudio: -8
+│   └── Resultado del estudio
+│       ├── Favorable: p = 0.60
+│       │   └── Lanzar: 120 / Abandonar: 0
+│       └── Desfavorable: p = 0.40
+│           └── Lanzar: -50 / Abandonar: 0
+└── Omitir estudio
+    └── Mercado
+        ├── Alto: p = 0.45; beneficio = 100
+        └── Bajo: p = 0.55; beneficio = -35
+```
+
+Resolución esperada:
+
+1. Con informe favorable, elegir lanzar: `120`.
+2. Con informe desfavorable, elegir abandonar: `0`.
+3. Valor del estudio: `-8 + 0.60(120) + 0.40(0) = 64.00`.
+4. Valor de omitir el estudio: `0.45(100) + 0.55(-35) = 25.75`.
+5. Estrategia recomendada: realizar el estudio; lanzar solo si el resultado es favorable.
 
 ## Protocolo de comparación
 
