@@ -199,3 +199,29 @@ button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .caso-enunciado{margin:0 0 14px;padding:10px 12px;border:1px solid #dedbd4;border-radius:9px;background:#fff}
 .caso-enunciado summary{font-size:12px;font-weight:700;color:#384f66;cursor:pointer}
 .caso-enunciado p{font-size:13px;line-height:1.7;margin:10px 0 0;color:#536271}
+/* El editor ampliado reutiliza la tabla y sus controles, sin copias del formulario. */
+.cabecera-datos{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.cabecera-datos>.boton{flex-shrink:0;white-space:nowrap}
+#panel-datos,.salida{scroll-margin-top:100px}
+.espacio-trabajo.entrada-ampliada{grid-template-columns:minmax(0,1fr)}
+.entrada-ampliada>.area-analisis{display:none}
+.entrada-ampliada>.panel-entrada{position:relative;top:auto;width:100%;max-height:none;overflow:visible}
+.entrada-ampliada .configuracion{grid-template-columns:repeat(3,minmax(150px,1fr));max-width:950px;margin-top:12px}
+.entrada-ampliada .configuracion #grupo-plazo{grid-column:auto}
+.entrada-ampliada .barra-datos{flex-direction:row;flex-wrap:wrap;justify-content:space-between;margin-bottom:8px}
+.entrada-ampliada .grupo-herramientas{flex:1 1 360px}
+.entrada-ampliada .grupo-ejemplos{flex:1 1 440px}
+.entrada-ampliada .tabla-entrada{min-height:280px;max-height:65dvh;margin-top:8px}
+.entrada-ampliada .tabla-entrada table{min-width:850px}
+.entrada-ampliada .tabla-entrada th{font-size:12px;line-height:1.4;white-space:normal;overflow-wrap:normal}
+.entrada-ampliada .tabla-entrada th:first-child{width:38px}
+.entrada-ampliada .tabla-entrada th:nth-child(2){width:85px}
+.entrada-ampliada .tabla-entrada th:nth-child(3){width:auto;min-width:155px}
+.entrada-ampliada .tabla-entrada th:nth-child(4){width:140px}
+[data-metodo="pert"] .entrada-ampliada .tabla-entrada th:nth-child(n+5):nth-child(-n+7){width:130px}
+.entrada-ampliada .tabla-entrada th:last-child{width:60px}
+.entrada-ampliada .tabla-entrada td input{font-size:14px;min-height:40px}
+.entrada-ampliada .pie-entrada{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:12px}
+.entrada-ampliada .pie-entrada>.boton{width:auto;min-width:250px;margin-top:0}
+@media(max-width:700px){.entrada-ampliada .configuracion{grid-template-columns:1fr 1fr}.entrada-ampliada .configuracion #grupo-plazo{grid-column:1/-1}.cabecera-datos{flex-wrap:wrap}.entrada-ampliada .tabla-entrada{min-height:230px}.entrada-ampliada .pie-entrada>.boton{width:100%}}
+@media print{#ampliar-datos{display:none!important}.entrada-ampliada>.area-analisis{display:block}}

@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="estilos.css">
   <link rel="stylesheet" href="../../assets/navegacion.css?v=20261015a">
   <script src="../../assets/navegacion.js?v=20261016d" defer></script>
-  <link rel="stylesheet" href="pulido.css?v=20261016a">
+  <link rel="stylesheet" href="pulido.css?v=20261016e">
   <script>
     window.MathJax = {
       tex: { inlineMath: [["\\(", "\\)"]] },
@@ -21,7 +21,7 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
-  <script src="pert-cpm.js?v=20261016a" defer></script>
+  <script src="pert-cpm.js?v=20261016e" defer></script>
 </head>
 <body>
   <header class="cabecera-aplicacion">
@@ -46,11 +46,10 @@
   </section>
 
   <main class="espacio-trabajo">
-    <section class="panel panel-entrada" aria-labelledby="titulo-datos">
+    <section id="panel-datos" class="panel panel-entrada" aria-labelledby="titulo-datos">
       <div class="encabezado-panel">
         <div>
-          <p class="sobretitulo">Hoja de actividades</p>
-          <h2 id="titulo-datos">Datos del proyecto</h2>
+          <div class="cabecera-datos"><div><p class="sobretitulo">Hoja de actividades</p><h2 id="titulo-datos">Datos del proyecto</h2></div><button id="ampliar-datos" type="button" class="boton boton-terciario" aria-expanded="false" aria-controls="panel-datos">Ampliar datos ↗</button></div>
           <p class="descripcion-panel">Edite las actividades aquí o pegue una tabla completa desde Excel.</p>
         </div>
         <div class="configuracion">

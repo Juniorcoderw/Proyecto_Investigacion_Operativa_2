@@ -2108,6 +2108,10 @@ function resolverFormulario() {
     const solucion = resolverProyecto(datos);
     presentarResultados(solucion, plazoObjetivo);
     guardarEstado();
+    if (document.querySelector(".espacio-trabajo").classList.contains("entrada-ampliada")) {
+      cambiarVistaDatos(false);
+      elementos.salida.scrollIntoView({ block: "start" });
+    }
   } catch (error) {
     mostrarError(error);
   }
@@ -2520,7 +2524,34 @@ document.getElementById("unidad-tiempo").addEventListener("change", () => {
   if (solucionActual) dibujarGantt(solucionActual, elementos.escenarioGantt.value);
   programarGuardado();
 });
+function cambiarVistaDatos(ampliada) {
+  const espacio = document.querySelector(".espacio-trabajo");
+  espacio.classList.toggle("entrada-ampliada", ampliada);
+  const boton = document.getElementById("ampliar-datos");
+  boton.textContent = ampliada ? "Volver al análisis ↙" : "Ampliar datos ↗";
+  boton.setAttribute("aria-expanded", String(ampliada));
+  if (ampliada) {
+    espacio.classList.remove("vista-ampliada");
+    document.getElementById("ampliar-vista").textContent = "Ampliar vista ↗";
+    document.getElementById("ampliar-vista").setAttribute("aria-expanded", "false");
+  } else if (solucionActual) {
+    requestAnimationFrame(() => { ajustarEscalaRed(); restablecerEscalaGantt(); });
+  }
+}
+
+document.getElementById("ampliar-datos").addEventListener("click", () => {
+  cambiarVistaDatos(!document.querySelector(".espacio-trabajo").classList.contains("entrada-ampliada"));
+  document.getElementById("panel-datos").scrollIntoView({ block: "start" });
+});
+document.addEventListener("keydown", evento => {
+  if (evento.key !== "Escape" || document.querySelector("dialog[open]") || !document.querySelector(".entrada-ampliada")) return;
+  evento.preventDefault();
+  cambiarVistaDatos(false);
+  document.getElementById("ampliar-datos").focus();
+});
+
 document.getElementById("ampliar-vista").addEventListener("click", evento => {
+  cambiarVistaDatos(false);
   const ampliada = document.querySelector(".espacio-trabajo").classList.toggle("vista-ampliada");
   evento.currentTarget.textContent = ampliada ? "Mostrar datos ↙" : "Ampliar vista ↗";
   evento.currentTarget.setAttribute("aria-expanded", String(ampliada));

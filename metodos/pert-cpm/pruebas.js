@@ -43,6 +43,41 @@ function ejecutarPruebas() {
   const calculadora = aplicacionPruebas.contentWindow;
   const pruebas = [
     {
+      nombre: "ampliar datos conserva la misma tabla y las tres estimaciones editadas",
+      ejecutar() {
+        const doc = calculadora.document;
+        calculadora.cargarEjemplo("pert-problema-5");
+        const campo = doc.querySelector("#actividades .pesimista");
+        const tabla = doc.querySelector(".tabla-entrada table");
+        doc.getElementById("ampliar-datos").click();
+        afirmar(doc.querySelector(".entrada-ampliada"), "Debe ampliarse la entrada");
+        afirmar(doc.getElementById("ampliar-datos").getAttribute("aria-expanded") === "true", "Debe anunciar el estado ampliado");
+        campo.value = "15";
+        doc.getElementById("ampliar-datos").click();
+        afirmar(doc.querySelector(".tabla-entrada table") === tabla && doc.querySelector("#actividades .pesimista") === campo, "No debe duplicarse ni reconstruirse la tabla");
+        afirmar(campo.value === "15" && !doc.querySelector(".entrada-ampliada"), "Debe conservar la edición al volver");
+        campo.value = "14";
+      }
+    },
+    {
+      nombre: "Escape respeta los diálogos y calcular vuelve al análisis con 34 días",
+      ejecutar() {
+        const doc = calculadora.document;
+        calculadora.cargarEjemplo("pert-problema-5");
+        calculadora.cambiarVistaDatos(true);
+        doc.getElementById("abrir-carga").click();
+        doc.dispatchEvent(new calculadora.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        afirmar(doc.querySelector(".entrada-ampliada"), "Un diálogo abierto no debe cerrar la vista ampliada");
+        doc.getElementById("dialogo-carga").close();
+        doc.dispatchEvent(new calculadora.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        afirmar(!doc.querySelector(".entrada-ampliada"), "Escape debe restaurar la vista normal");
+        calculadora.cambiarVistaDatos(true);
+        calculadora.resolverFormulario();
+        afirmar(!doc.querySelector(".entrada-ampliada") && !doc.getElementById("salida").hidden, "Calcular debe mostrar los resultados");
+        afirmar(doc.getElementById("duracion").textContent === "34", "No debe cambiar la duración PERT");
+      }
+    },
+    {
       nombre: "campos PERT legibles en paneles estrechos",
       ejecutar() {
         const doc = calculadora.document;
