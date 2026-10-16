@@ -42,6 +42,7 @@ let modoVistaRed = "lectura";
 let dimensionesRed = { ancho: 0, alto: 0 };
 let svgRed = null;
 let escalaGantt = 1;
+let modoVistaGantt = "completa";
 let programaGantt = null;
 let actividadSeleccionada = null;
 let datosPendientes = false;
@@ -1828,6 +1829,10 @@ function calcularPasoEscala(valorMaximo) {
   return (normalizado <= 1 ? 1 : normalizado <= 2 ? 2 : normalizado <= 5 ? 5 : 10) * magnitud;
 }
 
+function calcularAjusteGantt(cantidad, altura) {
+  return Math.min(1, Math.max(.15, (altura - 44) / (Math.max(1, cantidad) * 46)));
+}
+
 function dibujarGantt(solucion, escenario = "esperado", ajustar = true) {
   const desplazamiento = { left: elementos.gantt.scrollLeft, top: elementos.gantt.scrollTop };
   elementos.gantt.replaceChildren();
@@ -1837,14 +1842,27 @@ function dibujarGantt(solucion, escenario = "esperado", ajustar = true) {
   const visibles = programa.actividades.filter(dato => !soloCriticas || dato.actividad.critica);
   const anchoEtiquetas = window.innerWidth < 560 ? 142 : 208;
   const anchoDisponible = Math.max(320, elementos.gantt.clientWidth - anchoEtiquetas - 2);
-  if (ajustar) escalaGantt = 1;
-  const anchoTiempo = Math.round(anchoDisponible * escalaGantt);
-  const altoFila = 62;
-  const altoCabecera = 48;
+  if (modoVistaGantt === "completa") {
+    const limiteAlto = parseFloat(getComputedStyle(elementos.gantt).maxHeight);
+    const altoDisponible = Math.max(160, (Number.isFinite(limiteAlto) ? limiteAlto : Math.min(window.innerHeight * .62, 620)) - 4);
+    escalaGantt = calcularAjusteGantt(visibles.length, altoDisponible);
+  } else if (modoVistaGantt === "lectura") escalaGantt = 1;
+  const anchoTiempo = Math.round(anchoDisponible * Math.max(1, escalaGantt));
+  const altoFila = Math.max(8, Math.floor(46 * escalaGantt));
+  const altoCabecera = 42;
+  const altoBarra = Math.min(24, Math.max(5, altoFila < 36 ? altoFila - 8 : Math.round(altoFila * .48)));
+  const centroBarra = altoFila < 36 ? altoFila / 2 : altoFila * .36;
   const limite = Math.max(1, programa.duracionTotal);
   const escala = anchoTiempo / limite;
   const paso = calcularPasoEscala(limite * Math.max(.5, 700 / anchoTiempo));
   const lienzo = crearElemento("div", "gantt-lienzo");
+  lienzo.classList.toggle("gantt-compacto", altoFila < 36);
+  lienzo.classList.toggle("gantt-miniatura", altoFila < 20);
+  lienzo.style.setProperty("--alto-fila-gantt", altoFila + "px");
+  lienzo.style.setProperty("--alto-barra-gantt", altoBarra + "px");
+  lienzo.style.setProperty("--arriba-barra-gantt", centroBarra - altoBarra / 2 + "px");
+  lienzo.style.setProperty("--centro-barra-gantt", centroBarra + "px");
+  lienzo.style.setProperty("--fuente-gantt", Math.min(12, Math.max(8, altoFila * .4)) + "px");
   lienzo.style.width = anchoEtiquetas + anchoTiempo + "px";
   lienzo.style.setProperty("--etiqueta-gantt", anchoEtiquetas + "px");
   lienzo.style.setProperty("--paso-gantt", paso / limite * 100 + "%");
@@ -1924,11 +1942,12 @@ function dibujarGantt(solucion, escenario = "esperado", ajustar = true) {
         const origen = programa.solucion.actividadesPorNombre.get(nombre);
         const x1 = origen.finTemprano * escala;
         const x2 = dato.inicio * escala;
-        const y1 = indices.get(nombre) * altoFila + 24;
-        const y2 = indices.get(dato.actividad.nombre) * altoFila + 24;
+        const y1 = indices.get(nombre) * altoFila + centroBarra;
+        const y2 = indices.get(dato.actividad.nombre) * altoFila + centroBarra;
+        const despeje = Math.min(19, altoFila * .4);
         const carril = Math.min(anchoTiempo - 6, x1 + 10);
         conexiones.append(crearElementoSvg("path", {
-          d: crearRutaOrtogonal([{ x: x1, y: y1 }, { x: carril, y: y1 }, { x: carril, y: y2 - 19 }, { x: x2, y: y2 - 19 }, { x: x2, y: y2 - 15 }], 4),
+          d: crearRutaOrtogonal([{ x: x1, y: y1 }, { x: carril, y: y1 }, { x: carril, y: y2 - despeje }, { x: x2, y: y2 - despeje }, { x: x2, y: y2 - altoBarra / 2 }], Math.min(4, altoFila / 5)),
           fill: "none", stroke: "#668298", "stroke-width": 1.3, "stroke-opacity": .65, "marker-end": "url(#flecha-gantt)"
         }));
       });
@@ -2008,12 +2027,14 @@ function aplicarEscalaGantt() {
 }
 
 function cambiarEscalaGantt(cambio) {
-  escalaGantt = Math.min(4, Math.max(.75, escalaGantt + cambio));
+  modoVistaGantt = "manual";
+  escalaGantt = Math.min(3, Math.max(.15, escalaGantt + cambio));
   aplicarEscalaGantt();
 }
 
 function restablecerEscalaGantt() {
   if (!solucionActual || !programaGantt || document.getElementById("panel-gantt").hidden) return;
+  modoVistaGantt = "completa";
   dibujarGantt(solucionActual, elementos.escenarioGantt.value);
   elementos.gantt.scrollTo({ left: 0, top: 0, behavior: "instant" });
 }
@@ -2597,7 +2618,15 @@ document.getElementById("encajar-red").addEventListener("click", () => {
 });
 document.getElementById("acercar-gantt").addEventListener("click", () => cambiarEscalaGantt(0.12));
 document.getElementById("alejar-gantt").addEventListener("click", () => cambiarEscalaGantt(-0.12));
-document.getElementById("restablecer-gantt").addEventListener("click", restablecerEscalaGantt);
+document.getElementById("restablecer-gantt").addEventListener("click", () => {
+  restablecerEscalaGantt();
+  document.querySelector(".panel-gantt").scrollIntoView({ block: "start" });
+});
+document.getElementById("lectura-gantt").addEventListener("click", () => {
+  modoVistaGantt = "lectura";
+  escalaGantt = 1;
+  aplicarEscalaGantt();
+});
 function abrirTeoria() {
   elementos.dialogoTeoria.showModal();
   renderizarMatematicas([elementos.dialogoTeoria]);

@@ -43,6 +43,31 @@ function ejecutarPruebas() {
   const calculadora = aplicacionPruebas.contentWindow;
   const pruebas = [
     {
+      nombre: "Gantt completo ajusta 15 actividades sin perder datos ni dependencias",
+      ejecutar() {
+        const doc = calculadora.document;
+        calculadora.cargarEjemplo("pert-problema-5");
+        calculadora.resolverFormulario();
+        calculadora.activarPestana("panel-gantt");
+        doc.getElementById("mostrar-dependencias").checked = true;
+        calculadora.restablecerEscalaGantt();
+        const filas = [...doc.querySelectorAll(".gantt-fila")];
+        afirmar(filas.length === 15, "Deben conservarse las 15 actividades");
+        afirmar(filas.every(f => f.getBoundingClientRect().height < 46), "Ver todo debe compactar las filas");
+        afirmar(!doc.getElementById("gantt").innerHTML.includes("NaN"), "Las conexiones deben conservar coordenadas válidas");
+        const escala = calculadora.calcularAjusteGantt(15, 440);
+        afirmar(42 + 15 * Math.floor(46 * escala) <= 440, "La altura calculada debe caber en el visor");
+        const antes = filas[0].getBoundingClientRect().height;
+        calculadora.cambiarEscalaGantt(-.1);
+        afirmar(doc.querySelector(".gantt-fila").getBoundingClientRect().height <= antes, "Alejar debe reducir también la altura");
+        doc.getElementById("lectura-gantt").click();
+        afirmar(doc.querySelector(".gantt-fila").getBoundingClientRect().height === 46, "Lectura debe recuperar un tamaño legible");
+        afirmar(doc.getElementById("duracion").textContent === "34", "El zoom no debe alterar los cálculos");
+        doc.getElementById("mostrar-dependencias").checked = false;
+        calculadora.activarPestana("panel-red");
+      }
+    },
+    {
       nombre: "ampliar datos conserva la misma tabla y las tres estimaciones editadas",
       ejecutar() {
         const doc = calculadora.document;

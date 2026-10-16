@@ -196,6 +196,21 @@ button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
   .gantt-barra,.gantt-margen { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 /* Enunciado junto a los datos del caso; no añade otra tarjeta al análisis. */
+.gantt-cabecera{height:42px}
+.panel-gantt{scroll-margin-top:20px}
+.gantt-marca{top:20px}
+.gantt-fila{height:var(--alto-fila-gantt,46px)}
+.gantt-identidad{padding:2px 10px;gap:8px}
+.gantt-identidad b{min-width:24px;height:min(24px,calc(var(--alto-fila-gantt,46px) - 4px));font-size:var(--fuente-gantt,12px);border-radius:5px}
+.gantt-identidad span{font-size:var(--fuente-gantt,12px);line-height:1.2}
+.gantt-barra{top:var(--arriba-barra-gantt,6px);height:var(--alto-barra-gantt,22px);font-size:var(--fuente-gantt,12px);border-radius:4px}
+.gantt-margen{top:var(--arriba-barra-gantt,6px);height:var(--alto-barra-gantt,22px)}
+.gantt-extremos{top:calc(var(--arriba-barra-gantt,6px) + var(--alto-barra-gantt,22px) + 2px);font-size:10px}
+.gantt-barra.es-hito{top:calc(var(--centro-barra-gantt,17px) - 6px)}
+.gantt-compacto .gantt-extremos{display:none}
+.gantt-compacto .gantt-identidad span{-webkit-line-clamp:1}
+.gantt-miniatura .gantt-identidad span{display:none}
+.gantt-miniatura .gantt-barra{font-size:0}
 .caso-enunciado{margin:0 0 14px;padding:10px 12px;border:1px solid #dedbd4;border-radius:9px;background:#fff}
 .caso-enunciado summary{font-size:12px;font-weight:700;color:#384f66;cursor:pointer}
 .caso-enunciado p{font-size:13px;line-height:1.7;margin:10px 0 0;color:#536271}
