@@ -31,6 +31,7 @@
 .informacion-perfecta{font-size:13px;line-height:1.7;margin:0}.informacion-perfecta strong{font-weight:800}
 #panel-criterios{display:block}.coincidencia-criterios{display:none}
 .panel-grafico{padding:22px}.panel-grafico .sello{display:none}
+.panel-grafico .grafico svg{margin-inline:auto}
 .vista-grafica{padding:8px 12px;margin-bottom:10px;background:#fbfafb}
 .vista-grafica .herramientas-grafica{justify-content:flex-start;margin-bottom:0}
 #editar-arbol .editor-arbol{position:static;max-height:none;overflow:visible;box-shadow:none;border:0;padding:5px}
