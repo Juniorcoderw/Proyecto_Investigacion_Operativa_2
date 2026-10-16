@@ -29,15 +29,20 @@ function entorno(ruta = '/index.html', reducida = false, iframe = false) {
 let total = 0;
 function prueba(nombre, f) { f(); total++; console.log('Correcta · ' + nombre); }
 for (const [ruta, modulo] of [['/index.html','inicio'],['/metodos/pert-cpm/index.html','pert'],['/metodos/inventarios/index.html','inventarios'],['/metodos/teoria-decisiones/index.html','decisiones']]) {
-  prueba('entrada específica de ' + modulo, () => { const e=entorno(ruta); assert.equal(e.pantalla.dataset.modulo, modulo); });
+  prueba('entrada de 3 segundos: ' + modulo, () => {
+    const e=entorno(ruta); assert.equal(e.pantalla.dataset.modulo, modulo);
+    e.eventos.get('DOMContentLoaded')(); e.avanzar(2999);
+    assert.equal(e.documento.documentElement.dataset.entrada, 'activa');
+    e.avanzar(1); assert.equal(e.documento.documentElement.dataset.entrada, 'lista');
+  });
 }
 prueba('cierre normal breve sin porcentaje inventado', () => {
   const e=entorno(); assert.equal(e.documento.documentElement.dataset.entrada, 'activa');
-  e.eventos.get('DOMContentLoaded')(); e.avanzar(650); assert.equal(e.documento.documentElement.dataset.entrada, 'lista');
+  e.eventos.get('DOMContentLoaded')(); e.avanzar(3000); assert.equal(e.documento.documentElement.dataset.entrada, 'lista');
   e.avanzar(340); assert.ok(e.pantalla.retirado); assert.equal(e.pantalla.attrs.role, 'status');
 });
 prueba('seguridad: se retira aunque nunca llegue DOMContentLoaded', () => {
-  const e=entorno(); e.avanzar(2600); assert.ok(e.pantalla.retirado); assert.equal(e.documento.documentElement.dataset.entrada, 'lista');
+  const e=entorno(); e.avanzar(3400); assert.ok(e.pantalla.retirado); assert.equal(e.documento.documentElement.dataset.entrada, 'lista');
 });
 prueba('Escape cierra y los callbacks posteriores son inocuos', () => {
   const e=entorno(); const listo=e.eventos.get('DOMContentLoaded'); e.eventos.get('keydown')({key:'Escape'});
@@ -51,7 +56,7 @@ prueba('no interfiere con los entornos aislados de cálculo', () => {
 });
 prueba('un logo no disponible no bloquea la aplicación', () => {
   const e=entorno(); const escena=e.pantalla.children[0].children[1]; const imagen=escena.children.at(-1).children[0];
-  imagen.onerror(); assert.ok(imagen.hidden); e.avanzar(2600); assert.ok(e.pantalla.retirado);
+  imagen.onerror(); assert.ok(imagen.hidden); e.avanzar(3400); assert.ok(e.pantalla.retirado);
 });
 prueba('volver desde la caché no deja una pantalla superpuesta', () => {
   const e=entorno(); e.eventos.get('pageshow')({persisted:true}); e.avanzar(340); assert.ok(e.pantalla.retirado);

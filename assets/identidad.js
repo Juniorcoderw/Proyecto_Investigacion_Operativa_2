@@ -14,7 +14,7 @@
   };
   const reducida = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const comienzo = performance.now();
-  const minimo = reducida ? 0 : tipo === 'inicio' ? 650 : 420;
+  const minimo = reducida ? 0 : 3000;
   const pantalla = document.createElement('div');
   pantalla.className = 'entrada-io'; pantalla.dataset.modulo = tipo;
   pantalla.setAttribute('role', 'status'); pantalla.setAttribute('aria-live', 'polite');
@@ -55,7 +55,7 @@
     setTimeout(() => pantalla.remove(), reducida ? 0 : 340);
   }
   function escapar(e) { if (e.key === 'Escape') cerrar(); }
-  const limite = setTimeout(cerrar, 2200);
+  const limite = setTimeout(cerrar, 3000);
   document.addEventListener('keydown', escapar);
   const lista = () => setTimeout(cerrar, Math.max(0, minimo - (performance.now() - comienzo)));
   if (document.readyState === 'complete') lista();
