@@ -394,8 +394,8 @@ function abrirGuia() { elementos.dialogoGuia.showModal(); renderizarLatex([eleme
 function cerrarDialogo(evento) { evento.target.closest("dialog")?.close(); }
 function renderizarLatex(contenedores) { if (!window.MathJax?.typesetPromise) return; window.MathJax.typesetClear?.(contenedores); window.MathJax.typesetPromise(contenedores).catch(() => {}); }
 
-elementos.formulario.addEventListener("submit", evento => { evento.preventDefault(); if (resolver()) elementos.salida.scrollIntoView({ behavior: "smooth", block: "start" }); });
-elementos.formulario.addEventListener("input", () => { elementos.valorAlfa.value = Number(elementos.alfa.value).toFixed(2); programarResolucion(); });
+elementos.formulario.addEventListener("submit", evento => { evento.preventDefault(); if (window.calcularCasoUnificado) return window.calcularCasoUnificado(); if (resolver()) elementos.salida.scrollIntoView({ behavior: "smooth", block: "start" }); });
+elementos.formulario.addEventListener("input", () => { elementos.valorAlfa.value = Number(elementos.alfa.value).toFixed(2); if (document.getElementById("vista-arboles").hidden) programarResolucion(); });
 elementos.cabeceraTabla.addEventListener("input", actualizarMatriz);
 elementos.cuerpoTabla.addEventListener("input", actualizarMatriz);
 elementos.pieTabla.addEventListener("input", actualizarMatriz);
@@ -403,7 +403,7 @@ elementos.cuerpoTabla.addEventListener("click", evento => { const boton = evento
 elementos.pieTabla.addEventListener("click", evento => { if (!evento.target.closest(".eliminar-estado") || estados.length <= 2) return; estados.pop(); probabilidades.pop(); alternativas.forEach(alternativa => alternativa.valores.pop()); renderizarTabla(); programarResolucion(); });
 document.getElementById("agregar-alternativa").addEventListener("click", agregarAlternativa);
 document.getElementById("agregar-estado").addEventListener("click", agregarEstado);
-document.getElementById("cargar-ejemplo").addEventListener("click", cargarEjemplo);
+document.getElementById("cargar-ejemplo").addEventListener("click", () => window.cargarCasoUnificado ? window.cargarCasoUnificado(elementos.caso.value) : cargarEjemplo());
 document.getElementById("limpiar").addEventListener("click", limpiar);
 document.getElementById("pegar-matriz").addEventListener("click", () => elementos.dialogoPegar.showModal());
 document.getElementById("importar-matriz").addEventListener("click", importarMatriz);

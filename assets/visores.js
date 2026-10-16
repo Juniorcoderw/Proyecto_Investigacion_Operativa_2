@@ -71,6 +71,13 @@
       contenido.replaceChildren(...ayuda.slice(1).map(texto => { const p = document.createElement("p"); p.textContent = texto; return p; }));
       dialogo.showModal();
     });
-    grafico.before(barra);
+    if (grafico.dataset.herramientas === "plegadas") {
+      const opciones = document.createElement("details");
+      opciones.className = "consulta-decision vista-grafica";
+      const resumen = document.createElement("summary");
+      resumen.textContent = "Vista y ayuda";
+      opciones.append(resumen, barra);
+      grafico.before(opciones);
+    } else grafico.before(barra);
   });
 })();

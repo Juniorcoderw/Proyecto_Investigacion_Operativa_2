@@ -727,12 +727,14 @@ function resolverArbol(mostrar = true) {
     renderizarDiagrama();
     document.querySelectorAll(".flujo li").forEach(elemento => elemento.classList.toggle("activo", elemento.dataset.paso === "estrategia"));
     if (mostrar) elementosArbol.resultado.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.dispatchEvent(new CustomEvent("decision:arbol-evaluado"));
     return true;
   } catch (error) {
     calculoActual = null;
     elementosArbol.resultado.hidden = true;
     elementosArbol.mensaje.textContent = error.message;
     renderizarDiagrama();
+    document.dispatchEvent(new CustomEvent("decision:arbol-evaluado"));
     return false;
   }
 }
