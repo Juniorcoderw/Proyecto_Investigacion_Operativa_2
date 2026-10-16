@@ -1,0 +1,8 @@
+.git
+output
+docs/manual/render-word*
+docs/manual/recursos
+docs/manual/build_manual*.py
+assets/metodos/*.png
+**/__pycache__
+.env*

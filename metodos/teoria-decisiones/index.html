@@ -10,34 +10,40 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css">
+  <link rel="stylesheet" href="../../assets/navegacion.css?v=20261015a">
+  <script src="../../assets/navegacion.js?v=20261015a" defer></script>
   <script>
     window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" }, startup: { typeset: false } };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
-  <script src="decisiones.js" defer></script>
+  <link rel="stylesheet" href="pulido.css?v=20261015a">
+  <script src="casos-guia.js?v=20261015a" defer></script>
+  <script src="decisiones.js?v=20261015a" defer></script>
+  <script src="arboles.js?v=20261015a" defer></script>
+  <script src="vistas.js?v=20261015a" defer></script>
 </head>
 <body>
   <header class="cabecera-aplicacion">
     <a class="marca" href="../../index.html" aria-label="Volver al inicio"><img class="marca-imagen" src="../../assets/institucional/logo-unjbg.png" alt="Escudo de la UNJBG"><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
-    <nav aria-label="Navegación principal"><a href="../../index.html">Inicio</a><a class="activo" href="../../index.html#calculadoras">Calculadoras</a><a href="../../index.html#proyecto">El proyecto</a></nav>
-    <span class="identificador-modulo">TEORÍA <b>·</b> DECISIONES</span>
+    <nav aria-label="Navegación principal"><a href="../../index.html">Inicio</a><a class="activo" href="../../index.html#metodos">Calculadoras</a><a href="../../index.html#proyecto">El proyecto</a></nav>
+    <div class="acceso-modulos"><span class="identificador-modulo">DECISIONES</span><span data-menu-metodos></span></div>
   </header>
 
   <section class="cabecera-modulo">
-    <div><p class="etiqueta"><span></span> Análisis bajo incertidumbre y riesgo</p><h1>TEORÍA DE <em>DECISIONES</em></h1><p>Compare alternativas, mida el arrepentimiento y justifique una elección con criterios clásicos.</p></div>
-    <ol class="flujo" aria-label="Flujo de trabajo"><li class="activo" data-paso="datos"><span>01</span> Matriz</li><li data-paso="criterios"><span>02</span> Criterios</li><li data-paso="analisis"><span>03</span> Análisis</li></ol>
+    <div><p class="etiqueta"><span></span> Análisis de alternativas</p><h1>Teoría de <em>decisiones.</em></h1><p id="descripcion-vista">Compare alternativas y estados en una matriz de pagos.</p></div>
+    <nav class="selector-modelo" role="tablist" aria-label="Vista de decisiones">
+      <button id="tab-tablas" type="button" role="tab" aria-selected="true" aria-controls="vista-tablas" data-vista="tablas"><span aria-hidden="true">▦</span><strong>Tablas de decisión</strong></button>
+      <button id="tab-arboles" type="button" role="tab" aria-selected="false" aria-controls="vista-arboles" data-vista="arboles" tabindex="-1"><span aria-hidden="true">◇</span><strong>Árboles de decisión</strong></button>
+    </nav>
   </section>
 
-  <nav class="selector-modelo" aria-label="Modelo de teoría de decisiones">
-    <a class="activo" href="index.html"><span>▦</span><strong>Tablas de decisión</strong><small>Una decisión y varios estados</small></a>
-    <a href="arboles.html"><span>◇</span><strong>Árboles de decisión</strong><small>Decisiones y eventos sucesivos</small></a>
-  </nav>
-
-  <main class="espacio-trabajo">
+  <main id="contenido-decisiones">
+  <section id="vista-tablas" class="espacio-trabajo" role="tabpanel" aria-labelledby="tab-tablas">
     <aside class="panel panel-configuracion" aria-labelledby="titulo-configuracion">
       <div class="encabezado-panel"><div><p class="sobretitulo">Configuración</p><h2 id="titulo-configuracion">Datos del problema</h2><p class="descripcion-panel">La matriz se actualiza mientras escribe.</p></div><span class="indicador-guardado"><i></i> Local</span></div>
       <form id="formulario-decision" novalidate>
         <div class="selector-caso"><label class="campo" for="caso-decision">Caso de práctica<select id="caso-decision"><option value="rifa">01 · Decisión sobre una rifa</option><option value="inversion">02 · Inversión en acciones</option></select></label><button id="cargar-ejemplo" class="boton boton-cargar" type="button">Cargar</button></div>
+        <details id="caso-tabla" class="caso-enunciado" hidden><summary>Enunciado del ejercicio</summary><p></p></details>
         <label class="campo" for="problema">Problema o caso<input id="problema" name="problema" type="text" maxlength="80" placeholder="Ej. Capacidad de una nueva planta"></label>
         <label class="campo" for="tipo-matriz">Interpretación de los valores<select id="tipo-matriz" name="tipoMatriz"><option value="beneficios">Beneficios · elegir el mayor</option><option value="costos">Costos · elegir el menor</option></select></label>
         <label class="campo" for="alfa-hurwicz"><span class="rotulo-con-valor">Optimismo de Hurwicz <i>α</i><output id="valor-alfa">0.60</output></span><input id="alfa-hurwicz" name="alfaHurwicz" type="range" min="0" max="1" step="0.05" value="0.60"><small>0 prioriza el peor resultado; 1 prioriza el mejor.</small></label>
@@ -56,7 +62,7 @@
 
       <section id="salida" class="salida" hidden>
         <div class="encabezado-resultados"><div><p class="sobretitulo">Lectura del modelo</p><h2 id="titulo-resultado">Resultado de la decisión</h2></div><div class="acciones-resultados"><button id="imprimir" class="boton boton-terciario" type="button">Imprimir</button></div></div>
-        <div class="resumen"><article class="tarjeta-resumen tarjeta-destacada"><span>Valor esperado</span><strong id="decision-esperada">—</strong><small id="detalle-esperado">—</small></article><article class="tarjeta-resumen"><span>Mejor valor esperado</span><strong id="mejor-valor">—</strong><small>según probabilidades</small></article><article class="tarjeta-resumen"><span>Valor de información <i>EVPI</i></span><strong id="evpi">—</strong><small>máximo razonable por información perfecta</small></article><article class="tarjeta-resumen"><span>Consenso de criterios</span><strong id="consenso">—</strong><small id="detalle-consenso">—</small></article></div>
+        <div class="resumen"><article class="tarjeta-resumen tarjeta-destacada"><span>Alternativa recomendada</span><strong id="decision-esperada">—</strong><small id="detalle-esperado">—</small></article><article class="tarjeta-resumen"><span>Valor monetario esperado</span><strong id="mejor-valor">—</strong><small>según probabilidades</small></article><article class="tarjeta-resumen"><span>Información perfecta <abbr title="Valor esperado de la información perfecta">EVPI</abbr></span><strong id="evpi">—</strong><small>máximo razonable por información perfecta</small></article><article class="tarjeta-resumen"><span title="Cuenta coincidencias entre criterios; no reemplaza la decisión por valor esperado.">Coincidencia de criterios</span><strong id="consenso">—</strong><small id="detalle-consenso">—</small></article></div>
         <div id="recomendacion" class="recomendacion"></div>
 
         <div class="navegacion-pestanas" role="tablist" aria-label="Vistas del análisis"><button class="pestana activo" type="button" role="tab" aria-selected="true" data-panel="panel-criterios">Criterios</button><button class="pestana" type="button" role="tab" aria-selected="false" data-panel="panel-arrepentimiento" tabindex="-1">Arrepentimiento</button><button class="pestana" type="button" role="tab" aria-selected="false" data-panel="panel-desarrollo" tabindex="-1">Desarrollo</button></div>
@@ -75,24 +81,77 @@
         </div>
       </section>
     </section>
+  </section>
+  <section id="vista-arboles" class="espacio-trabajo espacio-arbol" role="tabpanel" aria-labelledby="tab-arboles" hidden>
+    <aside class="panel panel-configuracion editor-arbol" aria-labelledby="titulo-editor">
+      <div class="encabezado-panel"><div><p class="sobretitulo">Construcción</p><h2 id="titulo-editor">Datos del árbol</h2><p class="descripcion-panel">Seleccione un nodo del diagrama para editarlo.</p></div><span class="indicador-guardado"><i></i> Local</span></div>
+      <form id="formulario-arbol" novalidate>
+        <div class="selector-caso"><label class="campo" for="caso-arbol">Caso de práctica<select id="caso-arbol"><option value="rifa">01 · Decisión sobre una rifa</option><option value="vacaciones">02 · Vacaciones en el extranjero</option></select></label><button id="ejemplo-arbol" class="boton boton-cargar" type="button">Cargar</button></div>
+        <details id="caso-arbol-guia" class="caso-enunciado" hidden><summary>Enunciado del ejercicio</summary><p></p></details>
+        <label class="campo" for="problema-arbol">Problema o caso<input id="problema-arbol" type="text" maxlength="80" placeholder="Ej. Lanzamiento de un producto"></label>
+        <label class="campo" for="objetivo-arbol">Objetivo<select id="objetivo-arbol"><option value="maximizar">Maximizar beneficios</option><option value="minimizar">Minimizar costos</option></select></label>
+        <div class="acciones-formulario"><button id="limpiar-arbol" class="boton boton-terciario boton-peligro boton-ancho" type="button">Nuevo árbol</button></div>
+      </form>
+
+      <section class="edicion-nodo" aria-labelledby="titulo-nodo-seleccionado">
+        <div class="cabecera-edicion"><div><p class="sobretitulo">Nodo seleccionado</p><h3 id="titulo-nodo-seleccionado">—</h3></div><span id="identificador-nodo">—</span></div>
+        <label class="campo" for="nombre-nodo">Nombre<input id="nombre-nodo" type="text" maxlength="60"></label>
+        <label class="campo" for="tipo-nodo">Tipo<select id="tipo-nodo"><option value="decision">Decisión · elegir una rama</option><option value="azar">Azar · ponderar probabilidades</option><option value="terminal">Resultado final</option></select></label>
+        <div id="ayuda-tipo" class="ayuda-nodo"></div>
+        <div id="herramientas-ramas" class="herramientas-ramas">
+          <button id="copiar-todas-ramas" class="boton boton-terciario" type="button">Copiar todas</button>
+          <button id="copiar-ramas" class="boton boton-terciario" type="button" disabled>Copiar selección</button>
+          <button id="pegar-ramas" class="boton boton-terciario" type="button" disabled>Pegar en este nodo</button>
+          <small id="estado-portapapeles" aria-live="polite">Copie toda la estructura o marque ramas específicas.</small>
+        </div>
+        <div id="lista-ramas" class="lista-ramas"></div>
+        <button id="agregar-rama" class="boton boton-secundario boton-ancho" type="button">+ Agregar rama</button>
+        <button id="eliminar-nodo" class="boton boton-terciario boton-peligro boton-ancho" type="button">Eliminar este nodo</button>
+      </section>
+      <p id="mensaje-arbol" class="mensaje" role="alert" aria-live="assertive"></p>
+      <button id="resolver-arbol" class="boton boton-principal" type="button">Resolver árbol <span>→</span></button>
+    </aside>
+
+    <section class="area-analisis">
+      <section class="panel panel-diagrama-arbol" aria-labelledby="titulo-diagrama-arbol">
+        <div class="encabezado-panel"><div><p class="sobretitulo">Lienzo interactivo</p><h2 id="titulo-diagrama-arbol">Diagrama del problema</h2><p class="descripcion-panel">Seleccione un nodo para editar sus ramas.</p></div><div class="controles-zoom"><button id="alejar-arbol" type="button" aria-label="Alejar">−</button><button id="ajustar-arbol" type="button">Ajustar</button><output id="zoom-arbol">100 %</output><button id="acercar-arbol" type="button" aria-label="Acercar">+</button></div></div>
+        <div class="leyenda-arbol"><span><i class="muestra decision"></i> Decisión</span><span><i class="muestra azar"></i> Azar</span><span><i class="muestra terminal"></i> Resultado</span><span><i class="linea-optima"></i> Estrategia elegida</span></div>
+        <div id="visor-arbol" class="visor-arbol"><div id="lienzo-arbol" class="lienzo-arbol"></div></div>
+      </section>
+
+      <section id="resultado-arbol" class="salida salida-arbol" hidden>
+        <div class="resumen resumen-arbol"><article class="tarjeta-resumen tarjeta-destacada"><span>Primera decisión</span><strong id="primera-decision">—</strong><small>rama recomendada desde el inicio</small></article><article class="tarjeta-resumen"><span><abbr title="Valor monetario esperado">VME</abbr> del árbol</span><strong id="valor-arbol">—</strong><small id="detalle-valor-arbol">—</small></article><article class="tarjeta-resumen"><span>Nodos evaluados</span><strong id="nodos-evaluados">—</strong><small>resueltos de derecha a izquierda</small></article></div>
+        <div id="recomendacion-arbol" class="recomendacion"></div>
+        <section class="panel panel-desarrollo"><div class="encabezado-panel"><div><p class="sobretitulo">Retroceso verificable</p><h2>Desarrollo paso a paso</h2><p class="descripcion-panel">Primero se resuelven los nodos finales; luego se avanza hacia el origen.</p></div><button id="imprimir-arbol" class="boton boton-terciario" type="button">Imprimir</button></div><div id="desarrollo-arbol" class="desarrollo"></div></section>
+      </section>
+    </section>
+  </section>
+
   </main>
 
   <footer class="pie-modulo">
     <a href="../../index.html" class="pie-modulo-marca"><img src="../../assets/institucional/logo-unjbg.png" alt=""><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
-    <p>Teoría de decisiones · Tablas de decisión</p>
-    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#calculadoras">Módulos</a><a href="../../index.html#equipo">Equipo</a></nav>
+    <p>Teoría de decisiones · Tablas y árboles</p>
+    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#metodos">Módulos</a><a href="../../index.html#equipo">Equipo</a></nav>
   </footer>
 
   <button id="teoria-flotante" class="teoria-flotante" type="button" aria-label="Abrir fundamentos de teoría de decisiones"><span>i</span><strong>Guía del método</strong></button>
 
   <dialog id="dialogo-guia" class="dialogo"><div class="cabecera-dialogo"><div><p class="sobretitulo">Fundamentos y modelamiento</p><h2>Teoría de decisiones</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div><p class="introduccion-guia">La disciplina formaliza elecciones cuando el resultado depende de eventos que el decisor no controla. Wald, Hurwicz, Laplace, Savage y Bayes aportaron criterios que hoy siguen usándose para comparar alternativas.</p><div class="contenido-guia">
     <section class="historia"><article><b>1950</b><span>Abraham Wald formaliza el criterio conservador.</span></article><article><b>1951</b><span>Leonard Savage propone minimizar el arrepentimiento máximo.</span></article><article><b>Riesgo</b><span>Con probabilidades conocidas se aplica el valor esperado.</span></article></section>
-    <div class="formulas-guia"><article><small>Valor esperado</small><strong>\(VE_i=\sum_j p_jx_{ij}\)</strong><p>Pondera cada resultado por la probabilidad de su estado.</p></article><article><small>Hurwicz</small><strong>\(H_i=\alpha M_i+(1-\alpha)m_i\)</strong><p>Combina el mejor y el peor resultado mediante el optimismo α.</p></article><article><small>Arrepentimiento</small><strong>\(R_{ij}=x_j^*-x_{ij}\)</strong><p>Mide lo que se deja de ganar frente a la mejor decisión de cada estado.</p></article><article><small>Información perfecta</small><strong>\(EVPI=VE_{PI}-VE^*\)</strong><p>Establece cuánto convendría pagar por conocer el estado futuro.</p></article></div>
+    <div class="formulas-guia"><article><small>Valor esperado</small><strong>\(VE_i=\sum_j p_jx_{ij}\)</strong><p>Pondera cada resultado por la probabilidad de su estado.</p></article><article><small>Hurwicz</small><strong>\(H_i=\alpha x_i^{mejor}+(1-\alpha)x_i^{peor}\)</strong><p>Combina el mejor y el peor resultado mediante α. El mejor es el mayor beneficio o el menor costo.</p></article><article><small>Arrepentimiento</small><strong>\(R_{ij}=x_j^*-x_{ij}\)</strong><p>En beneficios: mejor pago del estado menos pago de la alternativa. En costos: costo de la alternativa menos menor costo del estado.</p></article><article><small>Información perfecta</small><strong>\(EVPI=|VE_{PI}-VE^*|\)</strong><p>Establece cuánto convendría pagar por conocer el estado futuro.</p></article></div>
     <section class="bloque-guia"><h3>Diccionario de símbolos</h3><div class="diccionario"><p><b>A<sub>i</sub></b><span>Alternativa i</span></p><p><b>E<sub>j</sub></b><span>Estado de la naturaleza j</span></p><p><b>x<sub>ij</sub></b><span>Pago o costo de Aᵢ en Eⱼ</span></p><p><b>p<sub>j</sub></b><span>Probabilidad del estado j</span></p><p><b>α</b><span>Coeficiente de optimismo</span></p><p><b>EVPI</b><span>Valor esperado de información perfecta</span></p></div></section>
     <section class="bloque-guia"><h3>Antes de interpretar</h3><ul><li>Las alternativas deben ser mutuamente excluyentes.</li><li>Los estados deben cubrir los escenarios relevantes.</li><li>No mezcle beneficios y costos en una misma matriz.</li><li>Las probabilidades deben sumar uno.</li></ul></section>
     <section class="bloque-guia"><h3>¿Tabla o árbol?</h3><ul><li>Use una tabla cuando todas las alternativas se eligen al inicio.</li><li>Use un árbol cuando una decisión futura dependa de un evento anterior.</li><li>En un nodo de azar se ponderan resultados por probabilidad.</li><li>En un nodo de decisión se conserva la rama de mayor beneficio o menor costo.</li></ul></section>
   </div><button class="boton boton-principal cerrar-dialogo" type="button">Cerrar</button></dialog>
 
   <dialog id="dialogo-pegar" class="dialogo dialogo-pegar"><div class="cabecera-dialogo"><div><p class="sobretitulo">Importación rápida</p><h2>Pegar matriz desde Excel</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div><p>Primera fila: nombres de estados. Primera columna: alternativas. La última fila puede llamarse <strong>Probabilidad</strong>.</p><textarea id="datos-pegados" rows="9" placeholder="Alternativa&#9;Demanda alta&#9;Demanda media&#9;Demanda baja&#10;Planta grande&#9;200&#9;80&#9;-120&#10;Planta mediana&#9;140&#9;90&#9;-20&#10;No ampliar&#9;40&#9;40&#9;40&#10;Probabilidad&#9;0.30&#9;0.50&#9;0.20"></textarea><div class="pie-dialogo"><button class="boton boton-terciario cerrar-dialogo" type="button">Cancelar</button><button id="importar-matriz" class="boton boton-principal" type="button">Importar matriz <span>→</span></button></div></dialog>
+  <button id="teoria-arbol" class="teoria-flotante" hidden type="button" aria-label="Abrir fundamentos de árboles de decisión"><span>i</span><strong>Guía del método</strong></button>
+  <dialog id="dialogo-arbol" class="dialogo"><div class="cabecera-dialogo"><div><p class="sobretitulo">Fundamentos y modelamiento</p><h2>Árboles de decisión</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div><p class="introduccion-guia">Un árbol ordena decisiones y sucesos en el tiempo. La solución se obtiene desde los resultados terminales hasta el nodo inicial.</p><div class="contenido-guia">
+    <section class="historia"><article><b>□ Decisión</b><span>Se compara cada rama y se conserva la mejor.</span></article><article><b>○ Azar</b><span>Se multiplican los resultados por sus probabilidades.</span></article><article><b>◇ Terminal</b><span>Marca el final de una secuencia.</span></article></section>
+    <div class="formulas-guia"><article><small>Nodo de azar</small><strong>\(V(N)=\sum p_r[c_r+V(h_r)]\)</strong><p>Suma los valores de las ramas ponderados por su probabilidad.</p></article><article><small>Nodo de decisión</small><strong>\(V(N)=mejor\{c_r+V(h_r)\}\)</strong><p>Conserva el mayor beneficio o el menor costo.</p></article></div>
+    <section class="bloque-guia"><h3>Reglas de construcción</h3><ul><li>Las ramas salen de izquierda a derecha.</li><li>Las probabilidades de cada nodo de azar suman uno.</li><li>Los ingresos y costos inmediatos se colocan en las ramas.</li><li>Una rama puede conducir a otra decisión posterior.</li></ul></section>
+    <section class="bloque-guia"><h3>Interpretación</h3><ul><li>La línea dorada señala la estrategia seleccionada.</li><li>En un nodo de azar se mantienen todas las posibilidades.</li><li>Los valores negativos representan pérdidas si se maximizan beneficios.</li><li>Al minimizar costos, se conserva el menor valor en cada decisión.</li></ul></section>
+  </div><button class="boton boton-principal cerrar-dialogo" type="button">Cerrar</button></dialog>
 </body>
 </html>

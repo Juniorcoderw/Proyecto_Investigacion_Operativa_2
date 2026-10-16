@@ -35,6 +35,43 @@ aplicacion.addEventListener("load", () => {
     probabilidades: [.3, .5, .2]
   };
   const pruebas = [
+    ...[
+      ["guia-producto", 43750, 2, 15000],
+      ["guia-ampliacion", 104000, 2, 17500],
+      ["guia-proveedores", 53000, 0, 4400]
+    ].map(([clave, esperado, indice, evpi]) => ({
+      nombre: `guía práctica: ${clave} · tabla y árbol coinciden`,
+      ejecutar() {
+        const caso = calculadora.CASOS_GUIA_DECISION[clave];
+        const resultado = calculadora.calcularDecision(caso);
+        casi(resultado.criterioEsperado.valor, esperado, "Valor esperado de la tabla");
+        casi(resultado.evpi, evpi, "Información perfecta");
+        afirmar(resultado.criterioEsperado.indice === indice, "Alternativa incorrecta");
+        const arbol = calculadora.crearArbolDesdeMatriz(caso, clave);
+        casi(calculadora.calcularArbol(arbol).valor, esperado, "Valor del árbol");
+        casi(arbol.nodos.filter(n => n.tipo === "azar").length, 3, "Tres alternativas completas");
+      }
+    })),
+    {
+      nombre: "un campo vacío no equivale a cero",
+      ejecutar() {
+        afirmar(Number.isNaN(calculadora.numero("")), "La matriz debe rechazar vacíos");
+        afirmar(Number.isNaN(calculadora.numeroArbol(" ")), "El árbol debe rechazar vacíos");
+        afirmar(calculadora.normalizarProbabilidades(["", 1]) === null, "No aceptar una probabilidad sin llenar");
+        casi(calculadora.numero(0), 0, "Cero explícito válido");
+      }
+    },
+    {
+      nombre: "cargar una copia del ejemplo no modifica el original",
+      ejecutar() {
+        const caso = calculadora.CASOS_GUIA_DECISION['guia-producto'];
+        const primero = calculadora.crearArbolDesdeMatriz(caso, 'guia-producto');
+        const segundo = calculadora.crearArbolDesdeMatriz(caso, 'guia-producto');
+        primero.nodos[1].ramas[0].valor = 1;
+        casi(segundo.nodos[1].ramas[0].valor, 40000, "Carga independiente");
+        casi(caso.alternativas[0].valores[0], 40000, "Fuente sin cambios");
+      }
+    },
     {
       nombre: "probabilidades decimales y porcentuales",
       ejecutar() {

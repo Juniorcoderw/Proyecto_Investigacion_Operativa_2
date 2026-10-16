@@ -3,135 +3,154 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#071735">
-  <meta name="description" content="Herramientas académicas de Investigación Operativa II para PERT–CPM, inventarios y teoría de decisiones.">
+  <meta name="theme-color" content="#06152d">
+  <meta name="description" content="Plataforma académica interactiva de Investigación Operativa II para resolver PERT–CPM, inventarios y teoría de decisiones.">
   <title>Investigación Operativa II | UNJBG</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css">
+  <link rel="stylesheet" href="assets/navegacion.css?v=20261015a">
+  <script src="assets/navegacion.js?v=20261015a" defer></script>
+  <script src="inicio.js" defer></script>
 </head>
 <body>
-  <header class="cabecera">
+  <a class="saltar-contenido" href="#contenido">Saltar al contenido</a>
+
+  <header class="cabecera" id="cabecera">
     <a class="marca" href="#inicio" aria-label="Ir al inicio">
       <img class="marca-imagen" src="assets/institucional/logo-unjbg.png" alt="Escudo de la Universidad Nacional Jorge Basadre Grohmann">
-      <span><strong>Universidad Nacional Jorge Basadre Grohmann</strong><small>Ingeniería en Informática y Sistemas</small></span>
+      <span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas · UNJBG</small></span>
     </a>
-    <nav aria-label="Navegación principal">
+    <nav class="navegacion-principal" aria-label="Navegación principal">
       <a class="activo" href="#inicio">Inicio</a>
-      <a href="#calculadoras">Calculadoras</a>
+      <a href="#metodos">Métodos</a>
+      <a href="#recursos">Recursos</a>
       <a href="#proyecto">Proyecto</a>
       <a href="#equipo">Equipo</a>
     </nav>
-    <a class="acceso-directo" href="#calculadoras">Ver módulos <span>↓</span></a>
+    <span data-menu-metodos></span>
   </header>
 
-  <main>
+  <main id="contenido">
     <section id="inicio" class="portada">
-      <img class="imagen-fondo-portada" src="assets/matematicas/modelamiento-operaciones.png" alt="Red de proyecto, curva de inventario y árbol de decisiones representados gráficamente">
-      <div class="velo-portada" aria-hidden="true"></div>
+      <canvas id="campo-red" class="campo-red" aria-hidden="true"></canvas>
+      <div class="rejilla-portada" aria-hidden="true"></div>
+      <div class="orbe orbe-uno" aria-hidden="true"></div>
+      <div class="orbe orbe-dos" aria-hidden="true"></div>
       <div class="contenido-portada">
         <div class="texto-portada">
-          <p class="etiqueta"><span></span> Investigación Operativa II</p>
-          <h1>Modelar para<br><em>decidir mejor.</em></h1>
-          <p class="bajada">Calculadoras académicas para planificación de proyectos, gestión de inventarios y análisis de decisiones.</p>
+          <p class="etiqueta etiqueta-clara"><span></span> UNJBG · Informática y Sistemas</p>
+          <h1>Investigación<br>Operativa <em>II.</em></h1>
+          <p class="bajada">PERT–CPM, inventarios y decisiones. Seleccione un modelo para ingresar sus datos o resolver un ejercicio de las prácticas.</p>
           <div class="acciones-portada">
-            <a class="boton boton-primario" href="#calculadoras">Explorar módulos <span>↓</span></a>
-            <a class="boton boton-secundario" href="metodos/pert-cpm/index.html">Abrir PERT–CPM</a>
+            <a class="boton boton-primario" href="#metodos"><span>Explorar métodos</span><b>↓</b></a>
+            <a class="boton boton-vidrio" href="docs/manual/Manual_de_usuario_Investigacion_Operativa_II.pdf" target="_blank" rel="noopener"><span>Manual de usuario</span><b>↗</b></a>
           </div>
+          <button class="enlace-ayuda" type="button" data-detalle="inicio">Cómo empezar <span>↗</span></button>
         </div>
 
-        <aside class="resumen-portada" aria-label="Contenido de la plataforma">
-          <p>Métodos implementados</p>
-          <a href="metodos/pert-cpm/index.html"><span>01</span><strong>PERT–CPM</strong><small>Red AON, Gantt y ruta crítica</small></a>
-          <a href="metodos/inventarios/index.html"><span>02</span><strong>Inventarios</strong><small>EOQ, EPQ y faltantes</small></a>
-          <a href="metodos/teoria-decisiones/index.html"><span>03</span><strong>Decisiones</strong><small>Tablas y árboles</small></a>
-        </aside>
+        <div class="visor-portada" aria-label="Vista resumida del sistema">
+          <div class="marco-visor">
+            <div class="barra-visor"><span></span><span></span><span></span><b>Proyectos · Inventarios · Decisiones</b></div>
+            <svg viewBox="0 0 480 360" role="img" aria-label="Representación animada de los métodos de Investigación Operativa">
+              <defs>
+                <linearGradient id="lineaDorada" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9dc82"/><stop offset="1" stop-color="#b77a24"/></linearGradient>
+                <filter id="brillo"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <g class="red-mini">
+                <path d="M34 89 C98 89 99 49 157 49 S216 116 274 116 S353 56 442 56"/>
+                <path d="M34 89 C102 89 100 157 165 157 S224 116 274 116"/>
+                <path d="M274 116 C342 116 350 178 442 178"/>
+                <circle cx="34" cy="89" r="10"/><circle cx="157" cy="49" r="13"/><circle cx="165" cy="157" r="13"/><circle cx="274" cy="116" r="15"/><circle cx="442" cy="56" r="10"/><circle cx="442" cy="178" r="10"/>
+                <circle class="pulso-svg pulso-a" r="5"><animateMotion dur="3.6s" repeatCount="indefinite" path="M34 89 C98 89 99 49 157 49 S216 116 274 116 S353 56 442 56"/></circle>
+                <circle class="pulso-svg pulso-b" r="4"><animateMotion dur="4.3s" repeatCount="indefinite" path="M34 89 C102 89 100 157 165 157 S224 116 274 116 C342 116 350 178 442 178"/></circle>
+              </g>
+              <g class="grafica-mini">
+                <line x1="35" y1="318" x2="445" y2="318"/><line x1="35" y1="218" x2="35" y2="318"/>
+                <path d="M35 230 L118 318 L118 230 L201 318 L201 230 L284 318 L284 230 L367 318 L367 230 L445 310"/>
+                <line class="nivel-mini" x1="35" y1="283" x2="445" y2="283"/>
+                <text x="42" y="213">Inventario</text><text x="374" y="302">tiempo</text>
+              </g>
+            </svg>
+            <div class="estado-visor"><span><i></i> Investigación Operativa II</span><strong>2026 · UNJBG</strong></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section id="calculadoras" class="seccion calculadoras">
-      <div class="cabecera-seccion">
-        <div><p class="etiqueta etiqueta-oscura">Módulos del curso</p><h2>Elija el modelo de análisis</h2></div>
-        <p>Cada módulo organiza el trabajo en tres momentos: ingreso de datos, solución numérica y representación visual.</p>
+    <section id="metodos" class="seccion seccion-metodos">
+      <div class="cabecera-seccion revelar">
+        <div><h2>Métodos</h2></div>
+        <button class="enlace-seccion" type="button" data-detalle="modelos">¿Qué modelo utilizar? <span>↗</span></button>
       </div>
       <div class="rejilla-metodos">
-        <a class="tarjeta-metodo metodo-pert" href="metodos/pert-cpm/index.html">
-          <div class="estado"><span></span> Disponible</div><div class="icono-metodo">↗</div>
-          <p>Gestión de proyectos</p><h3>PERT <span>–</span> CPM</h3>
-          <p class="descripcion">Tiempos tempranos y tardíos, holguras, rutas críticas, probabilidad y red AON interactiva.</p>
-          <div class="caracteristicas"><span>CPM</span><span>PERT</span><span>Gantt</span></div>
-          <strong class="enlace-metodo">Resolver proyecto <span>→</span></strong>
-        </a>
-        <a class="tarjeta-metodo metodo-inventarios" href="metodos/inventarios/index.html">
-          <div class="estado"><span></span> Disponible</div><div class="icono-metodo">Q</div>
-          <p>Optimización</p><h3>Inventarios</h3>
-          <p class="descripcion">Lotes de pedido o producción, faltantes planificados, costos, escenarios y política óptima.</p>
-          <div class="caracteristicas"><span>EOQ</span><span>EPQ</span><span>Faltantes</span></div>
-          <strong class="enlace-metodo">Optimizar inventario <span>→</span></strong>
-        </a>
-        <a class="tarjeta-metodo metodo-decisiones" href="metodos/teoria-decisiones/index.html">
-          <div class="estado"><span></span> Disponible</div><div class="icono-metodo">Δ</div>
-          <p>Análisis estratégico</p><h3>Decisiones</h3>
-          <p class="descripcion">Tablas de pago y árboles secuenciales con criterios, probabilidades, valor esperado y EVPI.</p>
-          <div class="caracteristicas"><span>Tablas</span><span>Árboles</span><span>Riesgo</span></div>
-          <strong class="enlace-metodo">Analizar decisión <span>→</span></strong>
-        </a>
+        <article class="tarjeta-metodo metodo-pert revelar">
+          <a class="visual-metodo" href="metodos/pert-cpm/index.html" aria-label="Abrir PERT–CPM"><img src="assets/metodos/pert.webp" alt="Red de actividades y cronograma de un proyecto" width="1536" height="1024" loading="lazy" decoding="async"><span class="resplandor-metodo"></span><b class="indice-metodo">01</b><span class="rotulo-visual">Red · Cronograma</span><span class="barrido-visual"></span></a>
+          <div class="cuerpo-metodo"><h3>PERT <span>–</span> CPM</h3><p class="descripcion">Duración del proyecto, ruta crítica, holguras y probabilidad de cumplir un plazo.</p><div class="caracteristicas" aria-label="Conceptos del método"><button type="button" data-detalle="cpm" aria-label="CPM: método de la ruta crítica">CPM <small>↗</small></button><button type="button" data-detalle="pert" aria-label="PERT: técnica de evaluación y revisión de programas">PERT <small>↗</small></button><button type="button" data-detalle="gantt">Gantt <small>↗</small></button></div><a class="enlace-metodo" href="metodos/pert-cpm/index.html">Abrir PERT–CPM <span>→</span></a></div>
+        </article>
+        <article class="tarjeta-metodo metodo-inventarios revelar">
+          <a class="visual-metodo" href="metodos/inventarios/index.html" aria-label="Abrir Inventarios"><img src="assets/metodos/inventarios.webp" alt="Almacén y curvas del costo de inventario" width="1536" height="1024" loading="lazy" decoding="async"><span class="resplandor-metodo"></span><b class="indice-metodo">02</b><span class="rotulo-visual">Lotes · Costos</span><span class="barrido-visual"></span></a>
+          <div class="cuerpo-metodo"><h3>Inventarios</h3><p class="descripcion">Cantidad por pedido o producción, punto de reorden y costo anual.</p><div class="caracteristicas" aria-label="Modelos de inventario"><button type="button" data-detalle="eoq" aria-label="EOQ: cantidad económica de pedido">EOQ <small>↗</small></button><button type="button" data-detalle="epq" aria-label="EPQ: cantidad económica de producción">EPQ <small>↗</small></button><button type="button" data-detalle="faltantes">Faltantes <small>↗</small></button></div><a class="enlace-metodo" href="metodos/inventarios/index.html">Abrir Inventarios <span>→</span></a></div>
+        </article>
+        <article class="tarjeta-metodo metodo-decisiones revelar">
+          <a class="visual-metodo" href="metodos/teoria-decisiones/index.html" aria-label="Abrir Decisiones"><img src="assets/metodos/decisiones.webp" alt="Alternativas y escenarios en un árbol de decisión" width="1536" height="1024" loading="lazy" decoding="async"><span class="resplandor-metodo"></span><b class="indice-metodo">03</b><span class="rotulo-visual">Alternativas · Escenarios</span><span class="barrido-visual"></span></a>
+          <div class="cuerpo-metodo"><h3>Decisiones</h3><p class="descripcion">Compare pagos, probabilidades y estrategias con tablas o árboles.</p><div class="caracteristicas" aria-label="Conceptos de decisión"><button type="button" data-detalle="vme" aria-label="VME: valor monetario esperado">VME <small>↗</small></button><button type="button" data-detalle="evpi" aria-label="EVPI: valor esperado de la información perfecta">EVPI <small>↗</small></button></div><div class="accesos-decision"><a class="enlace-metodo" href="metodos/teoria-decisiones/index.html">Tablas <span>→</span></a><a class="enlace-metodo" href="metodos/teoria-decisiones/index.html#arboles">Árboles <span>→</span></a></div></div>
+        </article>
       </div>
     </section>
 
-    <section id="proyecto" class="seccion-institucional">
+    <section id="recursos" class="seccion seccion-recursos">
+      <div class="cabecera-seccion revelar">
+        <div><h2>Recursos</h2></div>
+      </div>
+      <div class="rejilla-recursos">
+        <a class="tarjeta-recurso recurso-manual revelar" href="docs/manual/Manual_de_usuario_Investigacion_Operativa_II.pdf" target="_blank" rel="noopener"><img class="fondo-recurso" src="assets/recursos/manual.svg" alt="" aria-hidden="true" width="420" height="240" loading="lazy"><span class="icono-recurso" aria-hidden="true">↗</span><h3>Manual de usuario</h3><small>PDF · 15 páginas</small><strong>Abrir manual <span>→</span></strong></a>
+        <a class="tarjeta-recurso recurso-presentacion revelar" href="https://powerpoint.cloud.microsoft/open/onedrive/?docId=BD4ED1BCF96A2D4B%21sfacaaf8e3ef54a579572b484c542a6ed&amp;driveId=BD4ED1BCF96A2D4B" target="_blank" rel="noopener"><img class="fondo-recurso" src="assets/recursos/presentacion.svg" alt="" aria-hidden="true" width="420" height="240" loading="lazy"><span class="icono-recurso" aria-hidden="true">▶</span><h3>Presentación</h3><small>Diapositivas del proyecto</small><strong>Abrir presentación <span>↗</span></strong></a>
+        <a class="tarjeta-recurso recurso-casos revelar" href="https://docs.google.com/document/d/1nk48l1XG8mnhQM87JO287_r14me6HcoVKBGr3pOvxYw/edit?tab=t.0" target="_blank" rel="noopener"><img class="fondo-recurso" src="assets/recursos/casos.svg" alt="" aria-hidden="true" width="420" height="240" loading="lazy"><span class="icono-recurso" aria-hidden="true">≍</span><h3>Casos POM-QM</h3><small>Datos y resultados de comparación</small><strong>Consultar <span>↗</span></strong></a>
+        <a class="tarjeta-recurso recurso-repositorio revelar" href="https://github.com/Juniorcoderw/Proyecto_Investigacion_Operativa_2" target="_blank" rel="noopener"><img class="fondo-recurso" src="assets/recursos/repositorio.svg" alt="" aria-hidden="true" width="420" height="240" loading="lazy"><span class="icono-recurso" aria-hidden="true">&lt;/&gt;</span><h3>Repositorio</h3><small>GitHub · Código fuente</small><strong>Ver proyecto <span>↗</span></strong></a>
+      </div>
+    </section>
+
+    <section id="proyecto" class="seccion-institucional revelar">
       <figure class="fotografia-institucional">
-        <img class="foto-campus" src="assets/institucional/campus-esis.jpg" alt="Vista del campus de la UNJBG con el pabellón de Informática y Sistemas al centro">
-        <img class="emblema-esis" src="assets/institucional/logo-esis.png" alt="Logotipo de la Escuela Profesional de Ingeniería en Informática y Sistemas">
-        <figcaption>Escuela Profesional de Ingeniería en Informática y Sistemas · Ciudad Universitaria UNJBG.</figcaption>
+        <img class="foto-campus" src="assets/institucional/campus-esis.jpg" alt="Campus de la UNJBG con el pabellón de Informática y Sistemas al centro">
+        <img class="emblema-esis" src="assets/institucional/logo-esis.png" alt="Logotipo de Ingeniería en Informática y Sistemas">
+        <figcaption>Ciudad Universitaria · Tacna</figcaption>
       </figure>
-      <div class="contenido-institucional">
-        <p class="etiqueta etiqueta-oscura">Proyecto académico</p>
-        <h2>Investigación Operativa aplicada</h2>
-        <p>La plataforma reúne los modelos trabajados en el curso y conserva una estructura común para comparar los resultados con desarrollos manuales y POM-QM.</p>
-        <dl class="alcance-proyecto">
-          <div><dt>Entrada</dt><dd>Datos editables y ejemplos del curso.</dd></div>
-          <div><dt>Cálculo</dt><dd>Procedimiento numérico y fórmulas en LaTeX.</dd></div>
-          <div><dt>Salida</dt><dd>Resultados, interpretación y gráficos interactivos.</dd></div>
-        </dl>
+      <div class="contenido-institucional"><p class="etiqueta etiqueta-oscura">Universidad Nacional Jorge Basadre Grohmann</p><h2>Ingeniería en Informática y Sistemas</h2><p>Investigación Operativa II · 2026<br>Docente: MSc. Manuel Yuri Apaza Valencia</p><button class="enlace-seccion" type="button" data-detalle="proyecto">Acerca del proyecto <span>↗</span></button></div>
+    </section>
+
+    <section class="seccion seccion-tecnologias" aria-labelledby="titulo-tecnologias">
+      <div class="cabecera-tecnologias revelar"><h2 id="titulo-tecnologias">Tecnologías</h2></div>
+      <div class="lista-tecnologias revelar" aria-label="Tecnologías utilizadas">
+        <button type="button" data-detalle="html" aria-label="HTML5: detalles"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#e34f26" d="M6 3h36l-3.3 37L24 45 9.3 40Z"/><path fill="#fff" d="M14 11h22l-.5 5H20l.4 5h14.6l-1.2 14-9.8 3-9.5-3-.6-7h5l.3 3.2 4.8 1.4 5-1.4.4-5H14.7Z"/></svg><b>HTML5</b><span>↗</span></button>
+        <button type="button" data-detalle="css" aria-label="CSS3: detalles"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#1572b6" d="M6 3h36l-3.3 37L24 45 9.3 40Z"/><path fill="#fff" d="M14 11h22l-.5 5-14 5h13.5l-1.2 14-9.8 3-9.5-3-.6-7h5l.3 3.2 4.8 1.4 5-1.4.4-5H14.7l-.4-5 13.3-5H14.4Z"/></svg><b>CSS3</b><span>↗</span></button>
+        <button type="button" data-detalle="js" aria-label="JavaScript: detalles"><svg viewBox="0 0 48 48" aria-hidden="true"><rect width="44" height="44" x="2" y="2" rx="5" fill="#f7df1e"/><text x="10" y="36" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#171b22">JS</text></svg><b>JavaScript</b><span>↗</span></button>
+        <button type="button" data-detalle="svg" aria-label="SVG: detalles"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="10" fill="#ffb13b"/><path d="M10 33Q24-15 38 33M10 33h28" fill="none" stroke="#232d42" stroke-width="3"/><g fill="#fff" stroke="#232d42" stroke-width="2"><circle cx="10" cy="33" r="3"/><circle cx="24" cy="11" r="3"/><circle cx="38" cy="33" r="3"/></g></svg><b>SVG</b><span>↗</span></button>
+        <button type="button" data-detalle="mathjax" aria-label="MathJax: detalles"><span class="logo-math" aria-hidden="true">∑</span><b>MathJax</b><span>↗</span></button>
+        <button type="button" data-detalle="github" aria-label="GitHub: detalles"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.3c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.8.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6a4.7 4.7 0 0 1 1.3-3.2 4.3 4.3 0 0 1 .1-3.2s1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.4 5 18.4 5.3 18.4 5.3a4.3 4.3 0 0 1 .1 3.2 4.7 4.7 0 0 1 1.3 3.3c0 4.6-2.8 5.6-5.5 5.9.5.4.8 1.1.8 2.2v3.4c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"/></svg><b>GitHub</b><span>↗</span></button>
+        <button type="button" data-detalle="vercel" aria-label="Vercel: detalles"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="currentColor" d="m24 6 23 37H1Z"/></svg><b>Vercel</b><span>↗</span></button>
       </div>
     </section>
 
     <section id="equipo" class="seccion seccion-equipo" aria-labelledby="titulo-equipo">
-      <div class="cabecera-seccion">
-        <div><p class="etiqueta etiqueta-oscura">Equipo del proyecto</p><h2 id="titulo-equipo">Trabajo colaborativo</h2></div>
-        <p>Estudiantes de Ingeniería en Informática y Sistemas responsables del análisis, la implementación y la validación académica.</p>
-      </div>
+      <div class="cabecera-seccion revelar"><h2 id="titulo-equipo">Nuestro equipo</h2></div>
       <div class="rejilla-equipo">
-        <article class="integrante integrante-coordinacion">
-          <span class="foto-equipo foto-elvis" role="img" aria-label="Elvis Ronald Arocutipa Quispe"></span>
-          <p>Coordinación</p><h3>Elvis Ronald<br>Arocutipa Quispe</h3>
-        </article>
-        <article class="integrante integrante-programacion">
-          <span class="foto-equipo foto-helber" role="img" aria-label="Helber Junior Lope Apomayta"></span>
-          <p>Programación</p><h3>Helber Junior<br>Lope Apomayta</h3>
-        </article>
-        <article class="integrante integrante-pruebas">
-          <span class="foto-equipo foto-antony" role="img" aria-label="Avatar de Antony Fernando Yucra Choquecota"></span>
-          <p>Pruebas</p><h3>Antony Fernando<br>Yucra Choquecota</h3>
-        </article>
-        <article class="integrante integrante-documentacion">
-          <span class="foto-equipo foto-oscar" role="img" aria-label="Oscar Fabián Choque Palza"></span>
-          <p>Documentación</p><h3>Oscar Fabián<br>Choque Palza</h3>
-        </article>
-        <article class="integrante integrante-supervision">
-          <span class="foto-equipo foto-william" role="img" aria-label="William Andre Nina Estuco"></span>
-          <p>Supervisión</p><h3>William Andre<br>Nina Estuco</h3>
-        </article>
+        <article class="integrante integrante-coordinacion revelar"><span class="retrato-equipo"><span class="foto-equipo foto-elvis" role="img" aria-label="Elvis Ronald Arocutipa Quispe"></span></span><div><p>Coordinación</p><h3>Elvis Ronald<br>Arocutipa Quispe</h3></div></article>
+        <article class="integrante integrante-programacion revelar"><span class="retrato-equipo"><span class="foto-equipo foto-helber" role="img" aria-label="Helber Junior Lope Apomayta"></span></span><div><p>Programación</p><h3>Helber Junior<br>Lope Apomayta</h3></div></article>
+        <article class="integrante integrante-pruebas revelar"><span class="retrato-equipo"><span class="foto-equipo foto-antony" role="img" aria-label="Avatar de Antony Fernando Yucra Choquecota"></span></span><div><p>Pruebas</p><h3>Antony Fernando<br>Yucra Choquecota</h3></div></article>
+        <article class="integrante integrante-documentacion revelar"><span class="retrato-equipo"><span class="foto-equipo foto-oscar" role="img" aria-label="Oscar Fabián Choque Palza"></span></span><div><p>Documentación</p><h3>Oscar Fabián<br>Choque Palza</h3></div></article>
+        <article class="integrante integrante-supervision revelar"><span class="retrato-equipo"><span class="foto-equipo foto-william" role="img" aria-label="William Andre Nina Estuco"></span></span><div><p>Supervisión</p><h3>William Andre<br>Nina Estuco</h3></div></article>
       </div>
     </section>
   </main>
 
   <footer class="pie-principal">
-    <div class="marca marca-pie"><img class="marca-imagen" src="assets/institucional/logo-unjbg.png" alt=""><span><strong>Universidad Nacional Jorge Basadre Grohmann</strong><small>Ingeniería en Informática y Sistemas</small></span></div>
-    <nav aria-label="Enlaces del pie de página"><a href="#calculadoras">Calculadoras</a><a href="#proyecto">Proyecto</a><a href="#equipo">Equipo</a></nav>
-    <p>Docente: MSc. Manuel Yuri Apaza Valencia · Tacna, 2026</p>
+    <div class="marca marca-pie"><img class="marca-imagen" src="assets/institucional/logo-unjbg.png" alt=""><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas · UNJBG</small></span></div>
+    <nav aria-label="Enlaces del pie de página"><a href="#metodos">Métodos</a><a href="#recursos">Recursos</a><a href="#proyecto">Proyecto</a><a href="#equipo">Equipo</a></nav>
+    <p>Universidad Nacional Jorge Basadre Grohmann<br>Tacna · 2026</p>
   </footer>
+  <dialog class="detalle-flotante" id="detalle-flotante" aria-labelledby="titulo-detalle"><div class="encabezado-detalle"><div class="cabecera-detalle"><span id="categoria-detalle"></span><button type="button" id="cerrar-detalle" aria-label="Cerrar información" autofocus>×</button></div><div class="identidad-detalle"><span class="emblema-detalle" id="emblema-detalle" aria-hidden="true"></span><h2 id="titulo-detalle"></h2></div></div><div class="cuerpo-detalle" id="contenido-detalle"></div></dialog>
 </body>
 </html>

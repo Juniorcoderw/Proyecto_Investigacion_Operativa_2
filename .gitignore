@@ -1,0 +1,11 @@
+# Capturas de revisión y documentos de trabajo locales.
+/output/
+/docs/manual/render-word*/
+
+# Configuración local de despliegue y credenciales.
+/.vercel/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc

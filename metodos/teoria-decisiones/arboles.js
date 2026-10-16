@@ -41,6 +41,7 @@ let temporizadorArbol = null;
 let portapapelesRamas = null;
 
 function numeroArbol(valor) {
+  if (valor == null || String(valor).trim() === "") return NaN;
   const convertido = Number(String(valor ?? "").trim().replace(",", "."));
   return Number.isFinite(convertido) ? convertido : NaN;
 }
@@ -70,6 +71,11 @@ function crearArbolVacio() {
 }
 
 function crearEjemploArbol(clave = "rifa") {
+  if (window.CASOS_GUIA_DECISION?.[clave]) {
+    const ejemplo = crearArbolDesdeMatriz(window.CASOS_GUIA_DECISION[clave], clave);
+    contadorNodos = ejemplo.nodos.length;
+    return ejemplo;
+  }
   const casos = {
     rifa: {
       problema: "Decisión sobre una rifa",
@@ -404,16 +410,20 @@ function calcularPosiciones(datos = arbol) {
   const posiciones = {};
   let profundidadMaxima = 0;
   const alturas = new Map();
-  const altoMinimo = 148;
-  const separacionHijos = 34;
+  const midiendo = new Set();
+  const altoMinimo = 90;
+  const separacionHijos = 18;
 
   function medir(id) {
+    if (midiendo.has(id)) throw new Error("El árbol contiene un ciclo.");
+    midiendo.add(id);
     const nodo = buscarNodo(id, datos);
     const hijos = nodo?.ramas.map(rama => rama.destino) || [];
     const alto = hijos.length
       ? Math.max(altoMinimo, hijos.reduce((suma, hijo) => suma + medir(hijo), 0) + separacionHijos * (hijos.length - 1))
       : altoMinimo;
     alturas.set(id, alto);
+    midiendo.delete(id);
     return alto;
   }
 
@@ -432,7 +442,7 @@ function calcularPosiciones(datos = arbol) {
     const y = hijos.length
       ? (posiciones[hijos[0]].y + posiciones[hijos[hijos.length - 1]].y) / 2
       : inicioY + alto / 2;
-    posiciones[id] = { x: 62 + profundidad * 420, y };
+    posiciones[id] = { x: 62 + profundidad * 380, y };
     return posiciones[id];
   }
 
@@ -440,7 +450,7 @@ function calcularPosiciones(datos = arbol) {
   ubicar(datos.raiz, 0, 76);
   return {
     posiciones,
-    ancho: Math.max(700, 310 + profundidadMaxima * 420),
+    ancho: Math.max(700, 310 + profundidadMaxima * 380),
     alto: Math.max(330, altoArbol + 152)
   };
 }
@@ -562,7 +572,7 @@ function ajustarZoom() {
 function guardarArbol() {
   arbol.problema = elementosArbol.problema.value.trim();
   arbol.objetivo = elementosArbol.objetivo.value;
-  localStorage.setItem(CLAVE_ARBOL, JSON.stringify(arbol));
+  try { localStorage.setItem(CLAVE_ARBOL, JSON.stringify(arbol)); } catch { /* El cálculo no depende del guardado. */ }
 }
 
 function restaurarArbol() {
@@ -570,6 +580,7 @@ function restaurarArbol() {
     const guardado = JSON.parse(localStorage.getItem(CLAVE_ARBOL));
     if (!guardado?.raiz || !Array.isArray(guardado.nodos) || !guardado.nodos.length) return false;
     arbol = guardado;
+    calcularPosiciones(arbol); // Rechazar estructuras cíclicas antes de dibujarlas.
     contadorNodos = Math.max(...arbol.nodos.map(nodo => Number(nodo.id.replace(/\D/g, "")) || 0));
     return true;
   } catch {
@@ -578,6 +589,7 @@ function restaurarArbol() {
 }
 
 function cargarInterfaz() {
+  mostrarEnunciadoGuia("caso-arbol-guia", arbol.caso);
   const casoReconocido = arbol.caso || ({
     "Lanzamiento de un producto": "lanzamiento",
     "Reparar o reemplazar un equipo": "mantenimiento",
@@ -659,6 +671,7 @@ function actualizarRama(evento) {
 
 function actualizarPosterior() {
   calculoActual = null;
+  calculoActual = null;
   elementosArbol.resultado.hidden = true;
   guardarArbol();
   renderizarDiagrama();
@@ -717,7 +730,7 @@ function resolverArbol(mostrar = true) {
   } catch (error) {
     calculoActual = null;
     elementosArbol.resultado.hidden = true;
-    elementosArbol.mensaje.textContent = mostrar ? error.message : "";
+    elementosArbol.mensaje.textContent = error.message;
     renderizarDiagrama();
     return false;
   }
@@ -754,8 +767,8 @@ elementosArbol.eliminarNodo.addEventListener("click", eliminarNodoSeleccionado);
 elementosArbol.lienzo.addEventListener("click", evento => { const nodo = evento.target.closest("[data-nodo]"); if (nodo) seleccionarNodo(nodo.dataset.nodo); });
 elementosArbol.lienzo.addEventListener("keydown", evento => { if ((evento.key === "Enter" || evento.key === " ") && evento.target.matches("[data-nodo]")) seleccionarNodo(evento.target.dataset.nodo); });
 document.getElementById("resolver-arbol").addEventListener("click", () => resolverArbol(true));
-document.getElementById("ejemplo-arbol").addEventListener("click", () => { arbol = crearEjemploArbol(elementosArbol.caso.value); localStorage.removeItem(CLAVE_ARBOL); cargarInterfaz(); resolverArbol(false); ajustarZoom(); });
-document.getElementById("limpiar-arbol").addEventListener("click", () => { arbol = crearArbolVacio(); asegurarRamas(buscarNodo(arbol.raiz)); localStorage.removeItem(CLAVE_ARBOL); cargarInterfaz(); ajustarZoom(); });
+document.getElementById("ejemplo-arbol").addEventListener("click", () => { arbol = crearEjemploArbol(elementosArbol.caso.value); cargarInterfaz(); resolverArbol(false); ajustarZoom(); });
+document.getElementById("limpiar-arbol").addEventListener("click", () => { arbol = crearArbolVacio(); asegurarRamas(buscarNodo(arbol.raiz)); cargarInterfaz(); guardarArbol(); ajustarZoom(); });
 document.getElementById("alejar-arbol").addEventListener("click", () => { nivelZoom = Math.max(.4, nivelZoom - .1); aplicarZoom(); });
 document.getElementById("acercar-arbol").addEventListener("click", () => { nivelZoom = Math.min(1.8, nivelZoom + .1); aplicarZoom(); });
 document.getElementById("ajustar-arbol").addEventListener("click", ajustarZoom);
@@ -764,6 +777,7 @@ document.getElementById("teoria-arbol").addEventListener("click", () => { elemen
 document.querySelectorAll(".cerrar-dialogo").forEach(boton => boton.addEventListener("click", evento => evento.target.closest("dialog")?.close()));
 elementosArbol.dialogo.addEventListener("click", evento => { if (evento.target === elementosArbol.dialogo) elementosArbol.dialogo.close(); });
 
+agregarCasosGuia(elementosArbol.caso);
 if (!restaurarArbol()) arbol = crearEjemploArbol();
 cargarInterfaz();
 resolverArbol(false);

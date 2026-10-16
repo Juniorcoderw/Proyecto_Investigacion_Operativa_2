@@ -38,11 +38,13 @@ let tipoAnterior = elementos.tipo.value;
 let temporizadorGuardado = null;
 let solucionActual = null;
 let escalaRed = 1;
+let modoVistaRed = "lectura";
 let dimensionesRed = { ancho: 0, alto: 0 };
 let svgRed = null;
 let escalaGantt = 1;
-let dimensionesGantt = { ancho: 0, alto: 0 };
-let svgGantt = null;
+let programaGantt = null;
+let actividadSeleccionada = null;
+let datosPendientes = false;
 let temporizadorEnfoqueNodo = null;
 let borradoresPorTipo = { cpm: null, pert: null };
 
@@ -70,6 +72,50 @@ const CASOS_PROYECTO = {
       { nombre: "E", descripcion: "Instalación de red", predecesoras: "C, D", duracion: 4 },
       { nombre: "F", descripcion: "Instalación de computadoras", predecesoras: "B, E", duracion: 3 },
       { nombre: "G", descripcion: "Pruebas", predecesoras: "F", duracion: 2 }
+    ]
+  },
+  "cpm-casa-problema-4": {
+    tipo: "cpm",
+    etiqueta: "Problema 4 · Construcción de una casa",
+    unidad: "días",
+    actividades: [
+      { nombre: "A", descripcion: "Despejar terreno y hacer fundaciones", predecesoras: "", duracion: 6 },
+      { nombre: "B", descripcion: "Levantar estructura", predecesoras: "A", duracion: 8 },
+      { nombre: "C", descripcion: "Instalar plomería y electricidad", predecesoras: "A", duracion: 6 },
+      { nombre: "D", descripcion: "Hacer el piso del sótano", predecesoras: "A", duracion: 4 },
+      { nombre: "E", descripcion: "Instalar calefacción y ventilación", predecesoras: "C", duracion: 5 },
+      { nombre: "F", descripcion: "Hacer las paredes", predecesoras: "B", duracion: 8 },
+      { nombre: "G", descripcion: "Hacer los pisos", predecesoras: "D", duracion: 3 },
+      { nombre: "H", descripcion: "Colocar el techo", predecesoras: "B", duracion: 5 },
+      { nombre: "I", descripcion: "Frisar las paredes", predecesoras: "E, F, G", duracion: 7 },
+      { nombre: "J", descripcion: "Completar carpintería", predecesoras: "E, F, G", duracion: 6 },
+      { nombre: "K", descripcion: "Hacer caminerías y jardines", predecesoras: "D", duracion: 3 },
+      { nombre: "L", descripcion: "Lijar y pulir los pisos", predecesoras: "I, H", duracion: 1 },
+      { nombre: "M", descripcion: "Terminar la electricidad", predecesoras: "J", duracion: 1 },
+      { nombre: "N", descripcion: "Pintar", predecesoras: "L, M", duracion: 5 }
+    ]
+  },
+  "pert-problema-5": {
+    tipo: "pert",
+    etiqueta: "Problema 5 · Terminar antes de un mes",
+    unidad: "días",
+    plazo: 30,
+    actividades: [
+      { nombre: "A", descripcion: "", predecesoras: "", optimista: 2, probable: 5, pesimista: 14 },
+      { nombre: "B", descripcion: "", predecesoras: "", optimista: 2, probable: 9, pesimista: 10 },
+      { nombre: "C", descripcion: "", predecesoras: "", optimista: 3, probable: 5, pesimista: 7 },
+      { nombre: "D", descripcion: "", predecesoras: "A", optimista: 1, probable: 4, pesimista: 7 },
+      { nombre: "E", descripcion: "", predecesoras: "C", optimista: 2, probable: 3, pesimista: 4 },
+      { nombre: "F", descripcion: "", predecesoras: "A", optimista: 1, probable: 3, pesimista: 5 },
+      { nombre: "G", descripcion: "", predecesoras: "C", optimista: 10, probable: 11, pesimista: 12 },
+      { nombre: "H", descripcion: "", predecesoras: "F", optimista: 2, probable: 3, pesimista: 10 },
+      { nombre: "I", descripcion: "", predecesoras: "D, B, E", optimista: 5, probable: 6, pesimista: 13 },
+      { nombre: "J", descripcion: "", predecesoras: "D, B, E", optimista: 5, probable: 8, pesimista: 17 },
+      { nombre: "K", descripcion: "", predecesoras: "G, J", optimista: 4, probable: 7, pesimista: 16 },
+      { nombre: "L", descripcion: "", predecesoras: "H, I", optimista: 6, probable: 8, pesimista: 16 },
+      { nombre: "M", descripcion: "", predecesoras: "G, J", optimista: 1, probable: 3, pesimista: 5 },
+      { nombre: "N", descripcion: "", predecesoras: "L, K", optimista: 4, probable: 7, pesimista: 10 },
+      { nombre: "O", descripcion: "", predecesoras: "M", optimista: 1, probable: 3, pesimista: 7 }
     ]
   },
   "pert-software": {
@@ -160,19 +206,49 @@ function calcularEstimacionPert(optimista, probable, pesimista) {
   };
 }
 
-function ocultarResultados() {
+function ocultarResultados(conservar = true) {
+  if (conservar && solucionActual) {
+    datosPendientes = true;
+    document.getElementById("aviso-pendiente").hidden = false;
+    document.getElementById("imprimir").disabled = true;
+    return;
+  }
   elementos.salida.hidden = true;
   elementos.estadoVacio.hidden = false;
   document.querySelectorAll(".flujo li").forEach((paso, indice) => {
     paso.classList.toggle("activo", indice === 0);
   });
   solucionActual = null;
+  programaGantt = null;
+  datosPendientes = false;
+  document.getElementById("aviso-pendiente").hidden = true;
 }
 
 function mostrarError(error) {
-  elementos.salida.hidden = true;
-  elementos.estadoVacio.hidden = false;
+  if (!solucionActual) {
+    elementos.salida.hidden = true;
+    elementos.estadoVacio.hidden = false;
+  }
   elementos.mensaje.textContent = error instanceof Error ? error.message : String(error);
+  document.querySelector(".espacio-trabajo").classList.remove("vista-ampliada");
+  document.getElementById("ampliar-vista").textContent = "Ampliar vista ↗";
+  document.getElementById("ampliar-vista").setAttribute("aria-expanded", "false");
+  if (error.campo) {
+    error.campo.setAttribute("aria-invalid", "true");
+    error.campo.setAttribute("aria-describedby", "mensaje");
+    error.campo.focus();
+  } else elementos.mensaje.focus();
+}
+
+function errorEntrada(mensaje, campo) {
+  const error = new Error(mensaje);
+  error.campo = campo;
+  return error;
+}
+
+function numeroEntrada(campo, descripcion) {
+  try { return convertirNumero(campo.value, descripcion); }
+  catch (error) { error.campo = campo; throw error; }
 }
 
 function crearEntrada(valor, clase, etiqueta, tipoEntrada = "text") {
@@ -334,7 +410,7 @@ function cambiarTipoEstimacion() {
   if (!filasNuevas.length) agregarActividad();
   borradoresPorTipo[nuevoTipo] = capturarFilasVisuales(nuevoTipo);
   tipoAnterior = nuevoTipo;
-  ocultarResultados();
+  ocultarResultados(false);
   elementos.mensaje.textContent = "";
   programarGuardado();
 }
@@ -343,7 +419,7 @@ function leerDatos() {
   const filas = [...elementos.actividades.querySelectorAll("tr")];
   if (!filas.length) throw new Error("Agregue al menos una actividad.");
 
-  return filas.map((fila, indice) => {
+  const actividades = filas.map((fila, indice) => {
     const numeroFila = indice + 1;
     const nombre = fila.querySelector(".nombre").value.trim().toUpperCase();
     const descripcion = fila.querySelector(".descripcion").value.trim();
@@ -352,10 +428,10 @@ function leerDatos() {
       .map(valor => valor.trim().toUpperCase())
       .filter(Boolean);
 
-    if (!nombre) throw new Error("Asigne un identificador a la actividad de la fila " + numeroFila + ".");
+    if (!nombre) throw errorEntrada("Asigne un identificador a la actividad de la fila " + numeroFila + ".", fila.querySelector(".nombre"));
     if (nombre.includes(",")) throw new Error("El identificador " + nombre + " no puede contener comas.");
     if (new Set(predecesoras).size !== predecesoras.length) {
-      throw new Error("La actividad " + nombre + " tiene predecesoras repetidas.");
+      throw errorEntrada("La actividad " + nombre + " tiene predecesoras repetidas.", fila.querySelector(".predecesoras"));
     }
 
     let duracion;
@@ -364,16 +440,16 @@ function leerDatos() {
     let tiempos = null;
 
     if (elementos.tipo.value === "pert") {
-      const tiempoOptimista = convertirNumero(
-        fila.querySelector(".optimista").value,
+      const tiempoOptimista = numeroEntrada(
+        fila.querySelector(".optimista"),
         "El tiempo optimista de " + nombre
       );
-      const tiempoProbable = convertirNumero(
-        fila.querySelector(".probable").value,
+      const tiempoProbable = numeroEntrada(
+        fila.querySelector(".probable"),
         "El tiempo más probable de " + nombre
       );
-      const tiempoPesimista = convertirNumero(
-        fila.querySelector(".pesimista").value,
+      const tiempoPesimista = numeroEntrada(
+        fila.querySelector(".pesimista"),
         "El tiempo pesimista de " + nombre
       );
 
@@ -382,12 +458,12 @@ function leerDatos() {
       try {
         estimacion = calcularEstimacionPert(tiempoOptimista, tiempoProbable, tiempoPesimista);
       } catch {
-        throw new Error("En " + nombre + " debe cumplirse: optimista ≤ más probable ≤ pesimista.");
+        throw errorEntrada("En " + nombre + " debe cumplirse: optimista ≤ más probable ≤ pesimista.", fila.querySelector(".optimista"));
       }
       ({ duracion, desviacionEstandar, varianza } = estimacion);
     } else {
-      duracion = convertirNumero(
-        fila.querySelector(".tiempo").value,
+      duracion = numeroEntrada(
+        fila.querySelector(".tiempo"),
         "La duración de " + nombre
       );
     }
@@ -402,6 +478,15 @@ function leerDatos() {
       tiempos
     };
   });
+  const nombres = new Set(actividades.map(actividad => actividad.nombre));
+  const vistos = new Set();
+  actividades.forEach((actividad, indice) => {
+    if (vistos.has(actividad.nombre)) throw errorEntrada("El identificador " + actividad.nombre + " está repetido.", filas[indice].querySelector(".nombre"));
+    vistos.add(actividad.nombre);
+    const incorrecta = actividad.predecesoras.find(nombre => !nombres.has(nombre) || nombre === actividad.nombre);
+    if (incorrecta) throw errorEntrada(incorrecta === actividad.nombre ? "La actividad " + actividad.nombre + " no puede precederse a sí misma." : "No existe la predecesora " + incorrecta + " indicada en " + actividad.nombre + ".", filas[indice].querySelector(".predecesoras"));
+  });
+  return actividades;
 }
 
 function validarRelaciones(actividades) {
@@ -609,13 +694,13 @@ function presentarResumen(solucion, rutasDetalladas, plazoObjetivo) {
   document.getElementById("duracion").textContent = formato(solucion.duracionTotal);
   document.getElementById("cantidad-rutas").textContent =
     formato(solucion.rutas.length, 0) + (solucion.rutasTruncadas ? "+" : "");
+  document.getElementById("rotulo-rutas").textContent = solucion.rutas.length === 1 ? "ruta" : "rutas";
   document.getElementById("rutas-resumen").textContent = solucion.rutas.length
     ? solucion.rutas.slice(0, 2).map(ruta => ruta.join(" → ")).join(" · ") +
       (solucion.rutas.length > 2 || solucion.rutasTruncadas ? " · …" : "")
     : "No se encontró una secuencia crítica";
   document.getElementById("cantidad-criticas").textContent = formato(actividadesCriticas.length, 0);
-  document.getElementById("criticas").textContent =
-    actividadesCriticas.map(actividad => actividad.nombre).join(", ") || "Ninguna";
+  document.getElementById("unidad-resumen").textContent = unidadTiempo();
 
   const tarjetaPert = document.getElementById("tarjeta-pert");
   tarjetaPert.hidden = elementos.tipo.value !== "pert";
@@ -949,13 +1034,14 @@ function crearPasoProcedimiento(numero, titulo, descripcion, operaciones) {
   return paso;
 }
 
-function abrirProcedimientoActividad(nombreActividad) {
-  if (!solucionActual) return;
-  const actividad = solucionActual.actividadesPorNombre.get(nombreActividad);
+function abrirProcedimientoActividad(nombreActividad, solucionDetalle = solucionActual, escenario = "esperado") {
+  if (!solucionDetalle) return;
+  const actividad = solucionDetalle.actividadesPorNombre.get(nombreActividad);
   if (!actividad) return;
+  seleccionarActividad(nombreActividad);
 
   elementos.tituloDialogoActividad.textContent =
-    "Actividad " + actividad.nombre + (actividad.descripcion ? " · " + actividad.descripcion : "");
+    "Actividad " + actividad.nombre + (actividad.descripcion ? " · " + actividad.descripcion : "") + (escenario !== "esperado" ? " · " + nombreEscenario(escenario) : "");
   elementos.contenidoDialogoActividad.replaceChildren();
 
   const presentacion = crearElemento("section", "resumen-procedimiento-nodo");
@@ -968,7 +1054,7 @@ function abrirProcedimientoActividad(nombreActividad) {
   elementos.contenidoDialogoActividad.append(presentacion);
 
   let numeroPaso = 1;
-  if (elementos.tipo.value === "pert" && actividad.tiempos) {
+  if (elementos.tipo.value === "pert" && actividad.tiempos && escenario === "esperado") {
     elementos.contenidoDialogoActividad.append(crearPasoProcedimiento(
       numeroPaso,
       "Obtener la duración esperada",
@@ -991,10 +1077,10 @@ function abrirProcedimientoActividad(nombreActividad) {
   }
 
   const finalesPredecesoras = actividad.predecesoras.map(nombre =>
-    solucionActual.actividadesPorNombre.get(nombre).finTemprano
+    solucionDetalle.actividadesPorNombre.get(nombre).finTemprano
   );
   const formulaInicio = finalesPredecesoras.length > 1
-    ? "\\max\\{" + finalesPredecesoras.map(numeroLatex).join(",") + "\\}=" + numeroLatex(actividad.inicioTemprano)
+    ? "\\text{Mayor de }\\{" + finalesPredecesoras.map(valor => numeroLatex(valor)).join(",\\;") + "\\}=" + numeroLatex(actividad.inicioTemprano)
     : numeroLatex(finalesPredecesoras[0] ?? 0);
   elementos.contenidoDialogoActividad.append(crearPasoProcedimiento(
     numeroPaso,
@@ -1009,13 +1095,13 @@ function abrirProcedimientoActividad(nombreActividad) {
   ));
   numeroPaso += 1;
 
-  const nombresSucesoras = solucionActual.sucesoras.get(actividad.nombre);
+  const nombresSucesoras = solucionDetalle.sucesoras.get(actividad.nombre);
   const iniciosSucesoras = nombresSucesoras.map(nombre =>
-    solucionActual.actividadesPorNombre.get(nombre).inicioTardio
+    solucionDetalle.actividadesPorNombre.get(nombre).inicioTardio
   );
   const formulaFin = iniciosSucesoras.length > 1
-    ? "\\min\\{" + iniciosSucesoras.map(numeroLatex).join(",") + "\\}=" + numeroLatex(actividad.finTardio)
-    : numeroLatex(iniciosSucesoras[0] ?? solucionActual.duracionTotal);
+    ? "\\text{Menor de }\\{" + iniciosSucesoras.map(valor => numeroLatex(valor)).join(",\\;") + "\\}=" + numeroLatex(actividad.finTardio)
+    : numeroLatex(iniciosSucesoras[0] ?? solucionDetalle.duracionTotal);
   elementos.contenidoDialogoActividad.append(
     crearPasoProcedimiento(
       numeroPaso,
@@ -1087,7 +1173,7 @@ function presentarDesarrollo(solucion, rutasDetalladas, plazoObjetivo) {
       solucion.actividadesPorNombre.get(nombre).finTemprano
     );
     const formulaInicio = finalesPredecesoras.length > 1
-      ? "\\max\\{" + finalesPredecesoras.map(numeroLatex).join(",") + "\\}=" + numeroLatex(actividad.inicioTemprano)
+      ? "\\text{Mayor de }\\{" + finalesPredecesoras.map(valor => numeroLatex(valor)).join(",\\;") + "\\}=" + numeroLatex(actividad.inicioTemprano)
       : numeroLatex(finalesPredecesoras[0] ?? 0);
     agregarTarjetaCalculo(
       contenidoAdelante,
@@ -1112,7 +1198,7 @@ function presentarDesarrollo(solucion, rutasDetalladas, plazoObjetivo) {
       solucion.actividadesPorNombre.get(nombre).inicioTardio
     );
     const formulaFin = iniciosSucesoras.length > 1
-      ? "\\min\\{" + iniciosSucesoras.map(numeroLatex).join(",") + "\\}=" + numeroLatex(actividad.finTardio)
+      ? "\\text{Menor de }\\{" + iniciosSucesoras.map(valor => numeroLatex(valor)).join(",\\;") + "\\}=" + numeroLatex(actividad.finTardio)
       : numeroLatex(iniciosSucesoras[0] ?? solucion.duracionTotal);
     agregarTarjetaCalculo(
       contenidoAtras,
@@ -1358,85 +1444,206 @@ function dibujarNodoVirtual(svg, texto, posicion) {
   svg.append(grupo);
 }
 
-function ordenarActividadesPorRelaciones(gruposPorNivel, solucion, maximoNivel) {
-  const ordenOriginal = new Map(solucion.orden.map((actividad, indice) => [actividad.nombre, indice]));
-
-  function posicionesActuales() {
-    const posiciones = new Map();
-    gruposPorNivel.forEach(actividades => {
-      actividades.forEach((actividad, indice) => posiciones.set(actividad.nombre, indice));
+// Capas con pasos de conexión invisibles: las aristas largas atraviesan espacios
+// reservados, no los cuadros de actividades ni un carril exterior de toda la red.
+function calcularDisposicionRed(solucion) {
+  const anchoActividad = 252;
+  const altoActividad = 138;
+  const anchoVirtual = 104;
+  const margen = 42;
+  const niveles = new Map();
+  solucion.orden.forEach(actividad => niveles.set(actividad.nombre,
+    actividad.predecesoras.length
+      ? 1 + Math.max(...actividad.predecesoras.map(nombre => niveles.get(nombre)))
+      : 1
+  ));
+  const ultimoNivel = Math.max(...niveles.values()) + 1;
+  niveles.set("__INICIO__", 0);
+  niveles.set("__FIN__", ultimoNivel);
+  const capas = Array.from({ length: ultimoNivel + 1 }, () => []);
+  const vertices = new Map();
+  function agregarVertice(id, nivel, auxiliar = false) {
+    const virtual = id === "__INICIO__" || id === "__FIN__";
+    const vertice = { id, nivel, auxiliar, alto: auxiliar ? 10 : virtual ? 52 : altoActividad,
+      ancho: virtual ? anchoVirtual : anchoActividad, anteriores: [], siguientes: [], centro: 0 };
+    vertices.set(id, vertice);
+    capas[nivel].push(vertice);
+    return vertice;
+  }
+  agregarVertice("__INICIO__", 0);
+  solucion.orden.forEach(actividad => agregarVertice(actividad.nombre, niveles.get(actividad.nombre)));
+  agregarVertice("__FIN__", ultimoNivel);
+  const conexiones = [];
+  function agregarConexion(origen, destino, critica) {
+    const conexion = { origen, destino, critica, pasos: [vertices.get(origen)] };
+    for (let nivel = niveles.get(origen) + 1; nivel < niveles.get(destino); nivel += 1) {
+      conexion.pasos.push(agregarVertice(Symbol("paso-conexion"), nivel, true));
+    }
+    conexion.pasos.push(vertices.get(destino));
+    conexion.pasos.forEach((vertice, indice, pasos) => {
+      if (!indice) return;
+      const anterior = pasos[indice - 1];
+      anterior.siguientes.push({ vertice, conexion });
+      vertice.anteriores.push({ vertice: anterior, conexion });
     });
-    return posiciones;
+    conexiones.push(conexion);
   }
-
-  function promedioRelaciones(nombres, posiciones, valorAlternativo) {
-    const valores = nombres.filter(nombre => posiciones.has(nombre)).map(nombre => posiciones.get(nombre));
-    return valores.length ? valores.reduce((suma, valor) => suma + valor, 0) / valores.length : valorAlternativo;
-  }
-
-  for (let pasada = 0; pasada < 3; pasada += 1) {
-    for (let nivel = 2; nivel <= maximoNivel; nivel += 1) {
-      const posiciones = posicionesActuales();
-      gruposPorNivel.get(nivel).sort((primera, segunda) => {
-        const centroPrimera = promedioRelaciones(primera.predecesoras, posiciones, ordenOriginal.get(primera.nombre));
-        const centroSegunda = promedioRelaciones(segunda.predecesoras, posiciones, ordenOriginal.get(segunda.nombre));
-        return centroPrimera - centroSegunda || ordenOriginal.get(primera.nombre) - ordenOriginal.get(segunda.nombre);
-      });
-    }
-
-    for (let nivel = maximoNivel - 1; nivel >= 1; nivel -= 1) {
-      const posiciones = posicionesActuales();
-      gruposPorNivel.get(nivel).sort((primera, segunda) => {
-        const centroPrimera = promedioRelaciones(solucion.sucesoras.get(primera.nombre), posiciones, ordenOriginal.get(primera.nombre));
-        const centroSegunda = promedioRelaciones(solucion.sucesoras.get(segunda.nombre), posiciones, ordenOriginal.get(segunda.nombre));
-        return centroPrimera - centroSegunda || ordenOriginal.get(primera.nombre) - ordenOriginal.get(segunda.nombre);
-      });
-    }
-  }
-}
-
-function asignarCarrilesExternos(conexiones, niveles, maximoNivelActividad) {
-  const carriles = { superior: [], inferior: [] };
-  let alternarLado = false;
-
-  function nivelDe(nombre) {
-    if (nombre === "__INICIO__") return 0;
-    if (nombre === "__FIN__") return maximoNivelActividad + 1;
-    return niveles.get(nombre);
-  }
-
-  function primerCarrilLibre(listaCarriles, inicio, fin) {
-    const indice = listaCarriles.findIndex(intervalos =>
-      intervalos.every(intervalo => fin <= intervalo.inicio || inicio >= intervalo.fin)
-    );
-    return indice === -1 ? listaCarriles.length : indice;
-  }
-
-  conexiones.forEach(conexion => {
-    const inicio = nivelDe(conexion.origen);
-    const fin = nivelDe(conexion.destino);
-    conexion.nivelOrigen = inicio;
-    conexion.nivelDestino = fin;
-    if (fin - inicio <= 1) return;
-
-    const carrilSuperior = primerCarrilLibre(carriles.superior, inicio, fin);
-    const carrilInferior = primerCarrilLibre(carriles.inferior, inicio, fin);
-    const lado = carrilSuperior < carrilInferior
-      ? "superior"
-      : carrilInferior < carrilSuperior
-        ? "inferior"
-        : alternarLado ? "inferior" : "superior";
-    alternarLado = !alternarLado;
-    const indice = lado === "superior" ? carrilSuperior : carrilInferior;
-    if (!carriles[lado][indice]) carriles[lado][indice] = [];
-    carriles[lado][indice].push({ inicio, fin });
-    conexion.carrilExterior = { lado, indice };
+  solucion.orden.forEach(actividad => {
+    if (!actividad.predecesoras.length) agregarConexion("__INICIO__", actividad.nombre,
+      actividad.critica && casiIguales(actividad.inicioTemprano, 0));
+    actividad.predecesoras.forEach(origen => agregarConexion(origen, actividad.nombre,
+      solucion.conexionesCriticas.has(claveConexion(origen, actividad.nombre))));
+    if (!solucion.sucesoras.get(actividad.nombre).length) agregarConexion(actividad.nombre, "__FIN__",
+      actividad.critica && casiIguales(actividad.finTemprano, solucion.duracionTotal));
   });
 
-  return {
-    superiores: carriles.superior.length,
-    inferiores: carriles.inferior.length
-  };
+  // Barridos baricéntricos, incluyendo los pasos de aristas que saltan niveles.
+  // Se conserva el orden con menos cruces encontrado para evitar oscilaciones.
+  function indicesActuales() {
+    return new Map(capas.flatMap(capa => capa.map((vertice, indice) => [vertice.id, indice])));
+  }
+  function contarCruces() {
+    const indices = indicesActuales();
+    let cruces = 0;
+    capas.slice(0, -1).forEach(capa => {
+      const segmentos = capa.flatMap(vertice => vertice.siguientes.map(enlace => ({
+        a: indices.get(vertice.id), b: indices.get(enlace.vertice.id)
+      })));
+      segmentos.forEach((segmento, i) => {
+        for (let j = i + 1; j < segmentos.length; j += 1) {
+          if ((segmento.a - segmentos[j].a) * (segmento.b - segmentos[j].b) < 0) cruces += 1;
+        }
+      });
+    });
+    return cruces;
+  }
+  let mejorOrden = capas.map(capa => [...capa]);
+  let menosCruces = contarCruces();
+  for (let pasada = 0; pasada < 12; pasada += 1) {
+    const adelante = pasada % 2 === 0;
+    for (let i = 1; i < capas.length; i += 1) {
+      const nivel = adelante ? i : ultimoNivel - i;
+      const indices = indicesActuales();
+      const centros = new Map(capas[nivel].map(vertice => {
+        const vecinos = adelante ? vertice.anteriores : vertice.siguientes;
+        const suma = vecinos.reduce((total, enlace) => total + indices.get(enlace.vertice.id), 0);
+        return [vertice.id, vecinos.length ? suma / vecinos.length : indices.get(vertice.id)];
+      }));
+      capas[nivel].sort((a, b) => centros.get(a.id) - centros.get(b.id) || indices.get(a.id) - indices.get(b.id));
+    }
+    const cruces = contarCruces();
+    if (cruces <= menosCruces) {
+      menosCruces = cruces;
+      mejorOrden = capas.map(capa => [...capa]);
+    }
+  }
+  capas.forEach((capa, nivel) => capa.splice(0, capa.length, ...mejorOrden[nivel]));
+
+  function separacion(a, b) {
+    return (a.alto + b.alto) / 2 + (a.auxiliar && b.auxiliar ? 18 : 38);
+  }
+  const alturas = capas.map(capa => {
+    let altura = 0;
+    capa.forEach((vertice, indice) => {
+      vertice.centro = indice ? capa[indice - 1].centro + separacion(capa[indice - 1], vertice) : vertice.alto / 2;
+      altura = vertice.centro + vertice.alto / 2;
+    });
+    return altura;
+  });
+  const alturaInicial = Math.max(...alturas);
+  capas.forEach((capa, nivel) => capa.forEach(vertice => { vertice.centro += (alturaInicial - alturas[nivel]) / 2; }));
+
+  // Proyección isotónica: aproxima las ramas relacionadas sin permitir solapes.
+  function alinearCapa(capa, adelante) {
+    const desplazamientos = [];
+    const bloques = [];
+    capa.forEach((vertice, indice) => {
+      desplazamientos[indice] = indice ? desplazamientos[indice - 1] + separacion(capa[indice - 1], vertice) : 0;
+      const vecinos = adelante ? vertice.anteriores : vertice.siguientes;
+      const peso = vecinos.reduce((total, enlace) => total + (enlace.conexion.critica ? 3 : 1), 0);
+      const centroVecinos = peso ? vecinos.reduce((total, enlace) => total + enlace.vertice.centro * (enlace.conexion.critica ? 3 : 1), 0) / peso : vertice.centro;
+      const objetivo = (centroVecinos * .8 + vertice.centro * .2) - desplazamientos[indice];
+      bloques.push({ inicio: indice, fin: indice, suma: objetivo, peso: 1 });
+      while (bloques.length > 1) {
+        const b = bloques[bloques.length - 1];
+        const a = bloques[bloques.length - 2];
+        if (a.suma / a.peso <= b.suma / b.peso) break;
+        a.fin = b.fin;
+        a.suma += b.suma;
+        a.peso += b.peso;
+        bloques.pop();
+      }
+    });
+    bloques.forEach(bloque => {
+      for (let i = bloque.inicio; i <= bloque.fin; i += 1) capa[i].centro = bloque.suma / bloque.peso + desplazamientos[i];
+    });
+  }
+  for (let pasada = 0; pasada < 16; pasada += 1) {
+    const adelante = pasada % 2 === 0;
+    for (let i = 0; i <= ultimoNivel; i += 1) alinearCapa(capas[adelante ? i : ultimoNivel - i], adelante);
+  }
+  const minimoY = Math.min(...[...vertices.values()].map(vertice => vertice.centro - vertice.alto / 2));
+  const posiciones = new Map();
+  vertices.forEach(vertice => {
+    const x = vertice.nivel === 0 ? margen
+      : vertice.nivel === ultimoNivel ? margen + anchoVirtual + 70 + (ultimoNivel - 2) * 346 + anchoActividad + 70
+        : margen + anchoVirtual + 70 + (vertice.nivel - 1) * 346;
+    vertice.x = x;
+    vertice.centro += margen - minimoY;
+    posiciones.set(vertice.id, { x, y: vertice.centro - vertice.alto / 2 });
+  });
+  const entrantes = new Map([...vertices.keys()].map(id => [id, []]));
+  const salientes = new Map([...vertices.keys()].map(id => [id, []]));
+  conexiones.forEach(conexion => {
+    salientes.get(conexion.origen).push(conexion);
+    entrantes.get(conexion.destino).push(conexion);
+  });
+  salientes.forEach(lista => {
+    lista.sort((a, b) => a.pasos[1].centro - b.pasos[1].centro);
+    lista.forEach((conexion, indice) => { conexion.salidaY = posiciones.get(conexion.origen).y + posicionAnclaje(indice, lista.length, vertices.get(conexion.origen).alto); });
+  });
+  entrantes.forEach(lista => {
+    lista.sort((a, b) => a.pasos[a.pasos.length - 2].centro - b.pasos[b.pasos.length - 2].centro);
+    lista.forEach((conexion, indice) => { conexion.entradaY = posiciones.get(conexion.destino).y + posicionAnclaje(indice, lista.length, vertices.get(conexion.destino).alto); });
+  });
+  const segmentosPorNivel = Array.from({ length: ultimoNivel }, () => []);
+  conexiones.forEach(conexion => {
+    conexion.segmentos = conexion.pasos.slice(0, -1).map((origen, indice) => {
+      const destino = conexion.pasos[indice + 1];
+      const segmento = { origen, destino, y1: indice === 0 ? conexion.salidaY : origen.centro,
+        y2: indice === conexion.pasos.length - 2 ? conexion.entradaY : destino.centro };
+      segmentosPorNivel[origen.nivel].push(segmento);
+      return segmento;
+    });
+  });
+  segmentosPorNivel.forEach(segmentos => {
+    const carriles = [];
+    segmentos.sort((a, b) => Math.abs(b.y2 - b.y1) - Math.abs(a.y2 - a.y1));
+    segmentos.forEach(segmento => {
+      const inicio = Math.min(segmento.y1, segmento.y2) - 8;
+      const fin = Math.max(segmento.y1, segmento.y2) + 8;
+      let indice = carriles.findIndex(intervalos => intervalos.every(intervalo => fin < intervalo.inicio || inicio > intervalo.fin));
+      if (indice === -1) { indice = carriles.length; carriles.push([]); }
+      carriles[indice].push({ inicio, fin });
+      segmento.carril = indice;
+    });
+    segmentos.forEach(segmento => {
+      const x1 = segmento.origen.x + segmento.origen.ancho;
+      const x2 = segmento.destino.x;
+      segmento.x = x1 + 16 + (x2 - x1 - 32) * (segmento.carril + 1) / (carriles.length + 1);
+    });
+  });
+  conexiones.forEach(conexion => {
+    conexion.puntos = [];
+    conexion.segmentos.forEach(segmento => conexion.puntos.push(
+      { x: segmento.origen.x + segmento.origen.ancho, y: segmento.y1 },
+      { x: segmento.x, y: segmento.y1 },
+      { x: segmento.x, y: segmento.y2 },
+      { x: segmento.destino.x, y: segmento.y2 }
+    ));
+  });
+  return { posiciones, conexiones, ancho: vertices.get("__FIN__").x + anchoVirtual + margen,
+    alto: Math.max(350, ...[...vertices.values()].map(vertice => vertice.centro + vertice.alto / 2 + margen)) };
 }
 
 function crearRutaOrtogonal(puntos, radio = 12) {
@@ -1479,107 +1686,7 @@ function dibujarRed(solucion) {
   elementos.red.replaceChildren();
   svgRed = null;
 
-  const anchoActividad = 252;
-  const altoActividad = 138;
-  const anchoVirtual = 104;
-  const altoVirtual = 52;
-  const separacionHorizontal = 310;
-  const separacionVertical = 184;
-  const margenHorizontal = 42;
-  const margenVertical = 48;
-
-  const niveles = new Map();
-  solucion.orden.forEach(actividad => {
-    const nivel = actividad.predecesoras.length
-      ? 1 + Math.max(...actividad.predecesoras.map(nombre => niveles.get(nombre)))
-      : 1;
-    niveles.set(actividad.nombre, nivel);
-  });
-
-  const maximoNivelActividad = Math.max(...niveles.values());
-  const gruposPorNivel = new Map();
-  for (let nivel = 1; nivel <= maximoNivelActividad; nivel += 1) {
-    gruposPorNivel.set(
-      nivel,
-      solucion.orden.filter(actividad => niveles.get(actividad.nombre) === nivel)
-    );
-  }
-
-  ordenarActividadesPorRelaciones(gruposPorNivel, solucion, maximoNivelActividad);
-
-  const nombresIniciales = solucion.orden
-    .filter(actividad => actividad.predecesoras.length === 0)
-    .map(actividad => actividad.nombre);
-  const nombresFinales = solucion.orden
-    .filter(actividad => solucion.sucesoras.get(actividad.nombre).length === 0)
-    .map(actividad => actividad.nombre);
-  const conexiones = [];
-
-  nombresIniciales.forEach(nombreDestino => {
-    const actividad = solucion.actividadesPorNombre.get(nombreDestino);
-    conexiones.push({
-      origen: "__INICIO__",
-      destino: nombreDestino,
-      critica: actividad.critica && casiIguales(actividad.inicioTemprano, 0)
-    });
-  });
-  solucion.orden.forEach(actividad => {
-    solucion.sucesoras.get(actividad.nombre).forEach(nombreDestino => {
-      conexiones.push({
-        origen: actividad.nombre,
-        destino: nombreDestino,
-        critica: solucion.conexionesCriticas.has(claveConexion(actividad.nombre, nombreDestino))
-      });
-    });
-  });
-  nombresFinales.forEach(nombreOrigen => {
-    const actividad = solucion.actividadesPorNombre.get(nombreOrigen);
-    conexiones.push({
-      origen: nombreOrigen,
-      destino: "__FIN__",
-      critica: actividad.critica && casiIguales(actividad.finTemprano, solucion.duracionTotal)
-    });
-  });
-
-  const cantidadCarriles = asignarCarrilesExternos(conexiones, niveles, maximoNivelActividad);
-
-  const maximaCantidadNivel = Math.max(
-    1,
-    ...[...gruposPorNivel.values()].map(actividadesNivel => actividadesNivel.length)
-  );
-  const espacioCarril = 24;
-  const margenSuperior = margenVertical + cantidadCarriles.superiores * espacioCarril;
-  const limiteInferiorNodos = margenSuperior + (maximaCantidadNivel - 1) * separacionVertical + altoActividad;
-  const alto = Math.max(
-    470,
-    limiteInferiorNodos + margenVertical + cantidadCarriles.inferiores * espacioCarril
-  );
-  const inicioActividadesX = margenHorizontal + anchoVirtual + 64;
-  const finX = inicioActividadesX + maximoNivelActividad * separacionHorizontal;
-  const ancho = finX + anchoVirtual + margenHorizontal;
-  const posiciones = new Map();
-
-  gruposPorNivel.forEach((actividadesNivel, nivel) => {
-    const desplazamiento = (maximaCantidadNivel - actividadesNivel.length) / 2;
-    actividadesNivel.forEach((actividad, indice) => {
-      posiciones.set(actividad.nombre, {
-        x: inicioActividadesX + (nivel - 1) * separacionHorizontal,
-        y: margenSuperior + (indice + desplazamiento) * separacionVertical
-      });
-    });
-  });
-
-  const centroVerticalNodos = margenSuperior +
-    ((maximaCantidadNivel - 1) * separacionVertical + altoActividad) / 2;
-
-  posiciones.set("__INICIO__", {
-    x: margenHorizontal,
-    y: centroVerticalNodos - altoVirtual / 2
-  });
-  posiciones.set("__FIN__", {
-    x: finX,
-    y: centroVerticalNodos - altoVirtual / 2
-  });
+  const { posiciones, conexiones, ancho, alto } = calcularDisposicionRed(solucion);
 
   const svg = crearElementoSvg("svg", {
     viewBox: "0 0 " + ancho + " " + alto,
@@ -1647,82 +1754,10 @@ function dibujarRed(solucion) {
   definiciones.append(filtro);
   svg.append(definiciones);
 
-  const nombresNodos = ["__INICIO__", ...solucion.orden.map(actividad => actividad.nombre), "__FIN__"];
-  const conexionesSalientes = new Map(nombresNodos.map(nombre => [nombre, []]));
-  const conexionesEntrantes = new Map(nombresNodos.map(nombre => [nombre, []]));
-  conexiones.forEach(conexion => {
-    conexionesSalientes.get(conexion.origen).push(conexion);
-    conexionesEntrantes.get(conexion.destino).push(conexion);
-  });
-  conexionesSalientes.forEach(lista => lista.sort((primera, segunda) =>
-    posiciones.get(primera.destino).y - posiciones.get(segunda.destino).y
-  ));
-  conexionesEntrantes.forEach(lista => lista.sort((primera, segunda) =>
-    posiciones.get(primera.origen).y - posiciones.get(segunda.origen).y
-  ));
-  conexionesSalientes.forEach(lista => lista.forEach((conexion, indice) => {
-    conexion.indiceSalida = indice;
-    conexion.cantidadSalidas = lista.length;
-  }));
-  conexionesEntrantes.forEach(lista => lista.forEach((conexion, indice) => {
-    conexion.indiceEntrada = indice;
-    conexion.cantidadEntradas = lista.length;
-  }));
-
   const grupoConexiones = crearElementoSvg("g", { class: "conexiones-red" });
-  conexiones.forEach(conexion => {
-    const posicionOrigen = posiciones.get(conexion.origen);
-    const posicionDestino = posiciones.get(conexion.destino);
-    const anchoOrigen = conexion.origen === "__INICIO__" ? anchoVirtual : anchoActividad;
-    const altoOrigen = conexion.origen === "__INICIO__" ? altoVirtual : altoActividad;
-    const altoDestino = conexion.destino === "__FIN__" ? altoVirtual : altoActividad;
-    const inicioX = posicionOrigen.x + anchoOrigen;
-    const inicioY = posicionOrigen.y + posicionAnclaje(
-      conexion.indiceSalida,
-      conexion.cantidadSalidas,
-      altoOrigen
-    );
-    const finX = posicionDestino.x;
-    const finY = posicionDestino.y + posicionAnclaje(
-      conexion.indiceEntrada,
-      conexion.cantidadEntradas,
-      altoDestino
-    );
+  conexiones.sort((a, b) => Number(a.critica) - Number(b.critica)).forEach(conexion => {
     const color = conexion.critica ? "#d85c43" : "#4f8885";
-    let puntos;
-    let tipoEnrutamiento;
-
-    if (conexion.carrilExterior) {
-      const carrilY = conexion.carrilExterior.lado === "superior"
-        ? margenSuperior - 28 - conexion.carrilExterior.indice * espacioCarril
-        : limiteInferiorNodos + 28 + conexion.carrilExterior.indice * espacioCarril;
-      puntos = [
-        { x: inicioX, y: inicioY },
-        { x: inicioX + 24, y: inicioY },
-        { x: inicioX + 24, y: carrilY },
-        { x: finX - 24, y: carrilY },
-        { x: finX - 24, y: finY },
-        { x: finX, y: finY }
-      ];
-      tipoEnrutamiento = "exterior";
-    } else {
-      const desplazamientoSalida = conexion.indiceSalida - (conexion.cantidadSalidas - 1) / 2;
-      const desplazamientoEntrada = conexion.indiceEntrada - (conexion.cantidadEntradas - 1) / 2;
-      const puntoMedioBase = (inicioX + finX) / 2;
-      const puntoMedioX = Math.max(
-        inicioX + 18,
-        Math.min(finX - 18, puntoMedioBase + desplazamientoSalida * 5 - desplazamientoEntrada * 5)
-      );
-      puntos = [
-        { x: inicioX, y: inicioY },
-        { x: puntoMedioX, y: inicioY },
-        { x: puntoMedioX, y: finY },
-        { x: finX, y: finY }
-      ];
-      tipoEnrutamiento = "directo";
-    }
-
-    const ruta = crearRutaOrtogonal(puntos);
+    const ruta = crearRutaOrtogonal(conexion.puntos, 10);
     grupoConexiones.append(
       crearElementoSvg("path", {
         d: ruta,
@@ -1743,7 +1778,7 @@ function dibujarRed(solucion) {
         "marker-end": "url(#" + (conexion.critica ? "flecha-critica" : "flecha-normal") + ")",
         "data-conexion-origen": conexion.origen,
         "data-conexion-destino": conexion.destino,
-        "data-enrutamiento": tipoEnrutamiento
+        "data-enrutamiento": conexion.pasos.length > 2 ? "por-niveles" : "directo"
       })
     );
   });
@@ -1760,29 +1795,24 @@ function dibujarRed(solucion) {
 }
 
 function obtenerDuracionEscenario(actividad, escenario) {
-  if (elementos.tipo.value !== "pert" || escenario === "esperado" || !actividad.tiempos) {
+  if (escenario === "esperado" || !actividad.tiempos) {
     return actividad.duracion;
   }
   return actividad.tiempos[escenario];
 }
 
 function calcularEscenarioGantt(solucion, escenario) {
-  const actividades = [];
-  const porNombre = new Map();
-
-  solucion.orden.forEach(actividad => {
-    const duracion = obtenerDuracionEscenario(actividad, escenario);
-    const inicio = actividad.predecesoras.length
-      ? Math.max(...actividad.predecesoras.map(nombre => porNombre.get(nombre).fin))
-      : 0;
-    const dato = { actividad, inicio, duracion, fin: inicio + duracion };
-    actividades.push(dato);
-    porNombre.set(actividad.nombre, dato);
-  });
-
+  const datos = solucion.orden.map(actividad => ({
+    ...actividad, duracion: obtenerDuracionEscenario(actividad, escenario)
+  }));
+  const recalculada = resolverProyecto(datos);
   return {
-    actividades,
-    duracionTotal: Math.max(...actividades.map(dato => dato.fin))
+    actividades: recalculada.orden.map(actividad => ({
+      actividad, inicio: actividad.inicioTemprano,
+      duracion: actividad.duracion, fin: actividad.finTemprano
+    })),
+    duracionTotal: recalculada.duracionTotal,
+    solucion: recalculada
   };
 }
 
@@ -1791,147 +1821,152 @@ function calcularPasoEscala(valorMaximo) {
   const pasoAproximado = valorMaximo / 10;
   const magnitud = 10 ** Math.floor(Math.log10(pasoAproximado));
   const normalizado = pasoAproximado / magnitud;
-  const pasoBase = normalizado <= 1 ? 1 : normalizado <= 2 ? 2 : normalizado <= 5 ? 5 : 10;
-  return pasoBase * magnitud;
+  return (normalizado <= 1 ? 1 : normalizado <= 2 ? 2 : normalizado <= 5 ? 5 : 10) * magnitud;
 }
 
-function dibujarGantt(solucion, escenario = "esperado") {
+function dibujarGantt(solucion, escenario = "esperado", ajustar = true) {
+  const desplazamiento = { left: elementos.gantt.scrollLeft, top: elementos.gantt.scrollTop };
   elementos.gantt.replaceChildren();
-  svgGantt = null;
-  const programa = calcularEscenarioGantt(solucion, escenario);
-  elementos.duracionGantt.textContent = formato(programa.duracionTotal);
-
-  const anchoEtiquetas = 220;
-  const anchoTiempo = Math.max(780, programa.duracionTotal * 58);
-  const margenSuperior = 62;
-  const altoFila = 54;
-  const margenInferior = 34;
-  const ancho = anchoEtiquetas + anchoTiempo + 30;
-  const alto = margenSuperior + programa.actividades.length * altoFila + margenInferior;
-  const escala = anchoTiempo / Math.max(programa.duracionTotal, 1);
-  const svg = crearElementoSvg("svg", {
-    viewBox: "0 0 " + ancho + " " + alto,
-    width: ancho,
-    height: alto,
-    role: "img",
-    "aria-label": "Diagrama de Gantt para el escenario " + escenario
+  programaGantt = calcularEscenarioGantt(solucion, escenario);
+  const programa = programaGantt;
+  const soloCriticas = document.getElementById("solo-criticas").checked;
+  const visibles = programa.actividades.filter(dato => !soloCriticas || dato.actividad.critica);
+  const anchoEtiquetas = window.innerWidth < 560 ? 142 : 208;
+  const anchoDisponible = Math.max(320, elementos.gantt.clientWidth - anchoEtiquetas - 2);
+  if (ajustar) escalaGantt = 1;
+  const anchoTiempo = Math.round(anchoDisponible * escalaGantt);
+  const altoFila = 62;
+  const altoCabecera = 48;
+  const limite = Math.max(1, programa.duracionTotal);
+  const escala = anchoTiempo / limite;
+  const paso = calcularPasoEscala(limite * Math.max(.5, 700 / anchoTiempo));
+  const lienzo = crearElemento("div", "gantt-lienzo");
+  lienzo.style.width = anchoEtiquetas + anchoTiempo + "px";
+  lienzo.style.setProperty("--etiqueta-gantt", anchoEtiquetas + "px");
+  lienzo.style.setProperty("--paso-gantt", paso / limite * 100 + "%");
+  const cabecera = crearElemento("div", "gantt-cabecera");
+  cabecera.append(crearElemento("div", "gantt-esquina", "Actividad"));
+  const regla = crearElemento("div", "gantt-regla");
+  regla.setAttribute("aria-label", "Escala en " + unidadTiempo());
+  const tiempos = [];
+  for (let tiempo = 0; tiempo < limite; tiempo += paso) tiempos.push(tiempo);
+  tiempos.push(limite);
+  tiempos.forEach((tiempo, indice) => {
+    const marca = crearElemento("span", "gantt-marca", formato(tiempo, 2));
+    marca.style.left = tiempo / limite * 100 + "%";
+    if (indice === 0) marca.classList.add("marca-inicial");
+    if (indice === tiempos.length - 1) marca.classList.add("marca-final");
+    if (indice === tiempos.length - 2 && limite - tiempo < paso * .4) marca.hidden = true;
+    regla.append(marca);
   });
-
-  const definiciones = crearElementoSvg("defs");
-  [
-    { id: "gantt-critica", inicio: "#d95740", fin: "#f3ae3f" },
-    { id: "gantt-normal", inicio: "#0d6070", fin: "#35ae88" }
-  ].forEach(configuracion => {
-    const degradado = crearElementoSvg("linearGradient", { id: configuracion.id, x1: "0", x2: "1" });
-    degradado.append(
-      crearElementoSvg("stop", { offset: "0", "stop-color": configuracion.inicio }),
-      crearElementoSvg("stop", { offset: "1", "stop-color": configuracion.fin })
-    );
-    definiciones.append(degradado);
-  });
-  const sombraBarra = crearElementoSvg("filter", { id: "sombra-barra-gantt", x: "-20%", y: "-40%", width: "140%", height: "180%" });
-  sombraBarra.append(crearElementoSvg("feDropShadow", {
-    dx: 0,
-    dy: 3,
-    stdDeviation: 3,
-    "flood-color": "#102d47",
-    "flood-opacity": .18
-  }));
-  definiciones.append(sombraBarra);
-  svg.append(definiciones);
-
-  svg.append(crearElementoSvg("rect", { width: ancho, height: alto, fill: "#fffdf9" }));
-  agregarTextoSvg(svg, "ACTIVIDAD", { x: 18, y: 28, fill: "#7a7469", "font-size": 10, "font-weight": 800 });
-  agregarTextoSvg(svg, "LÍNEA DE TIEMPO", { x: anchoEtiquetas, y: 28, fill: "#7a7469", "font-size": 10, "font-weight": 800 });
-
-  const paso = calcularPasoEscala(programa.duracionTotal);
-  for (let tiempo = 0; tiempo <= programa.duracionTotal + paso * 0.25; tiempo += paso) {
-    const x = anchoEtiquetas + Math.min(tiempo, programa.duracionTotal) * escala;
-    svg.append(crearElementoSvg("line", {
-      x1: x,
-      y1: margenSuperior - 14,
-      x2: x,
-      y2: alto - margenInferior + 4,
-      stroke: tiempo === 0 ? "#b6ad9d" : "#e9e2d7",
-      "stroke-width": tiempo === 0 ? 1.5 : 1
-    }));
-    agregarTextoSvg(svg, formato(Math.min(tiempo, programa.duracionTotal), 2), {
-      x,
-      y: 48,
-      "text-anchor": tiempo === 0 ? "start" : "middle",
-      fill: "#756f65",
-      "font-size": 10,
-      "font-weight": 700
-    });
-  }
-
-  programa.actividades.forEach((dato, indice) => {
-    const y = margenSuperior + indice * altoFila;
-    if (indice % 2 === 0) {
-      svg.append(crearElementoSvg("rect", { x: 0, y, width: ancho, height: altoFila, fill: "#faf7f1" }));
+  regla.append(crearElemento("small", "gantt-unidad", unidadTiempo()));
+  cabecera.append(regla);
+  lienzo.append(cabecera);
+  const indices = new Map();
+  visibles.forEach((dato, indice) => {
+    const actividad = dato.actividad;
+    indices.set(actividad.nombre, indice);
+    const fila = crearElemento("div", "gantt-fila" + (actividad.critica ? " gantt-fila-critica" : ""));
+    fila.dataset.actividad = actividad.nombre;
+    const nombre = crearElemento("button", "gantt-identidad");
+    nombre.type = "button";
+    nombre.append(crearElemento("b", "", actividad.nombre), crearElemento("span", "", actividad.descripcion || "Actividad " + actividad.nombre));
+    nombre.title = actividad.nombre + (actividad.descripcion ? " · " + actividad.descripcion : "");
+    nombre.setAttribute("aria-label", "Ver procedimiento de " + actividad.nombre);
+    const pista = crearElemento("div", "gantt-pista");
+    if (document.getElementById("mostrar-holgura").checked && actividad.holgura > 0) {
+      const margen = crearElemento("span", "gantt-margen");
+      margen.style.left = dato.fin / limite * 100 + "%";
+      margen.style.width = actividad.holgura / limite * 100 + "%";
+      margen.title = "Holgura: " + formato(actividad.holgura) + " " + unidadTiempo();
+      pista.append(margen);
     }
-    svg.append(crearElementoSvg("line", {
-      x1: 0,
-      y1: y + altoFila,
-      x2: ancho,
-      y2: y + altoFila,
-      stroke: "#eee8de"
+    const barra = crearElemento("button", "gantt-barra" + (actividad.critica ? " es-critica" : ""));
+    barra.type = "button";
+    barra.dataset.actividad = actividad.nombre;
+    barra.style.left = dato.inicio / limite * 100 + "%";
+    barra.style.width = dato.duracion / limite * 100 + "%";
+    if (dato.duracion === 0) barra.classList.add("es-hito");
+    const descripcion = actividad.nombre + ": inicio " + formato(dato.inicio) + ", duración " + formato(dato.duracion) +
+      ", fin " + formato(dato.fin) + ", holgura " + formato(actividad.holgura) + " " + unidadTiempo();
+    barra.title = descripcion;
+    barra.setAttribute("aria-label", descripcion + ". Abrir procedimiento.");
+    if (dato.duracion * escala > 62) barra.textContent = formato(dato.duracion);
+    const etiqueta = crearElemento("span", "gantt-extremos", formato(dato.inicio) + " – " + formato(dato.fin));
+    etiqueta.style.left = dato.inicio / limite * 100 + "%";
+    pista.append(etiqueta, barra);
+    [nombre, barra].forEach(boton => boton.addEventListener("click", () => {
+      seleccionarActividad(actividad.nombre);
+      abrirProcedimientoActividad(actividad.nombre, programa.solucion, escenario);
     }));
-
-    agregarTextoSvg(svg, dato.actividad.nombre, {
-      x: 18,
-      y: y + 24,
-      fill: dato.actividad.critica ? "#b94d39" : "#17354b",
-      "font-size": 12,
-      "font-weight": 850
-    });
-    agregarTextoSvg(svg, truncarTexto(dato.actividad.descripcion || "Sin descripción", 28), {
-      x: 18,
-      y: y + 41,
-      fill: "#858076",
-      "font-size": 9.5
-    });
-
-    const x = anchoEtiquetas + dato.inicio * escala;
-    const anchoBarra = Math.max(4, dato.duracion * escala);
-    const barra = crearElementoSvg("rect", {
-      x,
-      y: y + 12,
-      width: anchoBarra,
-      height: 30,
-      rx: 7,
-      fill: "url(#" + (dato.actividad.critica ? "gantt-critica" : "gantt-normal") + ")",
-      filter: "url(#sombra-barra-gantt)"
-    });
-    const titulo = crearElementoSvg("title");
-    titulo.textContent = dato.actividad.nombre + ": inicio " + formato(dato.inicio) +
-      ", duración " + formato(dato.duracion) + ", fin " + formato(dato.fin);
-    barra.append(titulo);
-    svg.append(barra);
-    svg.append(crearElementoSvg("circle", {
-      cx: x + anchoBarra,
-      cy: y + 27,
-      r: 3.5,
-      fill: dato.actividad.critica ? "#fff0ba" : "#d8fff0",
-      stroke: dato.actividad.critica ? "#b84535" : "#0d6070",
-      "stroke-width": 1.5
-    }));
-
-    const etiqueta = formato(dato.inicio) + "–" + formato(dato.fin);
-    agregarTextoSvg(svg, etiqueta, {
-      x: anchoBarra >= 68 ? x + anchoBarra / 2 : x + anchoBarra + 7,
-      y: y + 32,
-      "text-anchor": anchoBarra >= 68 ? "middle" : "start",
-      fill: anchoBarra >= 68 ? "#ffffff" : "#4e4a43",
-      "font-size": 9.5,
-      "font-weight": 800
-    });
+    barra.addEventListener("focus", () => seleccionarActividad(actividad.nombre));
+    fila.append(nombre, pista);
+    lienzo.append(fila);
   });
+  if (document.getElementById("mostrar-dependencias").checked) {
+    const conexiones = crearElementoSvg("svg", {
+      width: anchoTiempo, height: visibles.length * altoFila, viewBox: "0 0 " + anchoTiempo + " " + visibles.length * altoFila, preserveAspectRatio: "none", class: "gantt-conexiones", "aria-hidden": "true"
+    });
+    conexiones.style.left = anchoEtiquetas + "px";
+    conexiones.style.top = altoCabecera + "px";
+    const defs = crearElementoSvg("defs");
+    const flecha = crearElementoSvg("marker", { id: "flecha-gantt", markerWidth: 6, markerHeight: 6, refX: 5, refY: 3, orient: "auto" });
+    flecha.append(crearElementoSvg("path", { d: "M0 0 L6 3 L0 6 Z", fill: "#668298" }));
+    defs.append(flecha);
+    conexiones.append(defs);
+    visibles.forEach(dato => {
+      dato.actividad.predecesoras.forEach(nombre => {
+        if (!indices.has(nombre)) return;
+        const origen = programa.solucion.actividadesPorNombre.get(nombre);
+        const x1 = origen.finTemprano * escala;
+        const x2 = dato.inicio * escala;
+        const y1 = indices.get(nombre) * altoFila + 24;
+        const y2 = indices.get(dato.actividad.nombre) * altoFila + 24;
+        const carril = Math.min(anchoTiempo - 6, x1 + 10);
+        conexiones.append(crearElementoSvg("path", {
+          d: crearRutaOrtogonal([{ x: x1, y: y1 }, { x: carril, y: y1 }, { x: carril, y: y2 - 19 }, { x: x2, y: y2 - 19 }, { x: x2, y: y2 - 15 }], 4),
+          fill: "none", stroke: "#668298", "stroke-width": 1.3, "stroke-opacity": .65, "marker-end": "url(#flecha-gantt)"
+        }));
+      });
+    });
+    lienzo.append(conexiones);
+  }
+  elementos.gantt.append(lienzo);
+  elementos.duracionGantt.textContent = formato(programa.duracionTotal) + " " + unidadTiempo();
+  elementos.escalaGanttTexto.textContent = Math.round(escalaGantt * 100) + "%";
+  document.getElementById("detalle-escenario-gantt").textContent = escenario === "esperado" ? "" : "Criticidad recalculada para este escenario";
+  elementos.duracionGantt.closest("strong").hidden = escenario === "esperado";
+  if (!ajustar) elementos.gantt.scrollTo(desplazamiento);
+  actualizarSeleccionVisual();
+}
 
-  elementos.gantt.append(svg);
-  svgGantt = svg;
-  dimensionesGantt = { ancho, alto };
-  restablecerEscalaGantt();
+function nombreEscenario(escenario) {
+  return { esperado: "base", optimista: "optimista", probable: "más probable", pesimista: "pesimista" }[escenario] || "base";
+}
+
+function unidadTiempo() {
+  return document.getElementById("unidad-tiempo").value;
+}
+
+function seleccionarActividad(nombre) {
+  actividadSeleccionada = nombre;
+  actualizarSeleccionVisual();
+}
+
+function actualizarSeleccionVisual() {
+  elementos.red.querySelectorAll("[data-nodo-actividad]").forEach(nodo => {
+    nodo.classList.toggle("nodo-seleccionado", nodo.dataset.nodoActividad === actividadSeleccionada);
+  });
+  elementos.gantt.querySelectorAll(".gantt-fila").forEach(fila => {
+    fila.classList.toggle("actividad-seleccionada", fila.dataset.actividad === actividadSeleccionada);
+  });
+  elementos.desarrollo.querySelectorAll(".tarjeta-calculo").forEach(tarjeta => {
+    tarjeta.classList.toggle("calculo-seleccionado", tarjeta.querySelector(".ver-nodo")?.dataset.actividad === actividadSeleccionada);
+  });
+  const actividad = programaGantt?.solucion.actividadesPorNombre.get(actividadSeleccionada);
+  document.getElementById("seleccion-gantt").textContent = actividad
+    ? actividad.nombre + " · Inicio " + formato(actividad.inicioTemprano) + " · Fin " + formato(actividad.finTemprano) + " · Duración " + formato(actividad.duracion) + " · Holgura " + formato(actividad.holgura) + " " + unidadTiempo()
+    : "Seleccione una actividad para ver su inicio, fin y margen.";
 }
 
 function aplicarEscalaRed() {
@@ -1942,40 +1977,46 @@ function aplicarEscalaRed() {
 }
 
 function cambiarEscalaRed(cambio) {
+  modoVistaRed = "manual";
   escalaRed = Math.min(1.8, Math.max(0.4, escalaRed + cambio));
   aplicarEscalaRed();
 }
 
-function restablecerEscalaRed() {
+function ajustarEscalaRed() {
   if (!svgRed) return;
+  if (modoVistaRed === "manual") { aplicarEscalaRed(); return; }
   const anchoDisponible = Math.max(280, elementos.red.clientWidth - 18);
-  escalaRed = Math.min(1, Math.max(0.62, anchoDisponible / dimensionesRed.ancho));
+  const altoDisponible = Math.max(280, parseFloat(getComputedStyle(elementos.red).maxHeight) - 18 || elementos.red.clientHeight - 18);
+  escalaRed = modoVistaRed === "completa"
+    ? Math.min(1, anchoDisponible / dimensionesRed.ancho, altoDisponible / dimensionesRed.alto)
+    : Math.min(1, Math.max(0.62, anchoDisponible / dimensionesRed.ancho));
   aplicarEscalaRed();
   elementos.red.scrollTo({ left: 0, top: 0, behavior: "smooth" });
 }
 
+function restablecerEscalaRed() {
+  modoVistaRed = "lectura";
+  ajustarEscalaRed();
+}
+
 function aplicarEscalaGantt() {
-  if (!svgGantt) return;
-  svgGantt.setAttribute("width", dimensionesGantt.ancho * escalaGantt);
-  svgGantt.setAttribute("height", dimensionesGantt.alto * escalaGantt);
-  elementos.escalaGanttTexto.textContent = Math.round(escalaGantt * 100) + "%";
+  if (solucionActual && programaGantt) dibujarGantt(solucionActual, elementos.escenarioGantt.value, false);
 }
 
 function cambiarEscalaGantt(cambio) {
-  escalaGantt = Math.min(1.8, Math.max(0.55, escalaGantt + cambio));
+  escalaGantt = Math.min(4, Math.max(.75, escalaGantt + cambio));
   aplicarEscalaGantt();
 }
 
 function restablecerEscalaGantt() {
-  if (!svgGantt) return;
-  const anchoDisponible = Math.max(280, elementos.gantt.clientWidth - 18);
-  escalaGantt = Math.min(1, Math.max(0.55, anchoDisponible / dimensionesGantt.ancho));
-  aplicarEscalaGantt();
-  elementos.gantt.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+  if (!solucionActual || !programaGantt || document.getElementById("panel-gantt").hidden) return;
+  dibujarGantt(solucionActual, elementos.escenarioGantt.value);
+  elementos.gantt.scrollTo({ left: 0, top: 0, behavior: "instant" });
 }
 
 function enfocarActividadEnRed(nombreActividad) {
   if (!svgRed) return;
+  seleccionarActividad(nombreActividad);
   activarPestana("panel-red");
   requestAnimationFrame(() => {
     const nodo = [...svgRed.querySelectorAll("[data-nodo-actividad]")]
@@ -1984,6 +2025,7 @@ function enfocarActividadEnRed(nombreActividad) {
 
     svgRed.querySelectorAll(".nodo-enfocado").forEach(elemento => elemento.classList.remove("nodo-enfocado"));
     escalaRed = Math.max(escalaRed, .72);
+    modoVistaRed = "manual";
     aplicarEscalaRed();
     nodo.classList.add("nodo-enfocado");
 
@@ -2016,13 +2058,22 @@ function activarPestana(idPanel) {
   document.querySelectorAll(".flujo li").forEach((paso, indice) => {
     paso.classList.toggle("activo", indice === indiceFlujo);
   });
-  if (idPanel === "panel-red" && svgRed) requestAnimationFrame(restablecerEscalaRed);
-  if (idPanel === "panel-gantt" && svgGantt) requestAnimationFrame(restablecerEscalaGantt);
+  if (idPanel === "panel-red" && svgRed) requestAnimationFrame(ajustarEscalaRed);
+  if (idPanel === "panel-gantt" && programaGantt) requestAnimationFrame(restablecerEscalaGantt);
 }
 
 function presentarResultados(solucion, plazoObjetivo) {
   const rutasDetalladas = enriquecerRutas(solucion, plazoObjetivo);
   solucionActual = solucion;
+  datosPendientes = false;
+  document.getElementById("aviso-pendiente").hidden = true;
+  document.getElementById("imprimir").disabled = false;
+  document.getElementById("lista-actividades").replaceChildren(...solucion.orden.map(actividad => {
+    const opcion = document.createElement("option");
+    opcion.value = actividad.nombre;
+    opcion.label = actividad.descripcion;
+    return opcion;
+  }));
   elementos.estadoVacio.hidden = true;
   elementos.salida.hidden = false;
   activarPestana("panel-red");
@@ -2034,15 +2085,21 @@ function presentarResultados(solucion, plazoObjetivo) {
   dibujarRed(solucion);
   elementos.escenarioGantt.value = "esperado";
   elementos.escenarioGantt.disabled = elementos.tipo.value !== "pert";
+  elementos.escenarioGantt.closest("label").hidden = elementos.tipo.value !== "pert";
   dibujarGantt(solucion, "esperado");
 }
 
 function resolverFormulario() {
   try {
     elementos.mensaje.textContent = "";
+    elementos.actividades.querySelectorAll('[aria-invalid="true"]').forEach(campo => {
+      campo.removeAttribute("aria-invalid"); campo.removeAttribute("aria-describedby");
+    });
+    elementos.plazo.removeAttribute("aria-invalid");
+    elementos.plazo.removeAttribute("aria-describedby");
     const datos = leerDatos();
     const plazoObjetivo = elementos.tipo.value === "pert" && elementos.plazo.value.trim() !== ""
-      ? convertirNumero(elementos.plazo.value, "El plazo objetivo")
+      ? numeroEntrada(elementos.plazo, "El plazo objetivo")
       : null;
     const solucion = resolverProyecto(datos);
     presentarResultados(solucion, plazoObjetivo);
@@ -2060,6 +2117,7 @@ function guardarEstado() {
       version: 3,
       tipo: elementos.tipo.value,
       plazo: elementos.plazo.value,
+      unidad: unidadTiempo(),
       actividades: actividadesActuales,
       borradoresPorTipo
     };
@@ -2095,6 +2153,8 @@ function restaurarEstado() {
     };
     borradoresPorTipo[tipoAnterior] = estado.actividades;
     elementos.plazo.value = estado.plazo ?? "";
+    if (["unidades", "días", "semanas", "meses"].includes(estado.unidad)) document.getElementById("unidad-tiempo").value = estado.unidad;
+    document.getElementById("unidad-plazo").textContent = unidadTiempo();
     actualizarEncabezados();
     elementos.actividades.replaceChildren();
     estado.actividades.forEach(actividad => agregarActividad(actividad));
@@ -2137,10 +2197,14 @@ function cargarEjemplo(clave = elementos.casoEjemplo.value) {
   elementos.actividades.replaceChildren();
   elementos.mensaje.textContent = "";
   elementos.plazo.value = caso.tipo === "pert" ? String(caso.plazo ?? "") : "";
+  if (caso.unidad) {
+    document.getElementById("unidad-tiempo").value = caso.unidad;
+    document.getElementById("unidad-plazo").textContent = unidadTiempo();
+  }
   caso.actividades.forEach(actividad => agregarActividad(actividad));
   borradoresPorTipo[caso.tipo] = capturarFilasVisuales(caso.tipo);
 
-  ocultarResultados();
+  ocultarResultados(false);
   programarGuardado();
 }
 
@@ -2150,7 +2214,7 @@ function limpiarFormulario() {
   elementos.plazo.value = "";
   agregarActividad({}, true);
   elementos.mensaje.textContent = "";
-  ocultarResultados();
+  ocultarResultados(false);
   guardarEstado();
 }
 
@@ -2400,6 +2464,7 @@ function activarArrastreRed() {
 
 elementos.actividades.addEventListener("input", () => {
   elementos.mensaje.textContent = "";
+  elementos.actividades.querySelectorAll('[aria-invalid="true"]').forEach(campo => campo.removeAttribute("aria-invalid"));
   ocultarResultados();
   programarGuardado();
 });
@@ -2432,6 +2497,41 @@ document.getElementById("agregar").addEventListener("click", () => {
 document.getElementById("ejemplo").addEventListener("click", () => cargarEjemplo());
 document.getElementById("limpiar").addEventListener("click", limpiarFormulario);
 document.getElementById("resolver").addEventListener("click", resolverFormulario);
+document.getElementById("recalcular").addEventListener("click", resolverFormulario);
+document.getElementById("unidad-tiempo").addEventListener("change", () => {
+  document.getElementById("unidad-plazo").textContent = unidadTiempo();
+  document.getElementById("unidad-resumen").textContent = unidadTiempo();
+  if (solucionActual) dibujarGantt(solucionActual, elementos.escenarioGantt.value);
+  programarGuardado();
+});
+document.getElementById("ampliar-vista").addEventListener("click", evento => {
+  const ampliada = document.querySelector(".espacio-trabajo").classList.toggle("vista-ampliada");
+  evento.currentTarget.textContent = ampliada ? "Mostrar datos ↙" : "Ampliar vista ↗";
+  evento.currentTarget.setAttribute("aria-expanded", String(ampliada));
+  requestAnimationFrame(() => { ajustarEscalaRed(); restablecerEscalaGantt(); });
+});
+["mostrar-holgura", "mostrar-dependencias", "solo-criticas"].forEach(id => {
+  document.getElementById(id).addEventListener("change", aplicarEscalaGantt);
+});
+document.getElementById("busqueda-actividad").addEventListener("submit", evento => {
+  evento.preventDefault();
+  if (!solucionActual) return;
+  const consulta = document.getElementById("buscar-actividad").value.trim().toUpperCase();
+  const actividad = solucionActual.actividadesPorNombre.get(consulta) || solucionActual.orden.find(dato => consulta && dato.descripcion.toUpperCase().includes(consulta));
+  document.getElementById("estado-busqueda").textContent = actividad ? "Actividad " + actividad.nombre : "No se encontró esa actividad.";
+  if (!actividad) return;
+  seleccionarActividad(actividad.nombre);
+  if (!document.getElementById("panel-gantt").hidden) {
+    const fila = [...elementos.gantt.querySelectorAll(".gantt-fila")].find(nodo => nodo.dataset.actividad === actividad.nombre);
+    if (!fila) {
+      document.getElementById("solo-criticas").checked = false;
+      aplicarEscalaGantt();
+    }
+    const barra = [...elementos.gantt.querySelectorAll(".gantt-barra")].find(nodo => nodo.dataset.actividad === actividad.nombre);
+    barra?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" });
+    barra?.focus({ preventScroll: true });
+  } else enfocarActividadEnRed(actividad.nombre);
+});
 document.getElementById("abrir-carga").addEventListener("click", configurarDialogoCarga);
 document.getElementById("importar-datos").addEventListener("click", importarDatosPegados);
 document.getElementById("importar-csv").addEventListener("click", () => elementos.archivoCsv.click());
@@ -2440,10 +2540,14 @@ elementos.archivoCsv.addEventListener("change", importarArchivoCsv);
 elementos.escenarioGantt.addEventListener("change", () => {
   if (solucionActual) dibujarGantt(solucionActual, elementos.escenarioGantt.value);
 });
-document.getElementById("imprimir").addEventListener("click", () => window.print());
+document.getElementById("imprimir").addEventListener("click", () => { if (!datosPendientes) window.print(); });
 document.getElementById("acercar-red").addEventListener("click", () => cambiarEscalaRed(0.12));
 document.getElementById("alejar-red").addEventListener("click", () => cambiarEscalaRed(-0.12));
 document.getElementById("restablecer-red").addEventListener("click", restablecerEscalaRed);
+document.getElementById("encajar-red").addEventListener("click", () => {
+  modoVistaRed = "completa";
+  ajustarEscalaRed();
+});
 document.getElementById("acercar-gantt").addEventListener("click", () => cambiarEscalaGantt(0.12));
 document.getElementById("alejar-gantt").addEventListener("click", () => cambiarEscalaGantt(-0.12));
 document.getElementById("restablecer-gantt").addEventListener("click", restablecerEscalaGantt);
@@ -2453,7 +2557,7 @@ function abrirTeoria() {
 }
 
 document.getElementById("abrir-teoria")?.addEventListener("click", abrirTeoria);
-document.getElementById("abrir-teoria-red").addEventListener("click", abrirTeoria);
+document.getElementById("abrir-teoria-red")?.addEventListener("click", abrirTeoria);
 document.getElementById("teoria-flotante").addEventListener("click", abrirTeoria);
 elementos.dialogoTeoria.querySelectorAll("details").forEach(detalle => {
   detalle.addEventListener("toggle", () => {
@@ -2581,11 +2685,12 @@ pestanas.forEach((boton, indice) => {
 });
 window.addEventListener("resize", () => {
   if (!solucionActual) return;
-  restablecerEscalaRed();
+  ajustarEscalaRed();
   restablecerEscalaGantt();
 });
 
 activarArrastreRed();
+// El menú lateral se gestiona en assets/navegacion.js.
 actualizarEncabezados();
 const estadoRestaurado = restaurarEstado();
 actualizarCasosProyecto();

@@ -64,6 +64,7 @@ const CASOS_DECISION = {
 };
 
 function numero(valor) {
+  if (valor == null || String(valor).trim() === "") return NaN;
   const convertido = Number(String(valor ?? "").trim().replace(",", "."));
   return Number.isFinite(convertido) ? convertido : NaN;
 }
@@ -161,7 +162,8 @@ function leerDatos() {
 function validarDatos(datos, mostrar = true) {
   let error = "";
   if (datos.alternativas.length < 2 || datos.estados.length < 2) error = "Ingrese al menos dos alternativas y dos estados.";
-  else if (datos.alternativas.some(alternativa => alternativa.valores.some(valor => !Number.isFinite(valor)))) error = "Complete todos los valores de la matriz.";
+  else if (datos.alternativas.some(alternativa => alternativa.valores.length !== datos.estados.length || alternativa.valores.some(valor => !Number.isFinite(valor)))) error = "Complete todos los valores de la matriz.";
+  else if (!Number.isFinite(datos.alfa) || datos.alfa < 0 || datos.alfa > 1) error = "El optimismo debe estar entre 0 y 1.";
   else if (!datos.probabilidades) error = "Las probabilidades deben ser válidas y sumar 1 o 100 %.";
   if (mostrar) elementos.mensaje.textContent = error;
   return !error;
@@ -169,7 +171,13 @@ function validarDatos(datos, mostrar = true) {
 
 function resolver(mostrar = true) {
   const datos = leerDatos();
-  if (!validarDatos(datos, mostrar)) return false;
+  if (!validarDatos(datos, true)) {
+    ultimoResultado = null;
+    elementos.salida.hidden = true;
+    document.getElementById("imprimir").disabled = true;
+    return false;
+  }
+  document.getElementById("imprimir").disabled = false;
   elementos.mensaje.textContent = "";
   mostrarResultado(calcularDecision(datos));
   guardar();
@@ -183,7 +191,7 @@ function mostrarResultado(resultado) {
   const alternativaEsperada = resultado.alternativas[resultado.criterioEsperado.indice].nombre;
   const alternativaConsenso = resultado.alternativas[resultado.indiceConsenso].nombre;
   elementos.decisionEsperada.textContent = alternativaEsperada;
-  elementos.detalleEsperado.textContent = "alternativa recomendada bajo riesgo";
+  elementos.detalleEsperado.textContent = resultado.elegirMayor ? "mayor beneficio esperado" : "menor costo esperado";
   elementos.mejorValor.textContent = formatear(resultado.criterioEsperado.valor);
   elementos.evpi.textContent = formatear(resultado.evpi);
   elementos.consenso.textContent = `${resultado.votos} de ${resultado.criterios.length}`;
@@ -220,7 +228,7 @@ function mostrarDesarrollo(resultado) {
   });
   const indiceValor = resultado.criterioEsperado.indice;
   pasos.push(paso(String(pasos.length + 1).padStart(2, "0"), "Elegir por valor esperado", resultado.elegirMayor ? "Seleccione el valor esperado mayor." : "Seleccione el costo esperado menor.", `VE^*=${formatear(resultado.criterioEsperado.valor, 4)}\\Rightarrow A_${indiceValor + 1}`));
-  pasos.push(paso(String(pasos.length + 1).padStart(2, "0"), "Calcular información perfecta", "Primero elija el mejor resultado de cada estado y luego reste el valor esperado óptimo.", `VE_{PI}=${formatear(resultado.valorInformacionPerfecta, 4)},\\quad EVPI=${formatear(resultado.evpi, 4)}`));
+  pasos.push(paso(String(pasos.length + 1).padStart(2, "0"), "Calcular información perfecta", resultado.elegirMayor ? "Pondere el mejor beneficio de cada estado y reste el valor esperado óptimo." : "Reste el costo con información perfecta al costo esperado óptimo.", `VE_{PI}=${formatear(resultado.valorInformacionPerfecta, 4)},\\quad EVPI=${formatear(resultado.evpi, 4)}`));
   const criterioSavage = resultado.criterios.find(criterio => criterio.id === "savage");
   pasos.push(paso(String(pasos.length + 1).padStart(2, "0"), "Minimizar el arrepentimiento", "Compare el mayor arrepentimiento de cada alternativa y conserve el menor.", `\\min_i\\{${resultado.arrepentimientosMaximos.map(valor => formatear(valor, 4)).join(",") }\\}=${formatear(criterioSavage.valor, 4)}`));
   elementos.desarrollo.innerHTML = pasos.join("");
@@ -228,7 +236,7 @@ function mostrarDesarrollo(resultado) {
 }
 
 function dibujarGrafico(resultado) {
-  const ancho = 920;
+  const ancho = Math.max(760, resultado.alternativas.length * 180);
   const alto = 310;
   const margen = { izquierda: 72, derecha: 25, superior: 28, inferior: 65 };
   const anchoUtil = ancho - margen.izquierda - margen.derecha;
@@ -246,7 +254,7 @@ function dibujarGrafico(resultado) {
     const y = Math.min(ceroY, yValor);
     const altoBarra = Math.max(2, Math.abs(ceroY - yValor));
     const relleno = indice === indiceOptimo ? "url(#barra-optima)" : "url(#barra-base)";
-    return `<rect class="barra-valor" x="${x}" y="${y}" width="${anchoGrupo * .64}" height="${altoBarra}" rx="7" fill="${relleno}" aria-label="${escaparHtml(resultado.alternativas[indice].nombre)}: ${formatear(valor)}"><title>${escaparHtml(resultado.alternativas[indice].nombre)}: ${formatear(valor)}</title></rect><text x="${x + anchoGrupo * .32}" y="${valor >= 0 ? y - 8 : y + altoBarra + 15}" text-anchor="middle" fill="#51464c" font-size="11" font-weight="700">${formatear(valor)}</text><text x="${x + anchoGrupo * .32}" y="${alto - 29}" text-anchor="middle" fill="#6f656a" font-size="10">${escaparHtml(resultado.alternativas[indice].nombre).slice(0,18)}</text>`;
+    return `<rect class="barra-valor" x="${x}" y="${y}" width="${anchoGrupo * .64}" height="${altoBarra}" rx="7" fill="${relleno}" tabindex="0" aria-label="${escaparHtml(resultado.alternativas[indice].nombre)}: ${formatear(valor)}"><title>${escaparHtml(resultado.alternativas[indice].nombre)}: ${formatear(valor)}</title></rect><text x="${x + anchoGrupo * .32}" y="${valor >= 0 ? y - 8 : y + altoBarra + 15}" text-anchor="middle" fill="#51464c" font-size="13" font-weight="700">${formatear(valor)}</text><text x="${x + anchoGrupo * .32}" y="${alto - 29}" text-anchor="middle" fill="#6f656a" font-size="12">${escaparHtml(resultado.alternativas[indice].nombre.length > 21 ? resultado.alternativas[indice].nombre.slice(0,20) + "…" : resultado.alternativas[indice].nombre)}</text>`;
   }).join("");
   elementos.graficoValores.innerHTML = `<svg viewBox="0 0 ${ancho} ${alto}" role="img" aria-labelledby="titulo-grafico-ve"><title id="titulo-grafico-ve">Valor esperado por alternativa</title><defs><linearGradient id="barra-base" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8d5874"/><stop offset="1" stop-color="#5d3349"/></linearGradient><linearGradient id="barra-optima" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4d9a82"/><stop offset="1" stop-color="#286351"/></linearGradient></defs>${[0,.25,.5,.75,1].map(proporcion => { const valor = minimo + amplitud * proporcion; const y = margen.superior + (maximo - valor) / amplitud * altoUtil; return `<line x1="${margen.izquierda}" y1="${y}" x2="${ancho-margen.derecha}" y2="${y}" stroke="#e3ddd8"/><text x="${margen.izquierda-9}" y="${y+4}" text-anchor="end" fill="#80767b" font-size="10">${formatear(valor,0)}</text>`; }).join("")}<line x1="${margen.izquierda}" y1="${ceroY}" x2="${ancho-margen.derecha}" y2="${ceroY}" stroke="#695d63" stroke-width="1.5"/>${barras}</svg>`;
 }
@@ -320,6 +328,7 @@ function cargarEjemplo() {
   elementos.tipoMatriz.value = caso.tipoMatriz;
   elementos.alfa.value = String(caso.alfa);
   elementos.valorAlfa.value = caso.alfa.toFixed(2);
+  mostrarEnunciadoGuia("caso-tabla", elementos.caso.value);
   renderizarTabla();
   resolver();
 }
@@ -332,13 +341,17 @@ function limpiar() {
   elementos.problema.value = "";
   elementos.salida.hidden = true;
   elementos.mensaje.textContent = "";
-  localStorage.removeItem(CLAVE_GUARDADO);
+  ultimoResultado = null;
+  try { localStorage.removeItem(CLAVE_GUARDADO); } catch { /* El editor funciona sin almacenamiento. */ }
+  document.getElementById("caso-tabla").hidden = true;
   renderizarTabla();
   actualizarFlujo("datos");
 }
 
 function guardar() {
-  localStorage.setItem(CLAVE_GUARDADO, JSON.stringify({ caso: elementos.caso.value, problema: elementos.problema.value, tipoMatriz: elementos.tipoMatriz.value, alfa: elementos.alfa.value, estados, alternativas, probabilidades }));
+  try {
+    localStorage.setItem(CLAVE_GUARDADO, JSON.stringify({ caso: elementos.caso.value, problema: elementos.problema.value, tipoMatriz: elementos.tipoMatriz.value, alfa: elementos.alfa.value, estados, alternativas, probabilidades }));
+  } catch { /* No impedir el cálculo si el navegador bloquea el guardado. */ }
 }
 
 function restaurar() {
@@ -398,6 +411,8 @@ document.querySelectorAll(".cerrar-dialogo").forEach(boton => boton.addEventList
 document.querySelectorAll("dialog").forEach(dialogo => dialogo.addEventListener("click", evento => { if (evento.target === dialogo) dialogo.close(); }));
 document.querySelectorAll(".pestana").forEach(boton => boton.addEventListener("click", () => activarPestana(boton.dataset.panel)));
 
+Object.assign(CASOS_DECISION, window.CASOS_GUIA_DECISION);
+agregarCasosGuia(elementos.caso);
 if (!restaurar()) {
   const casoInicial = aplicarCasoDecision("rifa");
   elementos.problema.value = casoInicial.problema;
@@ -406,4 +421,5 @@ if (!restaurar()) {
   elementos.valorAlfa.value = casoInicial.alfa.toFixed(2);
 }
 renderizarTabla();
+mostrarEnunciadoGuia("caso-tabla", elementos.caso.value);
 resolver(false);

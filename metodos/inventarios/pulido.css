@@ -1,0 +1,78 @@
+/* Espacio de trabajo y gráficos: misma jerarquía que PERT–CPM, acento verde. */
+.cabecera-aplicacion { background: linear-gradient(110deg,#10283f,#203d60); }
+.cabecera-modulo { min-height: 115px; }
+.cabecera-modulo h1 { font-size: clamp(2rem,3.5vw,3rem); }
+.cabecera-modulo h1 em { display: block; margin-top: 9px; font-size: .9rem; letter-spacing: .03em; color: #377b68; }
+.espacio-trabajo { width: min(1700px,calc(100% - 48px)); grid-template-columns: minmax(370px,420px) minmax(0,1fr); gap: 22px; }
+.panel-entrada { max-height: calc(100dvh - 24px); overflow: auto; scrollbar-width: thin; }
+.descripcion-panel { font-size: .81rem; line-height: 1.6; }
+.indicador-guardado { display: none; }
+.campo { font-size: .72rem; }
+input,select { font-size: .86rem; min-height: 42px; }
+.entrada-unidad input { min-width: 0; font-variant-numeric: tabular-nums; }
+.campo small,#ayuda-mantenimiento { font-size: .73rem; line-height: 1.6; }
+#ayuda-mantenimiento { color: #316a59; }
+.selector-segmentado span { font-size: .8rem; }
+.boton { min-height: 40px; font-size: .77rem; }
+[aria-invalid="true"] { background: #fff0ec; border-color: #bc4938 !important; box-shadow: 0 0 0 2px #bc49381a; }
+.aviso-datos { margin: 0; padding: 10px 14px; border: 1px solid #b9cddc; border-radius: 9px; background: #eef5fa; color: #315c7c; font-size: .78rem; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.detalle-caso { margin: 12px 0; padding: 11px 13px; border: 1px solid #d3e1dc; border-radius: 10px; background: #f5f9f7; }
+.detalle-caso summary { cursor: pointer; font-size: .75rem; font-weight: 750; color: #315f51; }
+.detalle-caso p { font-size: .8rem; line-height: 1.7; color: #516b60; margin-bottom: 0; }
+.espacio-trabajo.vista-ampliada { grid-template-columns: minmax(0,1fr); }
+.vista-ampliada .panel-entrada { display: none; }
+.acciones-resultados { flex-wrap: wrap; }
+.resumen { gap: 10px; }
+.tarjeta-resumen { box-shadow: none; padding: 15px; min-height: 105px; }
+.tarjeta-resumen > span { font-size: .68rem; line-height: 1.5; }
+.tarjeta-resumen small { font-size: .73rem; white-space: normal; overflow: visible; }
+.recomendacion { display: block; border: 0; border-left: 3px solid #4e8e7b; border-radius: 0 8px 8px 0; background: #edf5f1; font-size: .81rem; line-height: 1.7; }
+.recomendacion::before { display: none; }
+.pestana { min-width: 0; min-height: 44px; font-size: .83rem; }
+.panel-pestana.activo { animation: entrar-inventario .24s ease-out; }
+.leyenda,.control-compacto { font-size: .74rem; }
+.grafico { min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: #91b4a9 #eff5f2; background: linear-gradient(150deg,#fff,#f4f9f7); }
+.grafico svg { min-width: 680px; min-height: 0; width: 100%; height: auto; }
+.grafico text { font-size: 12px; }
+.grafico-costos { cursor: crosshair; }
+.consulta-costos { min-height: 45px; margin: 0; padding: 12px 3px; color: #3f6659; font-size: .77rem; line-height: 1.7; font-variant-numeric: tabular-nums; }
+.lectura-grafico span { font-size: .66rem; }
+.lectura-grafico strong { font-size: .8rem; line-height: 1.6; }
+.rejilla-costos { grid-template-columns: minmax(0,1fr); gap: 15px; }
+.desglose-costos dl { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+.desglose-costos dl div { display: grid; align-content: center; padding: 13px; margin: 0; border: 1px solid #e1e9e4; border-radius: 9px; background: #f8fbfa; }
+.desglose-costos dt { font-size: .74rem; }
+.desglose-costos dd { text-align: left; font-size: 1.07rem; }
+.desglose-costos .fila-total { margin: 0; background: #173b32; }
+.resultado-simulacion span { font-size: .65rem; }
+.resultado-simulacion strong { font-size: .84rem; }
+.paso-calculo { grid-template-columns: 36px minmax(150px,.7fr) minmax(0,1.3fr); }
+.paso-calculo h3 { font-size: .86rem; }
+.paso-calculo p { font-size: .75rem; line-height: 1.6; }
+.formula { font-size: .9rem; border-left-color: #75a395; background: #f4f8f6; }
+.tabla-comparacion th { font-size: .7rem; }
+.tabla-comparacion td,.tabla-comparacion input { font-size: .8rem; }
+.dialogo { width: min(990px,calc(100% - 30px)); border-color: #bbd1d6; }
+.cabecera-dialogo { margin: -22px -22px 20px; padding: 20px 22px; border-radius: 16px 16px 0 0; background: radial-gradient(ellipse at 100% 0,#4a8b8b55,transparent 70%),linear-gradient(115deg,#10283f,#214767); }
+.cabecera-dialogo h2 { color: white; font-size: 1.4rem; }
+.cabecera-dialogo .sobretitulo { color: #e6cd8a; }
+.cabecera-dialogo .cerrar-dialogo { background: #ffffff12; color: white; border-color: #ffffff40; }
+.introduccion-guia,.contenido-guia p { font-size: .82rem; line-height: 1.7; }
+.contenido-guia small { font-size: .77rem; }
+.contenido-guia strong { font-size: .95rem; }
+.nota-guia { background: #f1f7f4; border-color: #aacabd; }
+.teoria-flotante strong { font-size: .75rem; }
+.acceso-modulos { display: flex; align-items: center; gap: 16px; justify-self: end; }
+.menu-modulos { position: relative; }
+.menu-modulos summary { list-style: none; padding: 10px 13px; border: 1px solid #ffffff40; border-radius: 10px; color: #e2eaf3; font-size: .76rem; font-weight: 700; cursor: pointer; }
+.menu-modulos summary::-webkit-details-marker { display: none; }
+.cabecera-aplicacion .menu-modulos nav { position: absolute; right: 0; top: 48px; z-index: 30; display: grid; height: auto; width: 235px; gap: 3px; padding: 9px; border: 1px solid #365673; border-radius: 13px; background: #102c46; box-shadow: 0 14px 30px #031a3955; }
+.menu-modulos nav a { padding: 11px 13px; border-radius: 7px; font-size: .8rem; }
+.menu-modulos nav a:hover,.menu-modulos nav a[aria-current] { background: #244665; color: #fff; }
+@keyframes entrar-inventario { from { opacity: .35; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (max-width:1160px) { .resumen { grid-template-columns: repeat(2,minmax(0,1fr)); } .paso-calculo { grid-template-columns: 36px 1fr; } .paso-calculo .formula { grid-column: 2; } }
+@media (max-width:900px) { .espacio-trabajo { grid-template-columns: minmax(0,1fr); } .panel-entrada { max-height: none; overflow: visible; } .cabecera-aplicacion > nav { display: none; } .cabecera-aplicacion { grid-template-columns: 1fr auto; } }
+@media (max-width:620px) { .espacio-trabajo { width: calc(100% - 22px); } .identificador-modulo { display: none; } .desglose-costos dl { grid-template-columns: repeat(2,minmax(0,1fr)); } .lectura-grafico { grid-template-columns: 1fr; } .pestana { font-size: .72rem; } .paso-calculo { grid-template-columns: 30px minmax(0,1fr); } .cabecera-dialogo { margin: -18px -18px 18px; padding: 18px; } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print { .acciones-resultados,.consulta-costos,.aviso-datos,.opciones-grafico { display: none !important; } .espacio-trabajo.vista-ampliada,.espacio-trabajo { display: block; width: 100%; } .grafico { overflow: visible; } .grafico svg { min-width: 0; max-width: 100%; } .desglose-costos dl { grid-template-columns: repeat(3,1fr); } }

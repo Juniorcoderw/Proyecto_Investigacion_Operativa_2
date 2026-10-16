@@ -27,6 +27,25 @@ function terminal(id, nombre = "Fin") {
 aplicacionPruebasArbol.addEventListener("load", () => {
   const calculadora = aplicacionPruebasArbol.contentWindow;
   const pruebas = [
+    ...[["guia-producto", 43750], ["guia-ampliacion", 104000], ["guia-proveedores", 53000]].map(([clave, esperado]) => ({
+      nombre: `árbol completo de la guía: ${clave}`,
+      ejecutar() {
+        const datos = calculadora.crearEjemploArbol(clave);
+        afirmarArbol(datos.nodos.length === 13, "Deben cargarse trece nodos");
+        casiArbol(calculadora.calcularArbol(datos).valor, esperado, "VME de la guía");
+      }
+    })),
+    {
+      nombre: "probabilidades vacías y ciclos rechazados",
+      ejecutar() {
+        afirmarArbol(calculadora.normalizarProbabilidadesNodo(["", 1]) === null, "No aceptar probabilidades vacías");
+        const datos = calculadora.crearEjemploArbol("guia-producto");
+        datos.nodos[1].ramas[0].destino = datos.raiz;
+        let fallo = false;
+        try { calculadora.calcularArbol(datos); } catch { fallo = true; }
+        afirmarArbol(fallo, "Debe detectar el ciclo");
+      }
+    },
     {
       nombre: "probabilidades decimales y porcentuales",
       ejecutar() {

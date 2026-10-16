@@ -10,6 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css">
+  <link rel="stylesheet" href="../../assets/navegacion.css?v=20261015a">
+  <script src="../../assets/navegacion.js?v=20261015a" defer></script>
+  <link rel="stylesheet" href="pulido.css?v=20261015f">
   <script>
     window.MathJax = {
       tex: { inlineMath: [["\\(", "\\)"]] },
@@ -18,7 +21,7 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
-  <script src="pert-cpm.js" defer></script>
+  <script src="pert-cpm.js?v=20261015e" defer></script>
 </head>
 <body>
   <header class="cabecera-aplicacion">
@@ -28,10 +31,10 @@
     </a>
     <nav aria-label="Navegación principal">
       <a href="../../index.html">Inicio</a>
-      <a class="activo" href="../../index.html#calculadoras">Calculadoras</a>
+      <a class="activo" href="../../index.html#metodos">Métodos</a>
       <a href="../../index.html#proyecto">El proyecto</a>
     </nav>
-    <span class="identificador-modulo">PERT <b>–</b> CPM</span>
+    <div class="acceso-modulos"><span class="identificador-modulo">PERT <b>–</b> CPM</span><span data-menu-metodos></span></div>
   </header>
 
   <section class="cabecera-modulo">
@@ -40,11 +43,6 @@
       <h1>PERT <em>–</em> CPM</h1>
       <p>Modele precedencias, identifique rutas críticas y compruebe cada cálculo del proyecto.</p>
     </div>
-    <ol class="flujo" aria-label="Flujo de trabajo">
-      <li class="activo"><span>01</span> Datos</li>
-      <li><span>02</span> Red</li>
-      <li><span>03</span> Análisis</li>
-    </ol>
   </section>
 
   <main class="espacio-trabajo">
@@ -62,8 +60,9 @@
               <option value="pert">PERT · Tres estimaciones</option>
             </select>
           </label>
+          <label for="unidad-tiempo">Unidad de tiempo<select id="unidad-tiempo" title="Etiqueta de los tiempos ingresados; cambiarla no convierte las duraciones."><option value="unidades">Unidades</option><option value="días">Días</option><option value="semanas">Semanas</option><option value="meses">Meses</option></select></label>
           <label id="grupo-plazo" for="plazo" hidden>Plazo objetivo
-            <span class="entrada-unidad"><input id="plazo" type="number" min="0" step="any" placeholder="30"><span>días</span></span>
+            <span class="entrada-unidad"><input id="plazo" type="number" min="0" step="any" placeholder="30"><span id="unidad-plazo">unidades</span></span>
           </label>
           <span class="indicador-guardado" title="Guardado automático"><i></i> Guardado local</span>
         </div>
@@ -91,7 +90,7 @@
         </table>
       </div>
 
-      <p id="mensaje" class="mensaje" role="alert" aria-live="assertive"></p>
+      <p id="mensaje" class="mensaje" role="alert" aria-live="assertive" tabindex="-1"></p>
       <div class="pie-entrada">
         <p id="estado-guardado" class="estado-guardado" aria-live="polite">Cambios guardados automáticamente.</p>
         <button id="resolver" type="button" class="boton boton-principal">Calcular proyecto <span>→</span></button>
@@ -110,12 +109,20 @@
 
       <section id="salida" class="salida" hidden>
         <div class="encabezado-resultados">
-          <div><p class="sobretitulo">Solución calculada</p><h2>Panorama del proyecto</h2></div>
-          <button id="imprimir" type="button" class="boton boton-terciario">Imprimir informe</button>
+          <div><p class="sobretitulo">Solución calculada</p><h2>Proyecto</h2></div>
+          <div class="acciones-analisis"><button id="ampliar-vista" type="button" class="boton boton-terciario" aria-expanded="false">Ampliar vista ↗</button><button id="imprimir" type="button" class="boton boton-terciario">Imprimir informe</button></div>
         </div>
 
+        <div id="aviso-pendiente" class="aviso-pendiente" role="status" hidden><span>Datos modificados. Se muestra la última solución calculada.</span><button id="recalcular" type="button">Recalcular →</button></div>
+        <div class="resumen" aria-label="Indicadores principales del proyecto">
+          <article class="tarjeta-resumen tarjeta-destacada"><span>Duración total</span><strong id="duracion">—</strong><small id="unidad-resumen">unidades de tiempo</small></article>
+          <article class="tarjeta-resumen resumen-ruta"><span>Ruta crítica</span><strong id="rutas-resumen">—</strong><small><b id="cantidad-rutas">—</b> <span id="rotulo-rutas">rutas</span> · <b id="cantidad-criticas">—</b> actividades críticas</small></article>
+          <article id="tarjeta-pert" class="tarjeta-resumen tarjeta-pert" hidden><span id="rotulo-pert">Desviación</span><strong id="valor-pert">—</strong><small id="detalle-pert">—</small></article>
+        </div>
+        <form id="busqueda-actividad" class="busqueda-actividad" role="search"><label for="buscar-actividad">Localizar actividad</label><input id="buscar-actividad" list="lista-actividades" placeholder="ID o descripción" autocomplete="off"><datalist id="lista-actividades"></datalist><button class="boton boton-terciario" type="submit">Buscar</button><span id="estado-busqueda" role="status"></span></form>
+
         <div class="navegacion-pestanas" role="tablist" aria-label="Vistas del análisis">
-          <button id="pestana-red" class="pestana activo" type="button" role="tab" aria-selected="true" aria-controls="panel-red" data-panel="panel-red"><span>◈</span> Red del proyecto</button>
+          <button id="pestana-red" class="pestana activo" type="button" role="tab" aria-label="Red del proyecto" aria-selected="true" aria-controls="panel-red" data-panel="panel-red"><span>◈</span> Red</button>
           <button id="pestana-gantt" class="pestana" type="button" role="tab" aria-selected="false" aria-controls="panel-gantt" data-panel="panel-gantt" tabindex="-1"><span>▰</span> Gantt</button>
           <button id="pestana-desarrollo" class="pestana" type="button" role="tab" aria-selected="false" aria-controls="panel-desarrollo" data-panel="panel-desarrollo" tabindex="-1"><span>∑</span> Solución</button>
         </div>
@@ -125,9 +132,8 @@
             <div class="encabezado-panel encabezado-red">
               <div><p class="sobretitulo">Actividad en el nodo · AON</p><h2 id="titulo-red">Diagrama de red</h2></div>
               <div class="acciones-red">
-                <button id="abrir-teoria-red" type="button" class="boton boton-terciario">Guía del método</button>
                 <div class="controles-red" aria-label="Controles del diagrama">
-                  <button id="alejar-red" type="button" aria-label="Alejar diagrama">−</button><button id="restablecer-red" type="button">Ajustar</button><output id="escala-red" aria-live="polite">100%</output><button id="acercar-red" type="button" aria-label="Acercar diagrama">+</button>
+                  <button id="alejar-red" type="button" aria-label="Alejar diagrama">−</button><button id="encajar-red" type="button" title="Mostrar la red completa dentro del área disponible">Ver todo</button><button id="restablecer-red" type="button" title="Restablecer una escala de lectura con desplazamiento">Lectura</button><output id="escala-red" aria-live="polite">100%</output><button id="acercar-red" type="button" aria-label="Acercar diagrama">+</button>
                 </div>
               </div>
             </div>
@@ -146,12 +152,12 @@
               <div>
                 <p class="sobretitulo">Calendario temprano</p>
                 <h2 id="titulo-gantt">Diagrama de Gantt</h2>
-                <p class="descripcion-panel">Cada escenario recalcula los inicios según sus propias duraciones.</p>
+                <p class="descripcion-panel">Seleccione una barra para consultar sus tiempos y su procedimiento.</p>
               </div>
               <div class="acciones-gantt">
                 <label class="selector-escenario" for="escenario-gantt">Escenario
                   <select id="escenario-gantt">
-                    <option value="esperado">Tiempo esperado</option>
+                    <option value="esperado">Programación base</option>
                     <option value="optimista">Optimista (a)</option>
                     <option value="probable">Más probable (m)</option>
                     <option value="pesimista">Pesimista (b)</option>
@@ -163,11 +169,14 @@
               </div>
             </div>
             <div class="resumen-gantt">
-              <span><i class="muestra-gantt critica"></i> Actividad crítica esperada</span>
+              <span><i class="muestra-gantt critica"></i> Crítica del escenario</span>
               <span><i class="muestra-gantt normal"></i> Actividad con holgura</span>
+              <span><i class="muestra-gantt holgura"></i> Margen disponible</span>
               <strong>Duración del escenario: <b id="duracion-gantt">—</b></strong>
             </div>
+            <div class="opciones-gantt"><label><input id="mostrar-holgura" type="checkbox" checked> Holguras</label><label><input id="mostrar-dependencias" type="checkbox"> Dependencias</label><label><input id="solo-criticas" type="checkbox"> Solo críticas</label><span id="detalle-escenario-gantt" role="status"></span></div>
             <div id="gantt" class="gantt" tabindex="0" aria-label="Diagrama de Gantt desplazable del proyecto"></div>
+            <div id="seleccion-gantt" class="seleccion-gantt" role="status">Seleccione una actividad para ver su inicio, fin y margen.</div>
           </section>
         </div>
 
@@ -188,12 +197,6 @@
           </section>
         </div>
 
-        <div class="resumen" aria-label="Indicadores principales del proyecto">
-          <article class="tarjeta-resumen tarjeta-destacada"><span>Duración total</span><strong id="duracion">—</strong><small>unidades de tiempo</small></article>
-          <article class="tarjeta-resumen"><span>Rutas críticas</span><strong id="cantidad-rutas">—</strong><small id="rutas-resumen">—</small></article>
-          <article class="tarjeta-resumen"><span>Act. críticas</span><strong id="cantidad-criticas">—</strong><small id="criticas">—</small></article>
-          <article id="tarjeta-pert" class="tarjeta-resumen tarjeta-pert" hidden><span id="rotulo-pert">Desviación</span><strong id="valor-pert">—</strong><small id="detalle-pert">—</small></article>
-        </div>
       </section>
     </section>
   </main>
@@ -201,7 +204,7 @@
   <footer class="pie-modulo">
     <a href="../../index.html" class="pie-modulo-marca"><img src="../../assets/institucional/logo-unjbg.png" alt=""><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
     <p>PERT–CPM · Planificación de proyectos</p>
-    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#calculadoras">Módulos</a><a href="../../index.html#equipo">Equipo</a></nav>
+    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#metodos">Métodos</a><a href="../../index.html#equipo">Equipo</a></nav>
   </footer>
 
   <button id="teoria-flotante" class="teoria-flotante" type="button" aria-label="Abrir fundamentos y modelamiento matemático de PERT CPM">
@@ -281,6 +284,7 @@
                   <div><h3>Hacia atrás: se resta</h3><p>El inicio tardío de C limita el fin tardío de B. Después se resta la duración de B.</p><strong>\(FTa_B=ITa_C=9\)</strong><strong>\(ITa_B=FTa_B-d_B=9-5=4\)</strong></div>
                 </article>
               </div>
+              <p class="formula-holgura">Holgura: \(H=ITa-IT=4-4=0\). B es crítica. Si su inicio tardío fuera 6, tendría \(H=6-4=2\) unidades de margen.</p>
             </div>
           </div>
         </details>
@@ -297,24 +301,6 @@
           </div>
         </details>
 
-        <details>
-          <summary><span>4</span><div><strong>Ejemplo de aplicación</strong><small>Un nodo resuelto paso a paso</small></div></summary>
-          <div class="contenido-seccion-teoria">
-            <section class="lectura-nodo" aria-labelledby="titulo-lectura-nodo">
-              <div class="nodo-teoria" aria-hidden="true">
-                <strong>A · Actividad</strong>
-                <span><small>Inicio temprano</small><b>4</b></span><span><small>Duración</small><b>5</b></span><span><small>Fin temprano</small><b>9</b></span>
-                <span><small>Inicio tardío</small><b>6</b></span><span><small>Holgura</small><b>2</b></span><span><small>Fin tardío</small><b>11</b></span>
-              </div>
-              <div><h3 id="titulo-lectura-nodo">Resultado del ejemplo</h3><p>La actividad comienza en 4 y termina en 9. Puede postergarse hasta comenzar en 6 y terminar en 11; por ello dispone de 2 unidades de holgura.</p></div>
-            </section>
-            <div class="reglas-teoria">
-              <article><b>1</b><div><h3>Programación temprana</h3><p>La actividad inicia cuando todas sus predecesoras han terminado. Después se suma su duración.</p><strong>\(4+5=9\)</strong></div></article>
-              <article><b>2</b><div><h3>Programación tardía</h3><p>Partiendo del fin permitido, se resta la duración para obtener el último inicio posible.</p><strong>\(11-5=6\)</strong></div></article>
-              <article><b>3</b><div><h3>Margen disponible</h3><p>Se comparan ambos inicios. La diferencia indica cuánto puede postergarse la actividad.</p><strong>\(6-4=2\)</strong></div></article>
-            </div>
-          </div>
-        </details>
       </div>
       <div class="acciones-dialogo"><button value="default" class="boton boton-principal">Cerrar</button></div>
     </form>

@@ -70,10 +70,12 @@ let ultimoResultado = null;
 let temporizadorCalculo = null;
 let listaEscenarios = [];
 let loteExplorado = null;
+let casoRestaurado = null;
 
 const CASOS_INVENTARIO = {
-  "eoq-veinteluces": { modelo: "eoq", etiqueta: "Práctica 04 · Veinteluces", producto: "Veinteluces", demanda: 1200, costoPedido: 20, costoUnitario: 2, diasLaborables: 240, tiempoEntrega: 7, mantenimiento: .30, modoMantenimiento: "unidad", moneda: "USD" },
-  "eoq-rb": { modelo: "eoq", etiqueta: "Práctica 04 · R&B Beverage", producto: "R&B Beverage Company", demanda: 3600, costoPedido: 20, costoUnitario: 3, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 25, modoMantenimiento: "porcentaje", moneda: "USD" },
+  "eoq-veinteluces": { modelo: "eoq", etiqueta: "Caso 1 · Veinteluces", producto: "Veinteluces · Focos estándar", enunciado: "Veinteluces busca determinar cuántos focos pedir y cuándo reponerlos. Demanda anual: 1,200 unidades; costo por pedido: $ 20; mantenimiento: $ 0.30 por unidad al año; precio: $ 2; 240 días laborables y entrega en 7 días. Se pide calcular el lote económico, pedidos al año, ciclo, punto de reorden y costos.", demanda: 1200, costoPedido: 20, costoUnitario: 2, diasLaborables: 240, tiempoEntrega: 7, mantenimiento: .30, modoMantenimiento: "unidad", moneda: "USD" },
+  "eoq-rb": { modelo: "eoq", etiqueta: "Caso 3 · R&B — mantenimiento 25 %", producto: "R&B Beverage · Cajas de bebidas", enunciado: "Demanda: 3,600 cajas al año; costo por pedido: $ 20; precio por caja: $ 3; mantenimiento anual: 25 % del precio; 250 días laborables y entrega en 5 días. Sin inventario de seguridad. El porcentaje equivale a $ 0.75 por caja al año. La captura de POM-QM usa 25 como importe, por lo que corresponde a la variante separada de este caso.", demanda: 3600, costoPedido: 20, costoUnitario: 3, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 25, modoMantenimiento: "porcentaje", moneda: "USD" },
+  "eoq-rb-pom": { modelo: "eoq", etiqueta: "Caso 3 · Captura POM-QM — costo $ 25", producto: "R&B Beverage · Captura POM-QM", enunciado: "Reproduce los valores de la captura: demanda 3,600; pedido $ 20; mantenimiento $ 25 por unidad al año; precio $ 3; 250 días laborables; entrega 5 días e inventario de seguridad 0. Es una variante para comparación: $ 25 por unidad no equivale a 25 % del precio.", demanda: 3600, costoPedido: 20, costoUnitario: 3, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 25, modoMantenimiento: "unidad", moneda: "USD" },
   "eoq-panda": { modelo: "eoq", etiqueta: "Práctica 04 · Panda Auto", producto: "Panda Auto", demanda: 12000, costoPedido: 25, costoUnitario: 2.50, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 20, modoMantenimiento: "porcentaje", moneda: "USD" },
   "epq-produccion": { modelo: "epq", etiqueta: "Contraste POM-QM · Producción 1", producto: "Producción por lotes", demanda: 10000, tasaProduccion: 40000, costoPedido: 100, costoUnitario: 10, diasLaborables: 250, tiempoEntrega: 2, mantenimiento: 2, modoMantenimiento: "unidad", moneda: "USD" },
   "epq-taller": { modelo: "epq", etiqueta: "Contraste POM-QM · Producción 2", producto: "Taller de componentes", demanda: 24000, tasaProduccion: 60000, costoPedido: 80, costoUnitario: 6, diasLaborables: 300, tiempoEntrega: 4, mantenimiento: 1.20, modoMantenimiento: "unidad", moneda: "USD" },
@@ -82,6 +84,7 @@ const CASOS_INVENTARIO = {
 };
 
 function numero(valor) {
+  if (String(valor ?? "").trim() === "") return NaN;
   const convertido = Number(String(valor ?? "").replace(",", "."));
   return Number.isFinite(convertido) ? convertido : NaN;
 }
@@ -145,6 +148,17 @@ function leerDatos() {
 
 function validarDatos(datos, mostrarMensaje = true) {
   const errores = [];
+  const camposObligatorios = { demanda: "demanda", costoPedido: "costo-pedido", costoUnitario: "costo-unitario", diasLaborables: "dias-laborables", tiempoEntrega: "tiempo-entrega", valorMantenimiento: "mantenimiento" };
+  if (datos.modelo === "epq") camposObligatorios.tasaProduccion = "tasa-produccion";
+  if (datos.modelo === "faltantes") camposObligatorios.costoFaltante = "costo-faltante";
+  if (datos.capacidadMaxima !== null) camposObligatorios.capacidadMaxima = "capacidad-maxima";
+  CAMPOS_NUMERICOS.forEach(id => document.getElementById(id).removeAttribute("aria-invalid"));
+  Object.entries(camposObligatorios).forEach(([clave, id]) => {
+    if (!Number.isFinite(datos[clave])) {
+      errores.push("Complete los campos numéricos con valores válidos.");
+      document.getElementById(id).setAttribute("aria-invalid", "true");
+    }
+  });
   if (!(datos.demanda > 0)) errores.push("La demanda anual debe ser mayor que cero.");
   if (datos.modelo === "epq" && !(datos.tasaProduccion > datos.demanda)) errores.push("En EPQ, la producción anual debe ser mayor que la demanda anual.");
   if (datos.modelo === "faltantes" && !(datos.costoFaltante > 0)) errores.push("El costo anual por faltante debe ser mayor que cero.");
@@ -156,6 +170,8 @@ function validarDatos(datos, mostrarMensaje = true) {
   if (!(datos.valorMantenimiento > 0)) errores.push("El mantenimiento debe ser mayor que cero.");
   if (datos.modoMantenimiento === "porcentaje" && !(datos.costoUnitario > 0)) errores.push("Para usar un porcentaje, el costo unitario debe ser mayor que cero.");
   if (!(datos.mantenimientoUnitario > 0)) errores.push("El costo anual de mantenimiento resultante debe ser mayor que cero.");
+  const reglas = [["demanda", datos.demanda > 0], ["costo-pedido", datos.costoPedido > 0], ["costo-unitario", datos.costoUnitario >= 0], ["dias-laborables", datos.diasLaborables > 0], ["tiempo-entrega", datos.tiempoEntrega >= 0], ["mantenimiento", datos.mantenimientoUnitario > 0], ["tasa-produccion", datos.modelo !== "epq" || datos.tasaProduccion > datos.demanda], ["costo-faltante", datos.modelo !== "faltantes" || datos.costoFaltante > 0], ["capacidad-maxima", datos.capacidadMaxima === null || datos.capacidadMaxima > 0]];
+  reglas.forEach(([id, valido]) => { if (!valido) document.getElementById(id).setAttribute("aria-invalid", "true"); });
   if (mostrarMensaje) elementos.mensaje.textContent = errores[0] || "";
   return errores.length === 0;
 }
@@ -292,14 +308,16 @@ function guardarFormulario() {
   const datos = {};
   new FormData(elementos.formulario).forEach((valor, clave) => { datos[clave] = valor; });
   datos.escenarios = listaEscenarios;
-  localStorage.setItem(CLAVE_GUARDADO, JSON.stringify(datos));
+  datos.casoSeleccionado = elementos.caso.value;
+  try { localStorage.setItem(CLAVE_GUARDADO, JSON.stringify(datos)); } catch { /* El cálculo no depende del almacenamiento del navegador. */ }
 }
 
 function restaurarFormulario() {
-  const guardado = localStorage.getItem(CLAVE_GUARDADO);
-  if (!guardado) return false;
   try {
+    const guardado = localStorage.getItem(CLAVE_GUARDADO);
+    if (!guardado) return false;
     const datos = JSON.parse(guardado);
+    casoRestaurado = datos.casoSeleccionado;
     Object.entries(datos).forEach(([clave, valor]) => {
       if (clave === "escenarios") return;
       const control = elementos.formulario.elements[clave];
@@ -313,7 +331,6 @@ function restaurarFormulario() {
     actualizarSimbolosMoneda();
     return true;
   } catch {
-    localStorage.removeItem(CLAVE_GUARDADO);
     return false;
   }
 }
@@ -363,6 +380,11 @@ function mostrarResultado(resultado) {
   ultimoResultado = resultado;
   elementos.estadoVacio.hidden = true;
   elementos.salida.hidden = false;
+  document.getElementById("aviso-datos").hidden = true;
+  document.getElementById("imprimir").disabled = false;
+  document.getElementById("ayuda-mantenimiento").textContent = resultado.modoMantenimiento === "porcentaje"
+    ? `${limitarDecimales(resultado.valorMantenimiento)} % × ${formatearMoneda(resultado.costoUnitario, resultado.moneda)} = ${formatearMoneda(resultado.mantenimientoUnitario, resultado.moneda)} por unidad al año.`
+    : `${formatearMoneda(resultado.mantenimientoUnitario, resultado.moneda)} por unidad al año. Este importe se usa directamente en la fórmula.`;
   elementos.tituloResultado.textContent = resultado.producto;
   const esEpq = resultado.modelo === "epq";
   const esFaltantes = resultado.modelo === "faltantes";
@@ -425,8 +447,14 @@ function mostrarResultado(resultado) {
 }
 
 function resolverFormulario(mostrarMensaje = true) {
+  clearTimeout(temporizadorCalculo);
   const datos = leerDatos();
-  if (!validarDatos(datos, mostrarMensaje)) return false;
+  if (!validarDatos(datos, mostrarMensaje)) {
+    document.getElementById("aviso-datos").hidden = !ultimoResultado;
+    document.getElementById("imprimir").disabled = true;
+    if (mostrarMensaje) elementos.formulario.querySelector('[aria-invalid="true"]')?.focus();
+    return false;
+  }
   elementos.mensaje.textContent = "";
   mostrarResultado(calcularModelo(datos));
   return true;
@@ -434,6 +462,8 @@ function resolverFormulario(mostrarMensaje = true) {
 
 function programarCalculo() {
   clearTimeout(temporizadorCalculo);
+  if (ultimoResultado) document.getElementById("aviso-datos").hidden = false;
+  document.getElementById("imprimir").disabled = true;
   guardarFormulario();
   temporizadorCalculo = setTimeout(() => resolverFormulario(false), 220);
 }
@@ -455,7 +485,15 @@ function obtenerCasoInventario(clave = elementos.caso.value) {
   return caso ? JSON.parse(JSON.stringify(caso)) : null;
 }
 
+function mostrarEnunciadoCaso() {
+  const caso = obtenerCasoInventario();
+  document.getElementById("detalle-caso").hidden = !caso?.enunciado;
+  document.getElementById("titulo-caso").textContent = "Enunciado · " + (caso?.etiqueta || "");
+  document.getElementById("enunciado-caso").textContent = caso?.enunciado || "";
+}
+
 function cargarEjemplo() {
+  clearTimeout(temporizadorCalculo);
   const caso = obtenerCasoInventario();
   if (!caso) return;
   elementos.modelo.value = caso.modelo;
@@ -475,10 +513,12 @@ function cargarEjemplo() {
   actualizarModelo();
   actualizarModoMantenimiento();
   actualizarSimbolosMoneda();
+  mostrarEnunciadoCaso();
   resolverFormulario();
 }
 
 function limpiarFormulario() {
+  clearTimeout(temporizadorCalculo);
   elementos.formulario.reset();
   CAMPOS_NUMERICOS.forEach(id => { document.getElementById(id).value = ""; });
   elementos.producto.value = "";
@@ -489,6 +529,8 @@ function limpiarFormulario() {
   elementos.mensaje.textContent = "";
   elementos.salida.hidden = true;
   elementos.estadoVacio.hidden = false;
+  document.getElementById("detalle-caso").hidden = true;
+  document.getElementById("aviso-datos").hidden = true;
   actualizarFlujo("datos");
   actualizarModelo();
   actualizarModoMantenimiento();
@@ -500,7 +542,7 @@ function lineaSvg(puntos) {
 }
 
 function dibujarGraficoInventario(resultado) {
-  const ancho = 980;
+  const ancho = Math.max(680, elementos.graficoInventario.clientWidth || 680);
   const alto = 360;
   const margen = { izquierda: 72, derecha: 30, superior: 28, inferior: 55 };
   const anchoUtil = ancho - margen.izquierda - margen.derecha;
@@ -508,8 +550,9 @@ function dibujarGraficoInventario(resultado) {
   const ciclos = Number(elementos.ciclosGrafico.value) || 3;
   const esEpq = resultado.modelo === "epq";
   const esFaltantes = resultado.modelo === "faltantes";
-  const minimoDatos = Math.min(0, esFaltantes ? -resultado.faltanteMaximo : 0, resultado.puntoReorden);
-  const maximoDatos = Math.max(resultado.inventarioMaximo, resultado.puntoReorden, 0);
+  const minimoDatos = Math.min(0, esFaltantes ? -resultado.faltanteMaximo : 0);
+  const maximoDatos = resultado.inventarioMaximo;
+  const mostrarReorden = resultado.puntoReorden >= minimoDatos && resultado.puntoReorden <= maximoDatos;
   const amplitudDatos = Math.max(1, maximoDatos - minimoDatos);
   const minimoY = minimoDatos - (esFaltantes ? amplitudDatos * .08 : 0);
   const maximoY = maximoDatos + amplitudDatos * .12;
@@ -553,11 +596,11 @@ function dibujarGraficoInventario(resultado) {
   const yReorden = escalaY(resultado.puntoReorden);
   const yCero = escalaY(0);
   const marcadores = [];
-  if (resultado.tiempoEntrega <= resultado.tiempoCiclo) {
+  if (mostrarReorden && resultado.tiempoEntrega <= resultado.tiempoCiclo && (!esEpq || resultado.tiempoEntrega <= resultado.tiempoCiclo - resultado.tiempoProduccion)) {
     for (let ciclo = 1; ciclo <= ciclos; ciclo += 1) {
       const momento = ciclo * resultado.tiempoCiclo - resultado.tiempoEntrega;
       const x = escalaX(momento);
-      marcadores.push(`<circle cx="${x}" cy="${yReorden}" r="5" fill="#bd6c3c" stroke="#fff" stroke-width="3"><title>Emitir pedido en el día ${limitarDecimales(momento)}</title></circle>`, `<line x1="${x}" y1="${yReorden}" x2="${escalaX(ciclo * resultado.tiempoCiclo)}" y2="${alto - margen.inferior + 18}" stroke="#bd6c3c" stroke-width="1.5" stroke-dasharray="5 5" opacity=".7"/>`);
+      marcadores.push(`<circle cx="${x}" cy="${yReorden}" r="5" fill="#bd6c3c" stroke="#fff" stroke-width="3"><title>Pedido en el día ${limitarDecimales(momento)}. Entrega en el día ${limitarDecimales(ciclo * resultado.tiempoCiclo)}.</title></circle>`);
     }
   }
 
@@ -571,19 +614,18 @@ function dibujarGraficoInventario(resultado) {
       <line x1="${margen.izquierda}" y1="${margen.superior}" x2="${margen.izquierda}" y2="${alto - margen.inferior}" stroke="#61756e" stroke-width="1.5"/>
       ${esFaltantes ? "" : `<path d="${lineaSvg([[margen.izquierda, yCero], ...puntos, [ancho - margen.derecha, yCero]])} Z" fill="url(#area-inventario)"/>`}
       <path d="${lineaSvg(puntos)}" fill="none" stroke="${esFaltantes ? "url(#trazo-inventario)" : "#25816b"}" stroke-width="4" stroke-linejoin="round"/>
-      <line x1="${margen.izquierda}" y1="${yReorden}" x2="${ancho - margen.derecha}" y2="${yReorden}" stroke="#bd6c3c" stroke-width="2" stroke-dasharray="8 6"/>
+      ${mostrarReorden ? `<line x1="${margen.izquierda}" y1="${yReorden}" x2="${ancho - margen.derecha}" y2="${yReorden}" stroke="#bd6c3c" stroke-width="2" stroke-dasharray="8 6"/>` : ""}
       ${marcadores.join("")}
-      <rect x="${ancho - 177}" y="${Math.min(alto - margen.inferior - 24, Math.max(8, yReorden - 24))}" width="147" height="24" rx="7" fill="#fff4ec" stroke="#e6b8a0"/>
-      <text x="${ancho - 104}" y="${Math.min(alto - margen.inferior - 8, Math.max(24, yReorden - 8))}" text-anchor="middle" fill="#9b5130" font-size="11" font-weight="700">r = ${limitarDecimales(resultado.puntoReorden)}</text>
+      ${mostrarReorden ? `<rect x="${ancho - 177}" y="${Math.min(alto - margen.inferior - 24, Math.max(8, yReorden - 24))}" width="147" height="24" rx="7" fill="#f2f7f5" stroke="#c7dcd4"/><text x="${ancho - 104}" y="${Math.min(alto - margen.inferior - 8, Math.max(24, yReorden - 8))}" text-anchor="middle" fill="#356657" font-size="12" font-weight="700">r = ${limitarDecimales(resultado.puntoReorden)}</text>` : ""}
       <text x="20" y="${margen.superior + altoUtil / 2}" transform="rotate(-90 20 ${margen.superior + altoUtil / 2})" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">${esFaltantes ? "Inventario neto" : "Inventario físico"}</text>
       <text x="${margen.izquierda + anchoUtil / 2}" y="${alto - 5}" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">Días laborables</text>
     </svg>`;
 }
 
 function dibujarGraficoCostos(resultado) {
-  const ancho = 860;
-  const alto = 344;
-  const margen = { izquierda: 75, derecha: 26, superior: 30, inferior: 54 };
+  const ancho = Math.max(680, elementos.graficoCostos.clientWidth || 680);
+  const alto = 380;
+  const margen = { izquierda: 88, derecha: 30, superior: 50, inferior: 72 };
   const anchoUtil = ancho - margen.izquierda - margen.derecha;
   const altoUtil = alto - margen.superior - margen.inferior;
   const minimoQ = resultado.loteOptimo * .25;
@@ -591,12 +633,7 @@ function dibujarGraficoCostos(resultado) {
   const esFaltantes = resultado.modelo === "faltantes";
   const muestras = Array.from({ length: 55 }, (_, indice) => {
     const q = minimoQ + (maximoQ - minimoQ) * indice / 54;
-    const ordenar = resultado.demanda / q * resultado.costoPedido;
-    const inventarioMaximo = esFaltantes ? q * resultado.costoFaltante / (resultado.mantenimientoUnitario + resultado.costoFaltante) : q * resultado.factorProduccion;
-    const faltanteMaximo = esFaltantes ? q - inventarioMaximo : 0;
-    const mantener = esFaltantes ? inventarioMaximo ** 2 / (2 * q) * resultado.mantenimientoUnitario : inventarioMaximo / 2 * resultado.mantenimientoUnitario;
-    const faltantes = esFaltantes ? faltanteMaximo ** 2 / (2 * q) * resultado.costoFaltante : 0;
-    return { q, ordenar, mantener, faltantes, total: ordenar + mantener + faltantes };
+    return { q, ...desglosarCostosLote(resultado, q) };
   });
   const maximoCosto = Math.max(...muestras.map(muestra => muestra.total)) * 1.08;
   const escalaX = q => margen.izquierda + (q - minimoQ) / (maximoQ - minimoQ) * anchoUtil;
@@ -609,6 +646,11 @@ function dibujarGraficoCostos(resultado) {
   }).join("");
   const xOptimo = escalaX(resultado.loteOptimo);
   const yOptimo = escalaY(resultado.costoRelevante);
+  const marcasQ = Array.from({ length: 6 }, (_, i) => minimoQ + (maximoQ - minimoQ) * i / 5).map(q => {
+    const x = escalaX(q);
+    if (Math.abs(x - xOptimo) < 45) return "";
+    return `<line x1="${x}" y1="${alto - margen.inferior}" x2="${x}" y2="${alto - margen.inferior + 5}" stroke="#7a9186"/><text x="${x}" y="${alto - 46}" text-anchor="middle" fill="#61796e" font-size="12">${limitarDecimales(q)}</text>`;
+  }).join("");
   const loteAlternativo = Math.min(maximoQ, Math.max(minimoQ, loteExplorado || resultado.loteOptimo));
   const costoAlternativo = costoRelevanteParaLote(resultado, loteAlternativo);
   const xAlternativo = escalaX(loteAlternativo);
@@ -616,32 +658,38 @@ function dibujarGraficoCostos(resultado) {
   const mostrarAlternativo = Math.abs(loteAlternativo - resultado.loteOptimo) > Math.max(.01, resultado.loteOptimo * .001);
 
   elementos.graficoCostos.innerHTML = `
-    <svg viewBox="0 0 ${ancho} ${alto}" role="img" aria-labelledby="titulo-grafico-costos">
+    <svg viewBox="0 0 ${ancho} ${alto}" data-min-q="${minimoQ}" data-max-q="${maximoQ}" data-margen="${margen.izquierda}" data-ancho-util="${anchoUtil}" role="img" aria-labelledby="titulo-grafico-costos">
       <title id="titulo-grafico-costos">Costo anual según el tamaño de lote</title>
       ${lineas}
+      ${marcasQ}
+      <text x="${margen.izquierda}" y="37" fill="#536760" font-size="12">${simboloMoneda(resultado.moneda)} por año · sin compra</text>
       <line x1="${margen.izquierda}" y1="${alto - margen.inferior}" x2="${ancho - margen.derecha}" y2="${alto - margen.inferior}" stroke="#61756e" stroke-width="1.5"/>
       <path d="${ruta("ordenar")}" fill="none" stroke="#bd6c3c" stroke-width="3"/>
       <path d="${ruta("mantener")}" fill="none" stroke="#25816b" stroke-width="3"/>
       ${esFaltantes ? `<path d="${ruta("faltantes")}" fill="none" stroke="#795b9f" stroke-width="3"/>` : ""}
       <path d="${ruta("total")}" fill="none" stroke="#172722" stroke-width="4"/>
       <line x1="${xOptimo}" y1="${margen.superior}" x2="${xOptimo}" y2="${alto - margen.inferior}" stroke="#e7b949" stroke-width="2" stroke-dasharray="7 5"/>
+      <line x1="${margen.izquierda}" y1="${yOptimo}" x2="${xOptimo}" y2="${yOptimo}" stroke="#617b91" stroke-width="1.5" stroke-dasharray="5 5"/>
       <circle cx="${xOptimo}" cy="${yOptimo}" r="7" fill="#e7b949" stroke="#fff" stroke-width="3"><title>Q* = ${limitarDecimales(resultado.loteOptimo)}</title></circle>
       ${mostrarAlternativo ? `<line x1="${xAlternativo}" y1="${margen.superior}" x2="${xAlternativo}" y2="${alto - margen.inferior}" stroke="#795b9f" stroke-width="2" stroke-dasharray="4 5"/><circle cx="${xAlternativo}" cy="${yAlternativo}" r="7" fill="#795b9f" stroke="#fff" stroke-width="3"><title>Lote probado ${limitarDecimales(loteAlternativo)} · Costo ${formatearMoneda(costoAlternativo, resultado.moneda)}</title></circle>` : ""}
       <text x="${xOptimo}" y="${alto - 31}" text-anchor="middle" fill="#8e651b" font-size="11" font-weight="800">Q* ${limitarDecimales(resultado.loteOptimo)}</text>
-      <g transform="translate(${margen.izquierda + 12} 15)" font-size="10" font-weight="700"><circle cx="0" cy="0" r="4" fill="#bd6c3c"/><text x="9" y="4" fill="#6c7773">Ordenar</text><circle cx="72" cy="0" r="4" fill="#25816b"/><text x="81" y="4" fill="#6c7773">Mantener</text>${esFaltantes ? `<circle cx="154" cy="0" r="4" fill="#795b9f"/><text x="163" y="4" fill="#6c7773">Faltantes</text><circle cx="232" cy="0" r="4" fill="#172722"/><text x="241" y="4" fill="#6c7773">Relevante</text>` : `<circle cx="154" cy="0" r="4" fill="#172722"/><text x="163" y="4" fill="#6c7773">Relevante</text>`}${mostrarAlternativo ? `<circle cx="${esFaltantes ? 318 : 236}" cy="0" r="4" fill="#9a7dbd"/><text x="${esFaltantes ? 327 : 245}" y="4" fill="#6c7773">Lote probado</text>` : ""}</g>
+      <g transform="translate(${margen.izquierda} 16)" font-size="12" font-weight="700"><circle cx="0" cy="0" r="4" fill="#bd6c3c"/><text x="10" y="4" fill="#6c7773">Pedidos</text><circle cx="100" cy="0" r="4" fill="#25816b"/><text x="110" y="4" fill="#6c7773">Mantenimiento</text>${esFaltantes ? `<circle cx="250" cy="0" r="4" fill="#795b9f"/><text x="260" y="4" fill="#6c7773">Faltantes</text>` : ""}<circle cx="${esFaltantes ? 355 : 265}" cy="0" r="4" fill="#172722"/><text x="${esFaltantes ? 365 : 275}" y="4" fill="#6c7773">Total del modelo</text></g>
       <text x="${margen.izquierda + anchoUtil / 2}" y="${alto - 5}" text-anchor="middle" fill="#536760" font-size="12" font-weight="700">${resultado.modelo === "epq" ? "Lote de producción Q" : "Cantidad por pedido Q"}</text>
     </svg>`;
 }
 
+function desglosarCostosLote(resultado, lote) {
+  const esFaltantes = resultado.modelo === "faltantes";
+  const inventarioMaximo = esFaltantes ? lote * resultado.costoFaltante / (resultado.mantenimientoUnitario + resultado.costoFaltante) : lote * resultado.factorProduccion;
+  const faltanteMaximo = esFaltantes ? lote - inventarioMaximo : 0;
+  const ordenar = resultado.demanda / lote * resultado.costoPedido;
+  const mantener = (esFaltantes ? inventarioMaximo ** 2 / (2 * lote) : inventarioMaximo / 2) * resultado.mantenimientoUnitario;
+  const faltantes = faltanteMaximo ** 2 / (2 * lote) * (resultado.costoFaltante || 0);
+  return { ordenar, mantener, faltantes, total: ordenar + mantener + faltantes };
+}
+
 function costoRelevanteParaLote(resultado, lote) {
-  if (resultado.modelo === "faltantes") {
-    const inventarioMaximo = lote * resultado.costoFaltante / (resultado.mantenimientoUnitario + resultado.costoFaltante);
-    const faltanteMaximo = lote - inventarioMaximo;
-    return resultado.demanda / lote * resultado.costoPedido
-      + inventarioMaximo ** 2 / (2 * lote) * resultado.mantenimientoUnitario
-      + faltanteMaximo ** 2 / (2 * lote) * resultado.costoFaltante;
-  }
-  return resultado.demanda / lote * resultado.costoPedido + lote * resultado.factorProduccion / 2 * resultado.mantenimientoUnitario;
+  return desglosarCostosLote(resultado, lote).total;
 }
 
 function configurarSimuladorLote(resultado) {
@@ -677,6 +725,12 @@ function actualizarSimulacionLote(redibujar = true) {
     elemento.classList.toggle("costo-mayor", !practicamenteOptimo);
   });
   if (redibujar) dibujarGraficoCostos(ultimoResultado);
+  const partes = desglosarCostosLote(ultimoResultado, loteExplorado);
+  mostrarConsultaCostos(loteExplorado, partes);
+}
+
+function mostrarConsultaCostos(lote, partes) {
+  document.getElementById("consulta-costos").textContent = `Lote ${limitarDecimales(lote)} · Pedidos ${formatearMoneda(partes.ordenar)} · Mantenimiento ${formatearMoneda(partes.mantener)}${ultimoResultado.modelo === "faltantes" ? " · Faltantes " + formatearMoneda(partes.faltantes) : ""} · Total ${formatearMoneda(partes.total)} al año.`;
 }
 
 function mostrarLecturaGrafico(resultado) {
@@ -890,6 +944,11 @@ function activarPestana(idPanel) {
     panel.classList.toggle("activo", activo);
   });
   actualizarFlujo(idPanel === "panel-politica" ? "politica" : "analisis");
+  requestAnimationFrame(() => {
+    if (!ultimoResultado) return;
+    if (idPanel === "panel-politica") dibujarGraficoInventario(ultimoResultado);
+    if (idPanel === "panel-costos") dibujarGraficoCostos(ultimoResultado);
+  });
 }
 
 function actualizarFlujo(paso) {
@@ -930,6 +989,42 @@ elementos.formulario.addEventListener("change", evento => {
 document.getElementById("cargar-ejemplo").addEventListener("click", cargarEjemplo);
 document.getElementById("limpiar").addEventListener("click", limpiarFormulario);
 document.getElementById("imprimir").addEventListener("click", () => window.print());
+document.getElementById("ampliar-vista").addEventListener("click", evento => {
+  const ampliada = document.querySelector(".espacio-trabajo").classList.toggle("vista-ampliada");
+  evento.currentTarget.textContent = ampliada ? "Mostrar datos ↙" : "Ampliar vista ↗";
+  evento.currentTarget.setAttribute("aria-expanded", String(ampliada));
+  activarPestana(document.querySelector(".pestana.activo").dataset.panel);
+});
+
+elementos.caso.addEventListener("change", mostrarEnunciadoCaso);
+function explorarCurvaCostos(evento) {
+  if (!ultimoResultado) return;
+  const svg = elementos.graficoCostos.querySelector("svg");
+  if (!svg) return;
+  const caja = svg.getBoundingClientRect();
+  const x = (evento.clientX - caja.left) * svg.viewBox.baseVal.width / caja.width;
+  const y = (evento.clientY - caja.top) * svg.viewBox.baseVal.height / caja.height;
+  if (y < 50 || y > svg.viewBox.baseVal.height - 72) return;
+  const proporcion = (x - Number(svg.dataset.margen)) / Number(svg.dataset.anchoUtil);
+  if (proporcion < 0 || proporcion > 1) return;
+  const lote = Number(svg.dataset.minQ) + proporcion * (Number(svg.dataset.maxQ) - Number(svg.dataset.minQ));
+  mostrarConsultaCostos(lote, desglosarCostosLote(ultimoResultado, lote));
+  if (evento.type === "click") {
+    loteExplorado = lote;
+    elementos.controlLote.value = String(lote);
+    elementos.loteAlternativo.value = String(Number(lote.toFixed(2)));
+    actualizarSimulacionLote();
+  }
+}
+elementos.graficoCostos.addEventListener("pointermove", explorarCurvaCostos);
+elementos.graficoCostos.addEventListener("click", explorarCurvaCostos);
+elementos.graficoCostos.addEventListener("pointerleave", () => { if (ultimoResultado) actualizarSimulacionLote(false); });
+window.addEventListener("resize", () => {
+  if (!ultimoResultado) return;
+  if (!document.getElementById("panel-politica").hidden) dibujarGraficoInventario(ultimoResultado);
+  if (!document.getElementById("panel-costos").hidden) dibujarGraficoCostos(ultimoResultado);
+});
+// El menú lateral se gestiona en assets/navegacion.js.
 document.getElementById("abrir-guia")?.addEventListener("click", abrirGuia);
 document.getElementById("teoria-flotante").addEventListener("click", abrirGuia);
 document.getElementById("pegar-escenarios").addEventListener("click", () => elementos.dialogoPegar.showModal());
@@ -986,9 +1081,10 @@ elementos.escenarios.addEventListener("click", evento => {
 const habiaGuardado = restaurarFormulario();
 actualizarModelo();
 actualizarCasosInventario();
-if (habiaGuardado) resolverFormulario(false);
+if (CASOS_INVENTARIO[casoRestaurado]?.modelo === elementos.modelo.value) elementos.caso.value = casoRestaurado;
 actualizarModoMantenimiento();
 actualizarSimbolosMoneda();
+if (habiaGuardado) { mostrarEnunciadoCaso(); resolverFormulario(false); }
 window.addEventListener("load", () => {
   if (ultimoResultado) renderizarLatex([elementos.desarrollo]);
 });

@@ -43,6 +43,176 @@ function ejecutarPruebas() {
   const calculadora = aplicacionPruebas.contentWindow;
   const pruebas = [
     {
+      nombre: "campos PERT legibles en paneles estrechos",
+      ejecutar() {
+        const doc = calculadora.document;
+        const muestra = doc.createElement("div");
+        muestra.dataset.metodo = "pert";
+        muestra.style.cssText = "position:fixed;left:-10000px;width:320px;visibility:hidden";
+        const contenedor = doc.createElement("div");
+        contenedor.className = "tabla-contenedor tabla-entrada";
+        const tabla = doc.createElement("table");
+        const encabezados = tabla.createTHead().insertRow();
+        ["#", "Actividad", "Descripción", "Predecesoras", "Optimista (a)", "Más probable (m)", "Pesimista (b)", "Quitar"].forEach(texto => {
+          const th = doc.createElement("th");
+          th.textContent = texto;
+          encabezados.append(th);
+        });
+        const fila = tabla.createTBody().insertRow();
+        ["1", "J", "", "D,B,E", "5", "8", "17", "×"].forEach((valor, indice) => {
+          const celda = fila.insertCell();
+          if (indice >= 4 && indice <= 6) {
+            const entrada = doc.createElement("input");
+            entrada.type = "number";
+            entrada.className = ["optimista", "probable", "pesimista"][indice - 4];
+            entrada.value = valor;
+            celda.append(entrada);
+          } else celda.textContent = valor;
+        });
+        contenedor.append(tabla);
+        muestra.append(contenedor);
+        doc.body.append(muestra);
+        try {
+          fila.querySelectorAll("input").forEach(entrada => afirmar(entrada.getBoundingClientRect().width >= 90, "Cada estimación debe tener al menos 90 px para mostrar el número y sus controles"));
+          afirmar(contenedor.clientWidth <= 320 && contenedor.scrollWidth > contenedor.clientWidth, "La tabla debe desplazarse dentro del panel, no comprimir las estimaciones");
+        } finally { muestra.remove(); }
+      }
+    },
+    {
+      nombre: "Problema 5 · tres estimaciones: coincidencia con la tabla POM-QM",
+      ejecutar() {
+        const caso = calculadora.obtenerCasoProyecto("pert-problema-5");
+        afirmar(caso.tipo === "pert" && caso.unidad === "días" && caso.plazo === 30 && caso.actividades.length === 15, "El caso debe tener 15 actividades PERT y plazo de 30 días");
+        const datos = caso.actividades.map(a => ({
+          ...crearActividad(a.nombre, 0, a.predecesoras.split(",").map(p => p.trim()).filter(Boolean)),
+          ...calculadora.calcularEstimacionPert(a.optimista, a.probable, a.pesimista)
+        }));
+        const solucion = calculadora.resolverProyecto(datos);
+        afirmarCasiIgual(solucion.duracionTotal, 34, "La duración esperada debe ser 34 días");
+        afirmar(solucion.rutas.length === 1 && solucion.rutas[0].join("-") === "A-D-J-K-N", "La ruta crítica debe ser A-D-J-K-N");
+        const varianza = solucion.rutas[0].reduce((suma, nombre) => suma + solucion.actividadesPorNombre.get(nombre).varianza, 0);
+        afirmarCasiIgual(varianza, 14, "La varianza de la ruta debe ser 14");
+        const resultados = {
+          A: [0, 6, 0, 6], B: [0, 8, 2, 10], C: [0, 5, 2, 7], D: [6, 10, 6, 10], E: [5, 8, 7, 10],
+          F: [6, 9, 11, 14], G: [5, 16, 8, 19], H: [9, 13, 14, 18], I: [10, 17, 11, 18],
+          J: [10, 19, 10, 19], K: [19, 27, 19, 27], L: [17, 26, 18, 27],
+          M: [19, 22, 83 / 3, 92 / 3], N: [27, 34, 27, 34], O: [22, 76 / 3, 92 / 3, 34]
+        };
+        Object.entries(resultados).forEach(([nombre, esperado]) => {
+          const actividad = solucion.actividadesPorNombre.get(nombre);
+          [actividad.inicioTemprano, actividad.finTemprano, actividad.inicioTardio, actividad.finTardio].forEach((valor, i) => afirmarCasiIgual(valor, esperado[i], "Tiempo " + i + " de " + nombre));
+        });
+      }
+    },
+    {
+      nombre: "Problema 4 · construcción de una casa: datos y ruta crítica",
+      ejecutar() {
+        const caso = calculadora.obtenerCasoProyecto("cpm-casa-problema-4");
+        afirmar(caso.unidad === "días" && caso.actividades.length === 14, "Deben conservarse las 14 actividades en días");
+        const datos = caso.actividades.map(a => crearActividad(a.nombre, a.duracion, a.predecesoras.split(",").map(p => p.trim()).filter(Boolean)));
+        const solucion = calculadora.resolverProyecto(datos);
+        afirmarCasiIgual(solucion.duracionTotal, 35, "La construcción debe durar 35 días");
+        afirmar(solucion.rutas.length === 1 && solucion.rutas[0].join("-") === "A-B-F-I-L-N", "La ruta crítica debe ser A-B-F-I-L-N");
+        caso.actividades[0].duracion = 999;
+        afirmar(calculadora.obtenerCasoProyecto("cpm-casa-problema-4").actividades[0].duracion === 6, "Cargar el caso debe entregar una copia independiente");
+      }
+    },
+    {
+      nombre: "disposición de redes: sin cuadros superpuestos ni conexiones que atraviesen actividades",
+      ejecutar() {
+        const caso = calculadora.obtenerCasoProyecto("cpm-casa-problema-4");
+        const casa = caso.actividades.map(a => crearActividad(a.nombre, a.duracion, a.predecesoras.split(",").map(p => p.trim()).filter(Boolean)));
+        const densa = [
+          ["A", []], ["B", []], ["C", []], ["D", ["A"]], ["E", ["C"]],
+          ["F", ["A"]], ["G", ["C"]], ["I", ["A"]], ["H", ["D", "E"]],
+          ["J", ["F", "G", "H"]], ["K", ["F", "G", "H"]], ["L", ["F", "G", "H"]],
+          ["M", ["F", "G", "H"]], ["N", ["I", "K"]], ["O", ["N", "L"]],
+          ["P", ["I", "K"]], ["Q", ["J", "M", "O"]], ["R", ["N", "L"]]
+        ].map(([nombre, predecesoras]) => crearActividad(nombre, 2, predecesoras));
+        [casa, densa, [crearActividad("A", 0)]].forEach(datos => {
+          const solucion = calculadora.resolverProyecto(datos);
+          const red = calculadora.calcularDisposicionRed(solucion);
+          const cuadros = [...solucion.orden.map(a => a.nombre), "__INICIO__", "__FIN__"].map(nombre => ({
+            nombre, ...red.posiciones.get(nombre), ancho: nombre.startsWith("__") ? 104 : 252, alto: nombre.startsWith("__") ? 52 : 138
+          }));
+          cuadros.forEach((a, i) => {
+            afirmar(a.x >= 0 && a.y >= 0 && a.x + a.ancho <= red.ancho && a.y + a.alto <= red.alto, "El cuadro " + a.nombre + " debe quedar dentro del lienzo");
+            cuadros.slice(i + 1).forEach(b => afirmar(!(a.x < b.x + b.ancho && a.x + a.ancho > b.x && a.y < b.y + b.alto && a.y + a.alto > b.y), "Se superponen " + a.nombre + " y " + b.nombre));
+          });
+          const cantidadEsperada = datos.reduce((suma, a) => suma + a.predecesoras.length + Number(!a.predecesoras.length) + Number(!solucion.sucesoras.get(a.nombre).length), 0);
+          afirmar(red.conexiones.length === cantidadEsperada, "No deben perderse precedencias ni conexiones de Inicio/Fin");
+          red.conexiones.forEach(conexion => conexion.puntos.slice(1).forEach((b, indice) => {
+            const a = conexion.puntos[indice];
+            afirmar(Number.isFinite(a.x) && Number.isFinite(a.y), "Las coordenadas deben ser finitas");
+            afirmar(a.x === b.x || a.y === b.y, "Cada tramo debe ser ortogonal");
+            afirmar(b.x >= a.x, "Las conexiones deben avanzar hacia la derecha");
+            cuadros.forEach(cuadro => {
+              const cruza = a.y === b.y
+                ? a.y > cuadro.y + .01 && a.y < cuadro.y + cuadro.alto - .01 && Math.max(a.x, b.x) > cuadro.x + .01 && Math.min(a.x, b.x) < cuadro.x + cuadro.ancho - .01
+                : a.x > cuadro.x + .01 && a.x < cuadro.x + cuadro.ancho - .01 && Math.max(a.y, b.y) > cuadro.y + .01 && Math.min(a.y, b.y) < cuadro.y + cuadro.alto - .01;
+              afirmar(!cruza, conexion.origen + " → " + conexion.destino + " atraviesa " + cuadro.nombre);
+            });
+          }));
+          afirmarCasiIgual(solucion.duracionTotal, calculadora.resolverProyecto(datos).duracionTotal, "La disposición no debe modificar el cálculo");
+        });
+      }
+    },
+    {
+      nombre: "precisión decimal en fórmulas con varias predecesoras",
+      ejecutar() {
+        const a = crearActividad("A", 7 / 3);
+        const b = crearActividad("B", 14 / 3);
+        const c = crearActividad("C", 1, ["A", "B"]);
+        // El desarrollo también debe poder probarse si el usuario dejó activo PERT.
+        [a, b, c].forEach(actividad => {
+          actividad.tiempos = {
+            optimista: actividad.duracion,
+            probable: actividad.duracion,
+            pesimista: actividad.duracion
+          };
+        });
+        const solucion = calculadora.resolverProyecto([a, b, c]);
+        calculadora.presentarDesarrollo(solucion, [], null);
+        const texto = calculadora.document.getElementById("desarrollo").textContent;
+        afirmar(texto.includes("2.3333") && texto.includes("4.6667"), "Las sustituciones deben conservar cuatro decimales sin depender del orden");
+      }
+    },
+    {
+      nombre: "criticidad recalculada al cambiar escenario PERT",
+      ejecutar() {
+        const b = crearActividad("B", 5, ["A"]);
+        b.tiempos = { optimista: 1, probable: 5, pesimista: 9 };
+        const c = crearActividad("C", 4, ["A"]);
+        c.tiempos = { optimista: 4, probable: 4, pesimista: 4 };
+        const solucion = calculadora.resolverProyecto([crearActividad("A", 1), b, c, crearActividad("D", 1, ["B", "C"])]);
+        const escenario = calculadora.calcularEscenarioGantt(solucion, "optimista");
+        afirmar(solucion.actividadesPorNombre.get("B").critica, "B es crítica en la programación base");
+        afirmar(!escenario.solucion.actividadesPorNombre.get("B").critica, "B no debe conservar la criticidad en el escenario optimista");
+        afirmar(escenario.solucion.actividadesPorNombre.get("C").critica, "C pasa a ser crítica en el escenario optimista");
+        afirmarCasiIgual(escenario.duracionTotal, 6, "El escenario debe durar 6");
+        afirmarCasiIgual(solucion.duracionTotal, 7, "La programación original no debe modificarse");
+      }
+    },
+    {
+      nombre: "actividades de duración cero",
+      ejecutar() {
+        const solucion = calculadora.resolverProyecto([crearActividad("A", 0), crearActividad("B", 0, ["A"])]);
+        afirmarCasiIgual(solucion.duracionTotal, 0, "Los hitos no deben agregar tiempo");
+        afirmar(solucion.rutas[0].join("-") === "A-B", "La ruta debe incluir los hitos");
+      }
+    },
+    {
+      nombre: "entrada decimal y rechazo de valores no finitos",
+      ejecutar() {
+        afirmarCasiIgual(calculadora.convertirNumero("2,5", "Duración"), 2.5, "Debe aceptar coma decimal");
+        ["-1", "Infinity", "abc", ""].forEach(valor => {
+          let rechazado = false;
+          try { calculadora.convertirNumero(valor, "Duración"); } catch { rechazado = true; }
+          afirmar(rechazado, "Debe rechazar " + valor);
+        });
+      }
+    },
+    {
       nombre: "estimación PERT y varianza",
       ejecutar() {
         const estimacion = calculadora.calcularEstimacionPert(2, 4, 6);

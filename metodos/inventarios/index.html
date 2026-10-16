@@ -10,6 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css">
+  <link rel="stylesheet" href="../../assets/navegacion.css?v=20261015a">
+  <script src="../../assets/navegacion.js?v=20261015a" defer></script>
+  <link rel="stylesheet" href="pulido.css?v=20261015b">
   <script>
     window.MathJax = {
       tex: { inlineMath: [["\\(", "\\)"]] },
@@ -18,7 +21,7 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
-  <script src="inventarios.js" defer></script>
+  <script src="inventarios.js?v=20261015c" defer></script>
 </head>
 <body>
   <header class="cabecera-aplicacion">
@@ -28,10 +31,10 @@
     </a>
     <nav aria-label="Navegación principal">
       <a href="../../index.html">Inicio</a>
-      <a class="activo" href="../../index.html#calculadoras">Calculadoras</a>
+      <a class="activo" href="../../index.html#metodos">Métodos</a>
       <a href="../../index.html#proyecto">El proyecto</a>
     </nav>
-    <span class="identificador-modulo">INVENTARIOS <b>·</b> 3 MODELOS</span>
+    <div class="acceso-modulos"><span class="identificador-modulo">INVENTARIOS</span><span data-menu-metodos></span></div>
   </header>
 
   <section class="cabecera-modulo">
@@ -40,11 +43,6 @@
       <h1>INVENTARIOS <em>EOQ · EPQ · FALTANTES</em></h1>
       <p>Determine cuánto pedir o producir, cuándo iniciar y cuánto cuesta la política.</p>
     </div>
-    <ol class="flujo" aria-label="Flujo de trabajo">
-      <li class="activo" data-paso="datos"><span>01</span> Datos</li>
-      <li data-paso="politica"><span>02</span> Política</li>
-      <li data-paso="analisis"><span>03</span> Análisis</li>
-    </ol>
   </section>
 
   <main class="espacio-trabajo">
@@ -61,9 +59,9 @@
       <form id="formulario-inventario" novalidate>
         <label class="campo campo-completo" for="modelo">Modelo
           <select id="modelo" name="modelo">
-            <option value="eoq">EOQ · Demanda constante</option>
-            <option value="epq">EPQ · Producción gradual</option>
-            <option value="faltantes">EOQ · Faltantes planificados</option>
+            <option value="eoq">Pedido económico (EOQ)</option>
+            <option value="epq">Producción económica (EPQ)</option>
+            <option value="faltantes">Pedido con faltantes planificados</option>
           </select>
         </label>
 
@@ -105,6 +103,7 @@
           <label class="campo" for="caso-inventario">Caso precargado<select id="caso-inventario"></select></label>
           <button id="cargar-ejemplo" class="boton boton-secundario" type="button">Cargar</button>
         </div>
+        <details id="detalle-caso" class="detalle-caso" hidden><summary id="titulo-caso">Enunciado del caso</summary><p id="enunciado-caso"></p></details>
         <div class="acciones-formulario">
           <button id="limpiar" class="boton boton-terciario boton-peligro" type="button">Limpiar</button>
         </div>
@@ -124,9 +123,11 @@
         <div class="encabezado-resultados">
           <div><p class="sobretitulo">Política recomendada</p><h2 id="titulo-resultado">Resultado del inventario</h2></div>
           <div class="acciones-resultados">
+            <button id="ampliar-vista" class="boton boton-terciario" type="button" aria-expanded="false">Ampliar vista ↗</button>
             <button id="imprimir" class="boton boton-terciario" type="button">Imprimir informe</button>
           </div>
         </div>
+        <p id="aviso-datos" class="aviso-datos" role="status" hidden>Datos pendientes de corregir. Se conserva la última solución calculada.</p>
 
         <div class="resumen" aria-label="Indicadores principales">
           <article class="tarjeta-resumen tarjeta-destacada"><span id="rotulo-lote">Cantidad económica <i>Q*</i></span><strong id="lote-optimo">—</strong><small id="detalle-lote">unidades por pedido</small></article>
@@ -172,6 +173,7 @@
             <section class="panel panel-grafico">
               <div class="encabezado-panel"><div><p class="sobretitulo">Curva económica</p><h2>Equilibrio de costos</h2></div><span class="sello-optimo">Mínimo en Q*</span></div>
               <div id="grafico-costos" class="grafico grafico-costos" role="img" aria-label="Curvas anuales de pedido, mantenimiento y costo relevante"></div>
+              <p id="consulta-costos" class="consulta-costos">Mueva el cursor por la curva para consultar costos; pulse para probar ese lote.</p>
               <section class="simulador-lote" aria-labelledby="titulo-simulador">
                 <div class="encabezado-simulador"><div><span>Comparación</span><h3 id="titulo-simulador">Probar otro tamaño de lote</h3></div><label for="lote-alternativo">Lote propuesto <span class="entrada-unidad"><input id="lote-alternativo" type="number" min="1" step="1"><span>unid.</span></span></label></div>
                 <input id="control-lote" class="control-rango" type="range" min="1" max="100" value="50" aria-label="Modificar lote alternativo">
@@ -185,8 +187,8 @@
             <section class="panel desglose-costos" aria-labelledby="titulo-desglose">
               <div><p class="sobretitulo">Costo anual</p><h2 id="titulo-desglose">Desglose</h2></div>
               <dl>
-                <div><dt>Pedidos al año <i>CP</i></dt><dd id="costo-ordenar">—</dd></div>
-                <div><dt>Retención al año <i>CR</i></dt><dd id="costo-mantener">—</dd></div>
+                <div><dt>Costo de pedidos <i>CP</i></dt><dd id="costo-ordenar">—</dd></div>
+                <div><dt>Costo de mantenimiento <i>CR</i></dt><dd id="costo-mantener">—</dd></div>
                 <div id="fila-costo-faltantes" hidden><dt>Faltantes al año <i>CF</i></dt><dd id="costo-faltantes">—</dd></div>
                 <div class="fila-relevante"><dt id="rotulo-costo-relevante">Costo anual del modelo <i>CT</i></dt><dd id="costo-relevante">—</dd></div>
                 <div><dt>Compra anual <i>CA</i></dt><dd id="costo-adquisicion">—</dd></div>
@@ -225,7 +227,7 @@
   <footer class="pie-modulo">
     <a href="../../index.html" class="pie-modulo-marca"><img src="../../assets/institucional/logo-unjbg.png" alt=""><span><strong>Investigación Operativa II</strong><small>Ingeniería en Informática y Sistemas</small></span></a>
     <p>Inventarios · EOQ, EPQ y faltantes</p>
-    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#calculadoras">Módulos</a><a href="../../index.html#equipo">Equipo</a></nav>
+    <nav aria-label="Enlaces del pie"><a href="../../index.html">Inicio</a><a href="../../index.html#metodos">Métodos</a><a href="../../index.html#equipo">Equipo</a></nav>
   </footer>
 
   <button id="teoria-flotante" class="teoria-flotante" type="button" aria-label="Abrir teoría y símbolos de inventarios">
@@ -234,8 +236,8 @@
   </button>
 
   <dialog id="dialogo-guia" class="dialogo">
-    <div class="cabecera-dialogo"><div><p class="sobretitulo">Modelos de inventario</p><h2>Teoría y notación</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div>
-    <p class="introduccion-guia">EOQ supone reposición instantánea; EPQ representa ingreso gradual y el modelo con faltantes permite pedidos pendientes que se atienden en la siguiente reposición.</p>
+    <div class="cabecera-dialogo"><div><p class="sobretitulo">Fundamentos y modelo matemático</p><h2>Inventarios: guía del método</h2></div><button class="cerrar-dialogo" type="button" aria-label="Cerrar">×</button></div>
+    <p class="introduccion-guia">El pedido económico (EOQ) recibe el lote completo de una vez. La producción económica (EPQ) incorpora las unidades a medida que se fabrican. El modelo con faltantes admite pedidos pendientes que se atienden en la siguiente reposición.</p>
     <div class="contenido-guia">
       <div class="preguntas-eoq">
         <article><span>a</span><div><small>Cantidad económica de pedido</small><strong>\(Q^*=\sqrt{\frac{2DC_o}{C_h}}\)</strong><p>Equilibra el costo anual de pedidos y el costo anual de retención.</p></div></article>
@@ -248,6 +250,7 @@
       <section class="bloque-guia"><h3>Diccionario de símbolos</h3><div class="diccionario-simbolos">
         <p><b>D</b><span>Demanda anual</span></p><p><b>P</b><span>Tasa anual de producción</span></p><p><b>C<sub>o</sub></b><span>Costo de ordenar o preparar</span></p><p><b>C<sub>h</sub></b><span>Costo anual de retención por unidad</span></p><p><b>C<sub>s</sub></b><span>Costo anual por unidad faltante</span></p><p><b>C</b><span>Costo unitario</span></p><p><b>I</b><span>Tasa anual de mantenimiento</span></p><p><b>m</b><span>Tiempo de entrega o preparación</span></p><p><b>d</b><span>Demanda diaria</span></p><p><b>d<sub>a</sub></b><span>Días laborables al año</span></p><p><b>N</b><span>Número de ciclos por año</span></p><p><b>T</b><span>Tiempo entre ciclos</span></p><p><b>r</b><span>Punto de reorden</span></p><p><b>Q*</b><span>Lote económico</span></p><p><b>I<sub>max</sub></b><span>Inventario máximo</span></p><p><b>B*</b><span>Faltante máximo planificado</span></p><p><b>C<sub>máx</sub></b><span>Capacidad máxima disponible</span></p>
       </div></section>
+      <section class="bloque-guia"><h3>Porcentaje o costo por unidad</h3><p>Si el mantenimiento es 25 % del precio y cada unidad cuesta $ 3, entonces Cₕ = 0.25 × 3 = $ 0.75 por unidad al año. Ingresar 25 como importe por unidad significa Cₕ = $ 25, no 25 %. Para comparar con POM-QM deben coincidir tanto el valor como la unidad del campo.</p></section>
       <section class="bloque-guia"><h3>Supuestos para usar EOQ básico</h3><ul><li>Demanda conocida y constante.</li><li>Tiempo de entrega constante.</li><li>Reposición completa del lote.</li><li>Sin faltantes ni descuentos por cantidad.</li></ul></section>
       <section class="bloque-guia"><h3>Supuestos adicionales de EPQ</h3><ul><li>Producción y demanda constantes.</li><li>La tasa de producción es mayor que la demanda.</li><li>El lote ingresa gradualmente.</li><li>No se permiten faltantes.</li></ul></section>
       <section class="bloque-guia"><h3>Supuestos del modelo con faltantes</h3><ul><li>La demanda no atendida queda pendiente; no se pierde la venta.</li><li>La reposición es instantánea.</li><li>Demanda, entrega y costos son conocidos.</li><li>Cada unidad pendiente genera un costo anual.</li></ul></section>

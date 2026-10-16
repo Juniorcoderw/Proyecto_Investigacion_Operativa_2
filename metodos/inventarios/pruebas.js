@@ -50,6 +50,51 @@ function ejecutarPruebas() {
   const calculadora = aplicacionPruebas.contentWindow;
   const pruebas = [
     {
+      nombre: "entrega de varios ciclos no deforma el inventario físico",
+      ejecutar() {
+        const resultado = calculadora.calcularEoq(datosBase({ tiempoEntrega: 1000 }));
+        calculadora.dibujarGraficoInventario(resultado);
+        const grafico = calculadora.document.getElementById("grafico-inventario");
+        afirmar(!grafico.textContent.includes("r ="), "Un reorden superior al inventario máximo no debe dibujarse como existencia física");
+        afirmar(!grafico.innerHTML.includes("NaN"), "El gráfico debe conservar coordenadas válidas");
+      }
+    },
+    {
+      nombre: "casos 1 y 3 precargados: unidades y costos",
+      ejecutar() {
+        [["eoq-veinteluces", 400, 35, 120, 2520], ["eoq-rb", Math.sqrt(192000), 72, Math.sqrt(108000), 10800 + Math.sqrt(108000)], ["eoq-rb-pom", Math.sqrt(5760), 72, Math.sqrt(3600000), 10800 + Math.sqrt(3600000)]].forEach(([clave, q, r, costo, total]) => {
+          const caso = calculadora.obtenerCasoInventario(clave);
+          const mantenimientoUnitario = caso.modoMantenimiento === "porcentaje" ? caso.costoUnitario * caso.mantenimiento / 100 : caso.mantenimiento;
+          const resultado = calculadora.calcularEoq(datosBase({ ...caso, valorMantenimiento: caso.mantenimiento, mantenimientoUnitario }));
+          afirmarCasiIgual(resultado.loteOptimo, q, "Lote de " + clave);
+          afirmarCasiIgual(resultado.puntoReorden, r, "Reorden de " + clave);
+          afirmarCasiIgual(resultado.costoRelevante, costo, "Costo del modelo de " + clave);
+          afirmarCasiIgual(resultado.costoTotal, total, "Total con compra de " + clave);
+        });
+      }
+    },
+    {
+      nombre: "campos vacíos y no finitos no se convierten en cero",
+      ejecutar() {
+        afirmar(Number.isNaN(calculadora.numero("")), "Un campo vacío debe ser inválido");
+        afirmar(Number.isNaN(calculadora.numero("Infinity")), "No debe aceptarse infinito");
+        afirmar(!calculadora.validarDatos(datosBase({ costoUnitario: NaN }), false), "El precio vacío debe impedir mostrar una nueva solución");
+        afirmar(!calculadora.validarDatos(datosBase({ tiempoEntrega: NaN }), false), "La entrega vacía no es cero días");
+      }
+    },
+    {
+      nombre: "gráfico y simulador comparten el desglose de costos",
+      ejecutar() {
+        [calculadora.calcularEoq(datosBase()), calculadora.calcularEpq(datosBase({ modelo: "epq", tasaProduccion: 10000 })), calculadora.calcularEoqFaltantes(datosBase({ modelo: "faltantes", costoFaltante: 4 }))].forEach(resultado => {
+          const partes = calculadora.desglosarCostosLote(resultado, resultado.loteOptimo);
+          afirmarCasiIgual(partes.ordenar, resultado.costoOrdenar, "Costo de pedidos");
+          afirmarCasiIgual(partes.mantener, resultado.costoMantener, "Costo de mantenimiento");
+          afirmarCasiIgual(partes.faltantes, resultado.costoFaltantes, "Costo de faltantes");
+          afirmarCasiIgual(partes.total, resultado.costoRelevante, "Suma de componentes");
+        });
+      }
+    },
+    {
       nombre: "EOQ de la práctica Veinteluces",
       ejecutar() {
         const resultado = calculadora.calcularEoq(datosBase({ demanda: 1200, costoPedido: 20, costoUnitario: 2, mantenimientoUnitario: .30, valorMantenimiento: .30, diasLaborables: 240, tiempoEntrega: 7 }));
