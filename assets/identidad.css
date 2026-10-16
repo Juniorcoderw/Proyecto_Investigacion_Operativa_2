@@ -1,0 +1,53 @@
+/* Identidad ESIS: relieve, luz y órbitas. Solo transform/opacity en animaciones. */
+.esis-holograma{--luz-esis:#66e5ff;position:relative;display:grid;place-items:center;isolation:isolate;aspect-ratio:1;perspective:900px;width:min(100%,420px)}
+.esis-holograma:before{content:"";position:absolute;inset:8%;border-radius:50%;background:radial-gradient(circle,#2a9ff837,transparent 67%);filter:blur(20px);z-index:-1}
+.esis-orbita{position:absolute;inset:4%;border:1px solid #6ee9ff72;border-radius:50%;box-shadow:inset 0 0 18px #2587ff20,0 0 18px #42b9ff25;transform:rotateX(65deg) rotateZ(-22deg)}
+.esis-orbita:after{content:"";position:absolute;width:7px;height:7px;top:13%;left:13%;border-radius:50%;background:#b6f7ff;box-shadow:0 0 15px 3px #4bdcff}
+.esis-orbita-dos{inset:0%;border-color:#d6b86455;transform:rotateY(65deg) rotateZ(28deg)}
+.esis-orbita-tres{inset:12%;border-style:dashed;border-color:#6de3ff35;transform:rotateX(18deg) rotateY(-24deg)}
+.esis-emblema{position:relative;width:78%;transform-style:preserve-3d;transform:rotateX(5deg) rotateY(-10deg);filter:drop-shadow(2px 3px 0 #10375b) drop-shadow(0 0 12px #41bfff75)}
+.esis-emblema img{display:block;width:100%;height:auto;filter:brightness(2.3) saturate(.65);user-select:none;-webkit-user-drag:none}
+.esis-plataforma{position:absolute;left:12%;right:12%;height:13%;bottom:0;border-radius:50%;border:1px solid #7be5ff88;background:radial-gradient(ellipse,#1d8be62b,transparent 66%);box-shadow:0 0 24px #1c8aff40,inset 0 0 20px #73d5ff20;transform:rotateX(58deg)}
+.esis-codigo{position:absolute;right:0;top:10%;font:600 9px/1.8 monospace;letter-spacing:.18em;color:#a8edff99;text-align:right}
+.visor-esis{display:grid;justify-items:center;align-content:center;min-height:420px;position:relative}
+.visor-esis .esis-holograma{width:100%;max-width:420px}
+.firma-esis{font-size:10px!important;color:#bad8e8!important;letter-spacing:.17em;text-transform:uppercase;text-align:center;margin:18px 0 0!important}
+.entrada-io{--acento-entrada:#6ae4ff;position:fixed;inset:0;z-index:10000;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 48%,#14375a 0,#091b33 40%,#040b18 90%);color:#f4fbff;transition:opacity .32s ease,visibility .32s;pointer-events:none}
+.entrada-io:before{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 43%,#3cb7ff0d 47%,transparent 51% 92%,#c0ab6320 97%,transparent);transform-origin:center}
+.entrada-io:after{content:"";position:absolute;inset:0;background:linear-gradient(#6ad6ff08 1px,transparent 1px),linear-gradient(90deg,#6ad6ff08 1px,transparent 1px);background-size:62px 62px;mask-image:radial-gradient(ellipse,black,transparent 72%)}
+.entrada-io[data-modulo=pert]{--acento-entrada:#f0c868;background:radial-gradient(ellipse at 50% 48%,#243853,#07182f 48%,#040b18)}
+.entrada-io[data-modulo=inventarios]{--acento-entrada:#6ce3b6;background:radial-gradient(ellipse at 50% 48%,#103e40,#071c29 48%,#040b18)}
+.entrada-io[data-modulo=decisiones]{--acento-entrada:#c4a1ff;background:radial-gradient(ellipse at 50% 48%,#33274c,#111a32 48%,#040b18)}
+.entrada-centro{position:relative;z-index:1;text-align:center;width:min(86vw,460px)}
+.entrada-centro .esis-holograma{width:min(57vw,270px);margin:0 auto 24px}
+.entrada-insignia{margin:0 0 12px;font:600 10px/1.6 monospace;letter-spacing:.3em;color:var(--acento-entrada)}
+.entrada-titulo{margin:0;font:700 clamp(21px,4vw,30px)/1.3 "Space Grotesk",system-ui,sans-serif;letter-spacing:-.025em}
+.entrada-subtitulo{margin:10px 0 24px;font:400 12px/1.6 "Manrope",system-ui,sans-serif;color:#c1ccda}
+.entrada-metodo{display:block;width:210px;height:38px;margin:12px auto 0;overflow:visible;color:var(--acento-entrada)}
+.entrada-metodo path{fill:none;stroke:currentColor;stroke-width:1.6}
+.entrada-metodo circle,.entrada-metodo rect{fill:#102239;stroke:currentColor;stroke-width:1.5}
+.entrada-metodo .barra-entrada{fill:currentColor;stroke:none;transform-box:fill-box;transform-origin:center bottom}
+.entrada-pista{height:2px;width:180px;max-width:60vw;margin:auto;overflow:hidden;background:#b9def225;border-radius:5px}
+.entrada-pista span{display:block;width:45%;height:100%;background:var(--acento-entrada);box-shadow:0 0 12px var(--acento-entrada);transform:translateX(-110%)}
+.entrada-io.entrada-finalizada{opacity:0;visibility:hidden}
+@media(prefers-reduced-motion:no-preference){
+ .esis-emblema{animation:esis-flotar 7s ease-in-out infinite}
+ .esis-orbita{animation:esis-orbita 16s linear infinite}
+ .esis-orbita-dos{animation:esis-orbita-dos 22s linear infinite reverse}
+ .esis-orbita-tres{animation:esis-orbita-tres 28s linear infinite}
+ .entrada-io:before{animation:esis-luz 18s linear infinite}
+ .entrada-pista span{animation:esis-carga 1.1s ease-in-out infinite}
+ .trazo-entrada{stroke-dasharray:16 7;animation:esis-flujo 1.8s linear infinite}
+ .barra-entrada{animation:esis-barras 2s ease-in-out infinite}
+ @keyframes esis-flotar{0%,100%{transform:translateY(0) rotateX(5deg) rotateY(-10deg)}50%{transform:translateY(-12px) rotateX(-3deg) rotateY(9deg)}}
+ @keyframes esis-orbita{to{transform:rotateX(65deg) rotateZ(338deg)}}
+ @keyframes esis-orbita-dos{to{transform:rotateY(65deg) rotateZ(388deg)}}
+ @keyframes esis-orbita-tres{to{transform:rotateX(18deg) rotateY(-24deg) rotateZ(360deg)}}
+ @keyframes esis-luz{to{transform:rotate(360deg)}}
+ @keyframes esis-carga{to{transform:translateX(330%)}}
+ @keyframes esis-flujo{to{stroke-dashoffset:-46}}
+ @keyframes esis-barras{0%,100%{transform:scaleY(.7);opacity:.55}50%{transform:scaleY(1);opacity:1}}
+}
+@media(max-width:900px){.visor-portada.visor-esis{display:grid;position:absolute;top:95px;right:-70px;width:340px;min-height:0;opacity:.16;z-index:0;pointer-events:none}.visor-esis .firma-esis,.visor-esis .esis-codigo{display:none}.texto-portada{position:relative;z-index:1}}
+@media(prefers-reduced-motion:reduce){.entrada-io{transition:none}.entrada-pista span{width:100%;transform:none;opacity:.6}.esis-emblema{transform:none}}
+@media print{.entrada-io,.esis-orbita,.esis-plataforma,.esis-codigo{display:none!important}}

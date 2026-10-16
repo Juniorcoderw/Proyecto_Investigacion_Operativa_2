@@ -16,6 +16,17 @@ document.getElementById('aplicacion-pruebas').addEventListener('load', () => {
     afirmar(q('cargar-ejemplo').getClientRects().length > 0 && !q('ejemplo-arbol').getClientRects().length, 'Se repite la carga');
     afirmar(!q('editar-arbol').open && !q('resolver-arbol').getClientRects().length, 'Se muestran controles duplicados');
   });
+  probar('ingreso de datos en el panel lateral compartido', () => {
+    afirmar(q('tabla-decision').closest('aside')?.classList.contains('caso-compartido'), 'La tabla no está en el lateral');
+    afirmar(q('formulario-decision').closest('aside') === q('tabla-decision').closest('aside'), 'La configuración quedó separada');
+  });
+  probar('ampliar y reducir conservan el editor y sus valores', () => {
+    const tabla = q('tabla-decision'), valor = tabla.querySelector('[data-valor]').value;
+    q('ampliar-datos-decision').click(); afirmar(q('dialogo-datos-decision').open, 'No amplía');
+    afirmar(q('dialogo-datos-decision').contains(tabla), 'Creó otra tabla');
+    q('ampliar-datos-decision').click();
+    afirmar(!q('dialogo-datos-decision').open && tabla.querySelector('[data-valor]').value === valor, 'Perdió los datos');
+  });
   for (const clave of ['guia-producto','guia-ampliacion','guia-proveedores','rifa','inversion']) probar('tabla y árbol coinciden tras una carga: ' + clave, () => {
     q('caso-decision').value = clave; app.cargarCasoUnificado(clave);
     const datos = app.leerDatos(), esperado = app.calcularDecision(datos).criterioEsperado.valor;

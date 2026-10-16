@@ -1,10 +1,18 @@
 /* Información principal primero; edición y análisis complementarios a demanda. */
-#contenido-decisiones .espacio-trabajo{grid-template-columns:minmax(0,1fr);max-width:1280px}
+#contenido-decisiones{display:grid;width:min(1580px,calc(100% - 48px));grid-template-columns:minmax(390px,.86fr) minmax(0,1.3fr);align-items:start;gap:22px;margin:0 auto 55px}
+#contenido-decisiones .espacio-trabajo{grid-template-columns:minmax(0,1fr);max-width:none;width:100%;margin:0;min-width:0}
 .cabecera-modulo{max-width:1280px;min-height:126px}
-.caso-compartido{width:min(1280px,calc(100% - 48px));margin:0 auto 18px;padding:22px 25px;box-shadow:none}
+.caso-compartido{width:100%;margin:0;padding:22px;box-shadow:none;position:sticky;top:18px;max-height:calc(100dvh - 36px);overflow:auto}
 .cabecera-caso{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .cabecera-caso h2{font-size:18px}.cabecera-caso .sello{font-size:10px}
-.datos-compartidos{display:grid;grid-template-columns:1.7fr 1fr auto;align-items:end;gap:16px}
+.datos-compartidos{display:grid;grid-template-columns:1fr;align-items:end;gap:14px}
+.caso-compartido .datos-compartidos{grid-template-columns:1fr}
+.caso-compartido>button[type=submit]{width:100%;margin-top:18px}
+.cabecera-caso .boton{font-size:11px;min-height:34px;white-space:nowrap}
+.datos-decision-ampliados{width:min(1400px,96vw);max-height:94dvh;padding:0;background:#fff}
+.datos-decision-ampliados .caso-compartido{position:static;max-height:none;overflow:visible;border:0;border-radius:0}
+.datos-decision-ampliados .datos-compartidos{grid-template-columns:1.4fr 1fr}
+.datos-decision-ampliados .panel-matriz .tabla-contenedor{max-height:54dvh}
 .datos-compartidos .boton-principal{width:auto;min-height:44px;margin:0;min-width:105px}
 .caso-compartido form{margin-top:15px;gap:10px}
 .estado-caso{margin:0;font-size:12px;color:#6b485b;line-height:1.7}.estado-caso:empty{display:none}
@@ -21,6 +29,10 @@
 .caso-compartido #imprimir{margin-right:6px}
 .resumen.resumen-decision{grid-template-columns:1.4fr 1fr}
 .panel-matriz{padding:22px}.panel-matriz .estado-probabilidades{margin-top:12px;justify-content:flex-start;gap:20px;background:#fff;border:0;padding:3px 0}
+.caso-compartido .panel-matriz{padding:20px 0 0;border:0;border-top:1px solid #e1dce0;border-radius:0;box-shadow:none;margin-top:18px}
+.caso-compartido .panel-matriz .encabezado-panel{flex-wrap:wrap;gap:12px}
+.caso-compartido .panel-matriz .tabla-contenedor{max-height:460px}
+.caso-compartido .panel-matriz .tabla-decision{min-width:570px}
 .panel-matriz .estado-probabilidades>div>strong{font-weight:500}
 .panel-matriz .estado-probabilidades small{display:none}
 .panel-matriz .tabla-decision{min-width:650px}.panel-matriz .tabla-contenedor{margin-top:15px}
@@ -38,6 +50,8 @@
 #editar-arbol .editor-arbol>.encabezado-panel{display:none}
 #editar-arbol .edicion-nodo{margin:0;border:0;padding:0}
 #editar-arbol .lista-ramas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start}
+#editar-arbol .lista-ramas{grid-template-columns:1fr}
+#editar-arbol{margin-top:18px;padding:12px 0 0;border:0;border-top:1px solid #e1dce0;border-radius:0}
 #editar-arbol .edicion-nodo>.campo{display:inline-grid;width:min(360px,100%);margin:12px 16px 12px 0}
 #editar-arbol .cabecera-edicion{margin-bottom:8px}
 .editor-arbol:not(.mostrar-copias) .seleccion-rama input,.editor-arbol:not(.mostrar-copias) .copiar-rama{display:none}
@@ -47,4 +61,6 @@
 .leyenda-arbol{margin-bottom:12px}.panel-diagrama-arbol .herramientas-grafica{margin-top:0}
 @media(max-width:1050px){.datos-compartidos{grid-template-columns:1fr 1fr}.datos-compartidos .selector-caso{grid-column:1/-1}.datos-compartidos .boton-principal{grid-column:1/-1}.caso-compartido .campo input,.caso-compartido .campo select{width:100%}}
 @media(max-width:700px){.cabecera-modulo{gap:15px}.caso-compartido{padding:18px}.cabecera-caso{align-items:start;flex-direction:column;gap:7px}.datos-compartidos{grid-template-columns:1fr;gap:12px}.resumen.resumen-decision{grid-template-columns:1fr 1fr}.resumen-decision>article:first-child{grid-column:auto}.resumen .tarjeta-resumen strong{font-size:20px}.resumen .tarjeta-resumen{padding:15px}.panel-matriz .encabezado-panel{align-items:start;flex-wrap:wrap}.panel-matriz .descripcion-panel{font-size:11px}#editar-arbol .lista-ramas{grid-template-columns:1fr}.consulta-decision{padding:11px 12px}}
+@media(max-width:900px){#contenido-decisiones{grid-template-columns:1fr}.caso-compartido{position:static;max-height:none}.datos-compartidos{grid-template-columns:1fr!important}.caso-compartido .panel-matriz .tabla-contenedor{max-height:420px}}
 @media print{.caso-compartido,.consulta-decision>summary,#editar-arbol,.vista-grafica{display:none!important}.consultas-decision{display:none}.espacio-arbol .area-analisis{display:block}.salida-arbol{margin-bottom:15px}.espacio-trabajo{max-width:none!important}.panel-matriz .consulta-decision{display:none}}
+@media print{#contenido-decisiones{display:block;width:100%;margin:0}}

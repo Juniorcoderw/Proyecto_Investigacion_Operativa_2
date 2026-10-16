@@ -39,15 +39,20 @@ function matrizDesdeArbol(datos) {
   const plegable = (titulo, ...contenido) => { const d = crear('details', 'consulta-decision'); d.append(crear('summary', '', titulo), ...contenido); return d; };
 
   // Reubicar los nodos conserva sus listeners, valores y etiquetas accesibles.
-  const comun = crear('section', 'panel caso-compartido');
+  const comun = crear('aside', 'panel caso-compartido');
   comun.setAttribute('aria-label', 'Caso de decisión compartido');
   const cabecera = crear('div', 'cabecera-caso');
-  cabecera.append(crear('h2', '', 'Caso de trabajo'));
+  const tituloCaso = crear('h2', '', 'Caso de trabajo'); tituloCaso.id = 'titulo-caso-trabajo';
+  const ampliarDatos = crear('button', 'boton boton-terciario', 'Ampliar ↗');
+  ampliarDatos.id = 'ampliar-datos-decision'; ampliarDatos.type = 'button'; ampliarDatos.setAttribute('aria-label', 'Ampliar datos');
+  ampliarDatos.setAttribute('aria-haspopup', 'dialog');
+  cabecera.append(tituloCaso, ampliarDatos);
   const formulario = elementos.formulario;
   const alfa = elementos.alfa.closest('label');
   const calcular = formulario.querySelector('[type=submit]'); calcular.textContent = 'Calcular';
   const fila = crear('div', 'datos-compartidos');
-  fila.append(formulario.querySelector('.selector-caso'), elementos.tipoMatriz.closest('label'), calcular);
+  fila.append(formulario.querySelector('.selector-caso'), elementos.tipoMatriz.closest('label'));
+  calcular.setAttribute('form', formulario.id);
   const opciones = plegable('Opciones', elementos.problema.closest('label'), formulario.querySelector('.acciones-formulario'), document.getElementById('imprimir'), document.getElementById('teoria-flotante'), document.getElementById('teoria-arbol'));
   const enunciado = document.getElementById('caso-tabla');
   const estadoProb = elementos.sumaProbabilidades.closest('.estado-probabilidades');
@@ -55,8 +60,20 @@ function matrizDesdeArbol(datos) {
   indicador.setAttribute('role', 'status'); indicador.setAttribute('aria-live', 'polite');
   formulario.replaceChildren(fila, enunciado, elementos.mensaje, indicador, opciones);
   comun.append(cabecera, formulario); document.getElementById('contenido-decisiones').prepend(comun);
+  const dialogoDatos = crear('dialog', 'dialogo datos-decision-ampliados');
+  dialogoDatos.id = 'dialogo-datos-decision'; dialogoDatos.setAttribute('aria-labelledby', tituloCaso.id);
+  document.body.append(dialogoDatos);
+  ampliarDatos.addEventListener('click', () => {
+    if (dialogoDatos.open) return dialogoDatos.close();
+    dialogoDatos.append(comun); ampliarDatos.textContent = 'Reducir ↙'; ampliarDatos.setAttribute('aria-label', 'Reducir datos'); dialogoDatos.showModal();
+  });
+  dialogoDatos.addEventListener('close', () => {
+    document.getElementById('contenido-decisiones').prepend(comun); ampliarDatos.textContent = 'Ampliar ↗'; ampliarDatos.setAttribute('aria-label', 'Ampliar datos');
+  });
   tabla.querySelector('aside').remove();
   document.querySelector('.panel-matriz').append(estadoProb);
+  const panelDatos = document.querySelector('.panel-matriz');
+  comun.append(panelDatos);
   document.querySelector('.panel-matriz .encabezado-panel').append(plegable('Editar tabla', document.querySelector('.acciones-tabla')));
   document.getElementById('titulo-matriz').textContent = 'Tabla de decisión';
   document.getElementById('titulo-resultado').closest('.encabezado-resultados').hidden = true;
@@ -75,8 +92,9 @@ function matrizDesdeArbol(datos) {
   elementos.graficoValores.dataset.herramientas = 'plegadas';
   const editor = document.querySelector('.editor-arbol');
   const editarArbol = plegable('Editar árbol · estructura y ramas', editor); editarArbol.id = 'editar-arbol';
-  vistaArbol.querySelector('.area-analisis').append(editarArbol);
-  vistaArbol.querySelector('.area-analisis').insertBefore(document.querySelector('.detalle-desarrollo'), editarArbol);
+  comun.append(editarArbol);
+  comun.append(calcular);
+  vistaArbol.querySelector('.area-analisis').append(document.querySelector('.detalle-desarrollo'));
   document.getElementById('formulario-arbol').hidden = true;
   document.getElementById('resolver-arbol').hidden = true;
   document.getElementById('imprimir-arbol').hidden = true;
@@ -113,6 +131,8 @@ function matrizDesdeArbol(datos) {
       aviso('Este árbol no corresponde a una tabla simple: puede contener decisiones sucesivas, estados o probabilidades diferentes. Se conserva completo en Árbol.'); history.replaceState(null, '', '#arboles'); return;
     }
     vistaActual = vista;
+    panelDatos.hidden = vista !== 'tablas';
+    editarArbol.hidden = vista !== 'arboles';
     botones.forEach(b => { const activo = b.dataset.vista === vista; b.setAttribute('aria-selected', String(activo)); b.tabIndex = activo ? 0 : -1; document.getElementById(`vista-${b.dataset.vista}`).hidden = !activo; });
     document.getElementById('teoria-flotante').hidden = vista !== 'tablas';
     document.getElementById('teoria-arbol').hidden = vista !== 'arboles';
@@ -132,6 +152,8 @@ function matrizDesdeArbol(datos) {
   };
   tabla.addEventListener('input', () => { marcarOrigen('tabla'); aviso(''); });
   tabla.addEventListener('click', e => { if (e.target.closest('.eliminar, #agregar-alternativa, #agregar-estado')) marcarOrigen('tabla'); });
+  panelDatos.addEventListener('input', () => { marcarOrigen('tabla'); aviso(''); });
+  panelDatos.addEventListener('click', e => { if (e.target.closest('.eliminar, #agregar-alternativa, #agregar-estado')) marcarOrigen('tabla'); });
   editor.addEventListener('input', () => { marcarOrigen('arbol'); aviso(''); });
   editor.addEventListener('change', () => { marcarOrigen('arbol'); });
   editor.addEventListener('click', e => { if (e.target.closest('#agregar-rama, #eliminar-nodo, #pegar-ramas, .eliminar-rama')) marcarOrigen('arbol'); });
