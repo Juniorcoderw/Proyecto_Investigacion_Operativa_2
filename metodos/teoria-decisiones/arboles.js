@@ -564,11 +564,11 @@ function aplicarZoom() {
 function ajustarZoom() {
   const ancho = Number(elementosArbol.lienzo.dataset.ancho || 800);
   const alto = Number(elementosArbol.lienzo.dataset.alto || 400);
-  const disponible = Math.max(320, elementosArbol.visor.clientWidth - 24);
+  const disponible = Math.max(180, elementosArbol.visor.clientWidth - 24);
   // Usar el límite del visor evita que cada ajuste encoja el lienzo anterior.
   const limiteAlto = parseFloat(getComputedStyle(elementosArbol.visor).maxHeight);
   const altoDisponible = Math.max(330, (Number.isFinite(limiteAlto) ? limiteAlto : elementosArbol.visor.clientHeight) - 24);
-  nivelZoom = Math.min(1.3, Math.max(.45, Math.min(disponible / ancho, altoDisponible / alto)));
+  nivelZoom = Math.min(1.3, Math.max(.15, Math.min(disponible / ancho, altoDisponible / alto)));
   aplicarZoom();
 }
 
@@ -770,7 +770,7 @@ elementosArbol.lienzo.addEventListener("keydown", evento => { if ((evento.key ==
 document.getElementById("resolver-arbol").addEventListener("click", () => resolverArbol(true));
 document.getElementById("ejemplo-arbol").addEventListener("click", () => { arbol = crearEjemploArbol(elementosArbol.caso.value); cargarInterfaz(); resolverArbol(false); ajustarZoom(); });
 document.getElementById("limpiar-arbol").addEventListener("click", () => { arbol = crearArbolVacio(); asegurarRamas(buscarNodo(arbol.raiz)); cargarInterfaz(); guardarArbol(); ajustarZoom(); });
-document.getElementById("alejar-arbol").addEventListener("click", () => { nivelZoom = Math.max(.4, nivelZoom - .1); aplicarZoom(); });
+document.getElementById("alejar-arbol").addEventListener("click", () => { nivelZoom = Math.max(.15, nivelZoom - .1); aplicarZoom(); });
 document.getElementById("acercar-arbol").addEventListener("click", () => { nivelZoom = Math.min(1.8, nivelZoom + .1); aplicarZoom(); });
 document.getElementById("ajustar-arbol").addEventListener("click", ajustarZoom);
 document.getElementById("imprimir-arbol").addEventListener("click", () => window.print());

@@ -1,5 +1,7 @@
 .git
 output
+tmp/pdfs
+docs/build_visual_docs.py
 docs/manual/render-word*
 docs/manual/recursos
 docs/manual/build_manual*.py

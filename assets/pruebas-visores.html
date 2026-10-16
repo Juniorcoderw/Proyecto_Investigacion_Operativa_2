@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pruebas de visores</title><link rel="stylesheet" href="visores.css"><style>body{font:14px Arial;margin:24px}.muestra{width:360px;max-width:100%;margin-bottom:24px}.grafico{overflow:auto}li{margin:8px 0}</style><script src="visores.js?v=20261016g" defer></script></head><body><h1>Pruebas de visores</h1><p id="resumen">Ejecutando</p><ol id="pruebas"></ol><section class="muestra"><div id="grafico-inventario" class="grafico"><svg viewBox="0 0 760 310"><text x="30" y="30">Inventario de prueba</text></svg></div></section><section class="muestra"><div id="grafico-costos" class="grafico"><svg viewBox="0 0 760 380"><text x="30" y="30">Costos de prueba</text></svg></div></section><section class="muestra"><div id="grafico-valores" class="grafico"><svg viewBox="0 0 760 310"><text x="30" y="30">Alternativas de prueba</text></svg></div></section><script>
+window.addEventListener('load', async () => {
+  const esperar = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  await esperar();
+  let correctas = 0;
+  const pruebas = [];
+  function verificar(nombre, condicion) { const li = document.createElement('li'); li.textContent = (condicion ? 'Correcta' : 'Fallida') + ' · ' + nombre; document.querySelector('#pruebas').append(li); pruebas.push(condicion); if(condicion) correctas++; }
+  const grafico = document.querySelector('#grafico-inventario');
+  const herramientas = grafico.previousElementSibling;
+  verificar('tres visores independientes', document.querySelectorAll('.herramientas-grafica').length === 3);
+  verificar('Ver todo cabe en el ancho disponible', grafico.scrollWidth <= grafico.clientWidth + 1);
+  const inicial = Number(grafico.dataset.escalaVisual);
+  herramientas.querySelector('[aria-label^="Acercar"]').click();
+  const manual = Number(grafico.dataset.escalaVisual);
+  verificar('acercar cambia la escala sin modificar el viewBox', manual > inicial && grafico.querySelector('svg').getAttribute('viewBox') === '0 0 760 310');
+  grafico.innerHTML = '<svg viewBox="0 0 760 310"><text x="20" y="25">Redibujado</text></svg>';
+  await esperar();
+  verificar('redibujar conserva el zoom manual', Number(grafico.dataset.escalaVisual) === manual && parseFloat(grafico.querySelector('svg').style.width) > 0);
+  herramientas.querySelector('[aria-label^="Alejar"]').click();
+  verificar('alejar reduce la escala', Number(grafico.dataset.escalaVisual) < manual);
+  herramientas.querySelector('[aria-label^="Cómo interpretar"]').click();
+  verificar('ayuda contextual accesible', document.querySelector('.ayuda-grafica-dialogo').open && document.querySelector('#titulo-ayuda-grafica').textContent === 'Evolución del inventario');
+  document.querySelector('.ayuda-grafica-dialogo').close();
+  herramientas.querySelector('[aria-label^="Ajustar"]').click();
+  verificar('restablecer no cambia el otro visor', grafico.scrollWidth <= grafico.clientWidth + 1 && document.querySelector('#grafico-costos').dataset.escalaVisual);
+  document.querySelector('#resumen').textContent = correctas + ' de ' + pruebas.length + ' pruebas superadas.';
+});
+</script></body></html>

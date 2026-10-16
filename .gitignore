@@ -1,5 +1,6 @@
 # Capturas de revisión y documentos de trabajo locales.
 /output/
+/tmp/pdfs/
 /docs/manual/render-word*/
 
 # Configuración local de despliegue y credenciales.
