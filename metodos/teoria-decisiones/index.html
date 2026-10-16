@@ -11,16 +11,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css">
   <link rel="stylesheet" href="../../assets/navegacion.css?v=20261015a">
-  <script src="../../assets/navegacion.js?v=20261015a" defer></script>
+  <script src="../../assets/navegacion.js?v=20261016d" defer></script>
   <script>
     window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" }, startup: { typeset: false } };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
-  <link rel="stylesheet" href="pulido.css?v=20261015a">
-  <script src="casos-guia.js?v=20261015a" defer></script>
-  <script src="decisiones.js?v=20261015a" defer></script>
-  <script src="arboles.js?v=20261015a" defer></script>
-  <script src="vistas.js?v=20261015a" defer></script>
+  <link rel="stylesheet" href="pulido.css?v=20261016b">
+  <script src="casos-guia.js?v=20261016a" defer></script>
+  <script src="decisiones.js?v=20261016a" defer></script>
+  <script src="arboles.js?v=20261016c" defer></script>
+  <script src="vistas.js?v=20261016a" defer></script>
 </head>
 <body>
   <header class="cabecera-aplicacion">
@@ -62,12 +62,12 @@
 
       <section id="salida" class="salida" hidden>
         <div class="encabezado-resultados"><div><p class="sobretitulo">Lectura del modelo</p><h2 id="titulo-resultado">Resultado de la decisión</h2></div><div class="acciones-resultados"><button id="imprimir" class="boton boton-terciario" type="button">Imprimir</button></div></div>
-        <div class="resumen"><article class="tarjeta-resumen tarjeta-destacada"><span>Alternativa recomendada</span><strong id="decision-esperada">—</strong><small id="detalle-esperado">—</small></article><article class="tarjeta-resumen"><span>Valor monetario esperado</span><strong id="mejor-valor">—</strong><small>según probabilidades</small></article><article class="tarjeta-resumen"><span>Información perfecta <abbr title="Valor esperado de la información perfecta">EVPI</abbr></span><strong id="evpi">—</strong><small>máximo razonable por información perfecta</small></article><article class="tarjeta-resumen"><span title="Cuenta coincidencias entre criterios; no reemplaza la decisión por valor esperado.">Coincidencia de criterios</span><strong id="consenso">—</strong><small id="detalle-consenso">—</small></article></div>
-        <div id="recomendacion" class="recomendacion"></div>
+        <div class="resumen resumen-decision"><article class="tarjeta-resumen tarjeta-destacada"><span>Alternativa recomendada</span><strong id="decision-esperada">—</strong><small id="detalle-esperado">—</small></article><article class="tarjeta-resumen"><span>Valor monetario esperado</span><strong id="mejor-valor">—</strong><small>según las probabilidades ingresadas</small></article><article class="tarjeta-resumen"><span>Información perfecta <abbr title="Valor esperado de la información perfecta">EVPI</abbr></span><strong id="evpi">—</strong><small>valor de conocer el escenario futuro</small></article></div>
 
         <div class="navegacion-pestanas" role="tablist" aria-label="Vistas del análisis"><button class="pestana activo" type="button" role="tab" aria-selected="true" data-panel="panel-criterios">Criterios</button><button class="pestana" type="button" role="tab" aria-selected="false" data-panel="panel-arrepentimiento" tabindex="-1">Arrepentimiento</button><button class="pestana" type="button" role="tab" aria-selected="false" data-panel="panel-desarrollo" tabindex="-1">Desarrollo</button></div>
 
         <div id="panel-criterios" class="panel-pestana activo" role="tabpanel">
+          <p class="coincidencia-criterios" title="Cuenta coincidencias entre criterios; no reemplaza la decisión por valor esperado.">Coincidencia de criterios: <strong id="consenso">—</strong> · <span id="detalle-consenso">—</span></p>
           <div id="tarjetas-criterios" class="tarjetas-criterios"></div>
           <section class="panel panel-grafico"><div class="encabezado-panel"><div><p class="sobretitulo">Comparación ponderada</p><h2>Valor esperado por alternativa</h2></div><span class="sello">Probabilidades activas</span></div><div id="grafico-valores" class="grafico" role="img" aria-label="Gráfico del valor esperado de cada alternativa"></div></section>
         </div>
@@ -120,9 +120,9 @@
       </section>
 
       <section id="resultado-arbol" class="salida salida-arbol" hidden>
-        <div class="resumen resumen-arbol"><article class="tarjeta-resumen tarjeta-destacada"><span>Primera decisión</span><strong id="primera-decision">—</strong><small>rama recomendada desde el inicio</small></article><article class="tarjeta-resumen"><span><abbr title="Valor monetario esperado">VME</abbr> del árbol</span><strong id="valor-arbol">—</strong><small id="detalle-valor-arbol">—</small></article><article class="tarjeta-resumen"><span>Nodos evaluados</span><strong id="nodos-evaluados">—</strong><small>resueltos de derecha a izquierda</small></article></div>
-        <div id="recomendacion-arbol" class="recomendacion"></div>
-        <section class="panel panel-desarrollo"><div class="encabezado-panel"><div><p class="sobretitulo">Retroceso verificable</p><h2>Desarrollo paso a paso</h2><p class="descripcion-panel">Primero se resuelven los nodos finales; luego se avanza hacia el origen.</p></div><button id="imprimir-arbol" class="boton boton-terciario" type="button">Imprimir</button></div><div id="desarrollo-arbol" class="desarrollo"></div></section>
+        <div class="acciones-resultado"><button id="imprimir-arbol" class="boton boton-terciario" type="button">Imprimir resultados</button></div>
+        <div class="resumen resumen-arbol"><article class="tarjeta-resumen tarjeta-destacada"><span>Decisión recomendada</span><strong id="primera-decision">—</strong><small>desde el nodo inicial</small></article><article class="tarjeta-resumen"><span>Valor monetario esperado</span><strong id="valor-arbol">—</strong><small id="detalle-valor-arbol">—</small></article></div>
+        <details class="panel detalle-desarrollo"><summary>Desarrollo paso a paso <span><b id="nodos-evaluados">—</b> nodos evaluados</span></summary><p class="descripcion-panel">Resolución desde los resultados hasta la decisión inicial.</p><div id="desarrollo-arbol" class="desarrollo"></div></details>
       </section>
     </section>
   </section>

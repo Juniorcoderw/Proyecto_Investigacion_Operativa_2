@@ -21,7 +21,6 @@ const elementos = {
   evpi: document.getElementById("evpi"),
   consenso: document.getElementById("consenso"),
   detalleConsenso: document.getElementById("detalle-consenso"),
-  recomendacion: document.getElementById("recomendacion"),
   tarjetasCriterios: document.getElementById("tarjetas-criterios"),
   graficoValores: document.getElementById("grafico-valores"),
   cabeceraArrepentimiento: document.getElementById("cabecera-arrepentimiento"),
@@ -196,7 +195,6 @@ function mostrarResultado(resultado) {
   elementos.evpi.textContent = formatear(resultado.evpi);
   elementos.consenso.textContent = `${resultado.votos} de ${resultado.criterios.length}`;
   elementos.detalleConsenso.textContent = alternativaConsenso;
-  elementos.recomendacion.innerHTML = `<p>Con las probabilidades ingresadas, elija <strong>${escaparHtml(alternativaEsperada)}</strong>: su valor esperado es <strong>${formatear(resultado.criterioEsperado.valor)}</strong>. La información perfecta no debería costar más de <strong>${formatear(resultado.evpi)}</strong>.</p>`;
   mostrarCriterios(resultado);
   mostrarArrepentimiento(resultado);
   mostrarDesarrollo(resultado);
@@ -278,7 +276,8 @@ function agregarAlternativa() {
 function agregarEstado() {
   estados.push({ nombre: `Estado ${estados.length + 1}` });
   alternativas.forEach(alternativa => alternativa.valores.push(0));
-  probabilidades = estados.map(() => 1 / estados.length);
+  // Un estado nuevo no debe sobrescribir las probabilidades que ya escribió el usuario.
+  probabilidades.push(0);
   renderizarTabla();
   programarResolucion();
 }
@@ -301,6 +300,8 @@ function importarMatriz() {
   const lineas = elementos.datosPegados.value.trim().split(/\r?\n/).filter(Boolean).map(linea => linea.split(linea.includes("\t") ? "\t" : ";").map(celda => celda.trim()));
   if (lineas.length < 3 || lineas[0].length < 3) return reportarImportacion("La tabla necesita encabezado, dos alternativas y dos estados.");
   const nuevosEstados = lineas[0].slice(1).map((nombre, indice) => ({ nombre: nombre || `Estado ${indice + 1}` }));
+  if (lineas.slice(1).some(fila => fila.length !== lineas[0].length)) return reportarImportacion("Todas las filas deben tener exactamente las mismas columnas que el encabezado.");
+  if (lineas.slice(1).filter(fila => /^probabilidad/i.test(fila[0])).length > 1) return reportarImportacion("Incluya una sola fila de probabilidades.");
   const filaProbabilidad = lineas.find(fila => /^probabilidad/i.test(fila[0]));
   const filasAlternativas = lineas.slice(1).filter(fila => !/^probabilidad/i.test(fila[0]));
   const nuevasAlternativas = filasAlternativas.map((fila, indice) => ({ nombre: fila[0] || `Alternativa ${indice + 1}`, valores: fila.slice(1, nuevosEstados.length + 1).map(numero) }));
@@ -349,12 +350,14 @@ function limpiar() {
 }
 
 function guardar() {
+  if (window.frameElement?.id === "aplicacion-pruebas") return;
   try {
     localStorage.setItem(CLAVE_GUARDADO, JSON.stringify({ caso: elementos.caso.value, problema: elementos.problema.value, tipoMatriz: elementos.tipoMatriz.value, alfa: elementos.alfa.value, estados, alternativas, probabilidades }));
   } catch { /* No impedir el cálculo si el navegador bloquea el guardado. */ }
 }
 
 function restaurar() {
+  if (window.frameElement?.id === "aplicacion-pruebas") return false;
   try {
     const datos = JSON.parse(localStorage.getItem(CLAVE_GUARDADO));
     if (!datos || !Array.isArray(datos.estados) || !Array.isArray(datos.alternativas)) return false;
@@ -414,6 +417,7 @@ document.querySelectorAll(".pestana").forEach(boton => boton.addEventListener("c
 Object.assign(CASOS_DECISION, window.CASOS_GUIA_DECISION);
 agregarCasosGuia(elementos.caso);
 if (!restaurar()) {
+  elementos.caso.value = "rifa";
   const casoInicial = aplicarCasoDecision("rifa");
   elementos.problema.value = casoInicial.problema;
   elementos.tipoMatriz.value = casoInicial.tipoMatriz;

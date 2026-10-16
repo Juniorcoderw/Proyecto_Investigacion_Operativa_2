@@ -1,6 +1,21 @@
 # Casos precargados y contraste con POM-QM
 
-Los casos marcados como **Práctica del curso** fueron transcritos de las guías compartidas por el docente. Los casos marcados como **Contraste POM-QM** se incluyen para comprobar modelos que la aplicación soporta, pero que no aparecen desarrollados con datos completos en las prácticas disponibles.
+Los casos de práctica se transcribieron de las guías compartidas. Los ejemplos de contraste son demostrativos cuando no existe un desarrollo completo en los informes; su nombre no implica disponer de una captura externa.
+
+## Selección para comprobación en vivo · 16 de octubre de 2026
+
+| Módulo | Caso precargado | Fuente | Referencia principal |
+|---|---|---|---|
+| CPM | Problema 4 · Construcción de una casa | Práctica 03, pp. 9–11 | 35 días; A–B–F–I–L–N |
+| PERT | Problema 5 · Terminar antes de un mes | Práctica 03, pp. 11–14 | 34 días; A–D–J–K–N; varianza 14 |
+| EOQ | Caso 1 · Veinteluces | Práctica 04, pp. 4–5 | Q*=400; reorden=35; costo del modelo=USD 120 |
+| EPQ | Ejemplo EPQ · Producción por lotes | Demostrativo, no pertenece a la práctica | Q*=1 154,7005; inventario máximo=866,0254 |
+| Decisiones | Lanzamiento de un nuevo producto | Práctica 07, p. 3 | Producto grande; VME=S/ 43 750 |
+| Decisiones | Contratación de proveedores | Práctica 07, p. 5 | Proveedor A; costo esperado=S/ 53 000 |
+
+Los dos casos de Decisiones están disponibles tanto en tablas como en árboles. Los valores de información perfecta son comprobaciones adicionales de la matriz; no se atribuyen a las capturas de los árboles. La probabilidad PERT para un plazo de 30 días (aproximadamente 14,25 %) se obtiene mediante la aproximación normal, no de una captura de esa salida.
+
+El [documento de comparación](https://docs.google.com/document/d/1nk48l1XG8mnhQM87JO287_r14me6HcoVKBGr3pOvxYw/edit) reúne enunciados, tablas editables y capturas originales extraídas de los informes. El EPQ está identificado como demostrativo y no tiene captura POM-QM aportada.
 
 Use la misma cantidad de decimales en ambas herramientas. La aplicación conserva la precisión interna y redondea solo al mostrar.
 

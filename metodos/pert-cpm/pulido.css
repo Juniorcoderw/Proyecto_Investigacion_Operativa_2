@@ -195,3 +195,7 @@ button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
   .gantt-cabecera,.gantt-fila { grid-template-columns: 142px 1fr; }
   .gantt-barra,.gantt-margen { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
+/* Enunciado junto a los datos del caso; no añade otra tarjeta al análisis. */
+.caso-enunciado{margin:0 0 14px;padding:10px 12px;border:1px solid #dedbd4;border-radius:9px;background:#fff}
+.caso-enunciado summary{font-size:12px;font-weight:700;color:#384f66;cursor:pointer}
+.caso-enunciado p{font-size:13px;line-height:1.7;margin:10px 0 0;color:#536271}

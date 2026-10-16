@@ -35,6 +35,38 @@ aplicacion.addEventListener("load", () => {
     probabilidades: [.3, .5, .2]
   };
   const pruebas = [
+    {
+      nombre: "el entorno de pruebas no sobrescribe la matriz guardada",
+      ejecutar() {
+        const anterior = localStorage.getItem("teoria-decisiones-v1");
+        calculadora.guardar();
+        afirmar(localStorage.getItem("teoria-decisiones-v1") === anterior, "Las pruebas deben mantener el guardado del usuario");
+      }
+    },
+    {
+      nombre: "agregar un estado conserva las probabilidades ingresadas",
+      ejecutar() {
+        calculadora.aplicarCasoDecision("guia-producto");
+        calculadora.agregarEstado();
+        const datos = calculadora.leerDatos();
+        afirmar(datos.probabilidades.join(",") === "0.3,0.45,0.25,0", "No se deben redistribuir las probabilidades existentes");
+      }
+    },
+    {
+      nombre: "el pegado rechaza columnas sobrantes sin perder la matriz",
+      ejecutar() {
+        const doc = calculadora.document;
+        calculadora.aplicarCasoDecision("guia-producto");
+        calculadora.renderizarTabla();
+        const anterior = JSON.stringify(calculadora.leerDatos().alternativas);
+        const entrada = doc.getElementById("datos-pegados");
+        entrada.value = "Alternativa\tAlta\tBaja\nA\t1\t2\t999\nB\t3\t4\nProbabilidad\t.5\t.5";
+        calculadora.importarMatriz();
+        afirmar(!entrada.validity.valid, "Debe avisar de la columna adicional");
+        afirmar(JSON.stringify(calculadora.leerDatos().alternativas) === anterior, "La matriz no debe cambiar tras un error");
+        entrada.setCustomValidity("");
+      }
+    },
     ...[
       ["guia-producto", 43750, 2, 15000],
       ["guia-ampliacion", 104000, 2, 17500],

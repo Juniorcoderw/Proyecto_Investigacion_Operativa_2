@@ -70,7 +70,7 @@ const detalles = {
   },
   inicio: {
     categoria: "Guía de uso", titulo: "Cómo empezar",
-    contenido: `<ol><li><strong>Abra un método.</strong> Elija PERT–CPM, Inventarios, Tablas o Árboles de decisión.</li><li><strong>Cargue un ejercicio.</strong> Use el selector de ejemplos del módulo o introduzca sus propios datos. Las unidades de tiempo y los periodos deben coincidir.</li><li><strong>Revise la solución.</strong> En PERT–CPM pulse <em>Calcular proyecto</em>; en los demás módulos los resultados se actualizan al editar.</li><li><strong>Consulte el desarrollo.</strong> Allí encontrará las sustituciones numéricas. El botón de teoría de cada módulo reúne los conceptos y las fórmulas.</li></ol><p><a href="docs/manual/Manual_de_usuario_Investigacion_Operativa_II.pdf" target="_blank" rel="noopener">Abrir manual de usuario ↗</a></p>`
+    contenido: `<ol><li><strong>Abra un método.</strong> Elija PERT–CPM, Inventarios, Tablas o Árboles de decisión.</li><li><strong>Cargue un ejercicio.</strong> Use el selector de ejemplos del módulo o introduzca sus propios datos. Las unidades de tiempo y los periodos deben coincidir.</li><li><strong>Revise la solución.</strong> En PERT–CPM pulse <em>Calcular proyecto</em>; en los demás módulos los resultados se actualizan al editar.</li><li><strong>Consulte el desarrollo.</strong> Allí encontrará las sustituciones numéricas. El botón de teoría de cada módulo reúne los conceptos y las fórmulas.</li></ol><p><a href="https://docs.google.com/document/d/1jav5G6S2AViDCU3NsVquI1vtXrxpPvtDxwxEemQFk6U/edit?tab=t.0" target="_blank" rel="noopener">Abrir manual de usuario ↗</a></p>`
   },
   modelos: {
     categoria: "Métodos", titulo: "Qué modelo utilizar",

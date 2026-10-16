@@ -7,3 +7,28 @@ body{background:radial-gradient(ellipse at 100% 0,#70415a08,transparent 50%),#f5
 @media(max-width:600px){.cabecera-modulo h1{font-size:28px}.cabecera-modulo .selector-modelo{gap:2px}.selector-modelo button{padding:11px 7px;font-size:11px}.selector-modelo button span{font-size:17px}.panel{padding:17px}.resumen,.resumen-arbol{grid-template-columns:1fr 1fr}.resumen-arbol .tarjeta-resumen:first-child{grid-column:1/-1}.tarjetas-criterios{grid-template-columns:1fr}.tarjeta-resumen strong{font-size:21px}.grafico svg{min-width:580px}.pie-modulo{padding-bottom:85px}}
 @media(prefers-reduced-motion:no-preference){.espacio-trabajo:not([hidden]){animation:entrada-decisiones .22s ease-out}@keyframes entrada-decisiones{from{opacity:.5;transform:translateY(6px)}to{opacity:1;transform:none}}}
 @media print{#contenido-decisiones>[hidden]{display:none!important}.cabecera-modulo{display:none!important}.espacio-trabajo{width:100%}.grafico svg{min-width:0}.visor-arbol{max-height:none;overflow:visible}.lienzo-arbol svg{max-width:100%;height:auto!important}.recomendacion{break-inside:avoid}}
+/* Resultados esenciales y edición legible, sin repetir la recomendación. */
+.resumen-decision{grid-template-columns:1.25fr 1fr 1fr}
+.resumen-arbol{grid-template-columns:1.35fr 1fr}
+.tarjeta-resumen{min-height:96px;border-radius:13px;box-shadow:none}
+.tarjeta-resumen abbr{text-decoration:none}
+.acciones-resultado{display:flex;justify-content:flex-end;margin-bottom:10px}
+.coincidencia-criterios{margin:3px 0 12px;color:#6b5b65;font-size:12px}
+.detalle-desarrollo{padding:18px;margin-top:12px;border:1px solid #e1d9df;border-radius:13px}
+.detalle-desarrollo:hover{border-color:#aa8b9e}
+.detalle-desarrollo>summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font-size:16px;font-weight:800;color:#452c3b;cursor:pointer}
+.detalle-desarrollo>summary span{font-size:11px;font-weight:500;color:#746975}
+.detalle-desarrollo[open]>summary{margin-bottom:16px}
+.tabla-decision tbody tr:focus-within td{background:#f5eff4}
+.tabla-decision tfoot{position:sticky;bottom:0;z-index:4}
+.tabla-decision tfoot input{font-variant-numeric:tabular-nums}
+.nodo-arbol:focus{outline:none}
+.nodo-arbol:focus .tarjeta-nodo{stroke:#714362;stroke-width:3;filter:drop-shadow(0 0 4px #71436233)}
+.nodo-arbol .tarjeta-nodo{transition:stroke .18s,filter .18s}
+.nodo-arbol.seleccionado .tarjeta-nodo{stroke:#714362;stroke-width:3}
+.nodo-arbol.en-estrategia .valor-nodo{fill:#58401c;font-weight:700}
+.nombre-nodo{font-size:12px}.valor-nodo,.valor-rama{font-size:11px}
+@media(max-width:600px){.resumen-decision{grid-template-columns:1fr 1fr}.resumen-decision>article:first-child{grid-column:1/-1}.resumen-arbol{grid-template-columns:1fr 1fr}.resumen-arbol .tarjeta-resumen:first-child{grid-column:auto}.detalle-desarrollo>summary{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.nodo-arbol .tarjeta-nodo{transition:none}}
+@media(max-width:600px){.cabecera-modulo>div{min-width:0;max-width:100%}.cabecera-modulo>div>p:last-child{white-space:normal;overflow-wrap:anywhere}}
+@media print{.acciones-resultado,.detalle-desarrollo>summary{display:none}.detalle-desarrollo>.desarrollo{display:block!important}}

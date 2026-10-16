@@ -2,6 +2,8 @@
 (() => {
   const botones = [...document.querySelectorAll('[data-vista]')];
   const imprimirTabla = document.getElementById('imprimir');
+  const desarrolloArbol = document.querySelector('.detalle-desarrollo');
+  let desarrolloAbiertoAntesDeImprimir = false;
   function activar() {
     const vista = location.hash === '#arboles' ? 'arboles' : 'tablas';
     botones.forEach(boton => {
@@ -38,7 +40,14 @@
   }));
   window.addEventListener('hashchange', activar);
   window.addEventListener('resize', () => { if (!document.getElementById('vista-arboles').hidden) ajustarZoom(); });
-  window.addEventListener('beforeprint', () => { if (document.getElementById('vista-tablas').hidden) imprimirTabla.disabled = true; });
-  window.addEventListener('afterprint', () => { imprimirTabla.disabled = !ultimoResultado; });
+  window.addEventListener('beforeprint', () => {
+    if (document.getElementById('vista-tablas').hidden) imprimirTabla.disabled = true;
+    desarrolloAbiertoAntesDeImprimir = desarrolloArbol.open;
+    desarrolloArbol.open = true;
+  });
+  window.addEventListener('afterprint', () => {
+    imprimirTabla.disabled = !ultimoResultado;
+    desarrolloArbol.open = desarrolloAbiertoAntesDeImprimir;
+  });
   activar();
 })();

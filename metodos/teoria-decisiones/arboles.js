@@ -27,7 +27,6 @@ const elementosArbol = {
   valor: document.getElementById("valor-arbol"),
   detalleValor: document.getElementById("detalle-valor-arbol"),
   nodosEvaluados: document.getElementById("nodos-evaluados"),
-  recomendacion: document.getElementById("recomendacion-arbol"),
   desarrollo: document.getElementById("desarrollo-arbol"),
   dialogo: document.getElementById("dialogo-arbol")
 };
@@ -411,8 +410,8 @@ function calcularPosiciones(datos = arbol) {
   let profundidadMaxima = 0;
   const alturas = new Map();
   const midiendo = new Set();
-  const altoMinimo = 90;
-  const separacionHijos = 18;
+  const altoMinimo = 78;
+  const separacionHijos = 10;
 
   function medir(id) {
     if (midiendo.has(id)) throw new Error("El árbol contiene un ciclo.");
@@ -564,18 +563,24 @@ function aplicarZoom() {
 
 function ajustarZoom() {
   const ancho = Number(elementosArbol.lienzo.dataset.ancho || 800);
+  const alto = Number(elementosArbol.lienzo.dataset.alto || 400);
   const disponible = Math.max(320, elementosArbol.visor.clientWidth - 24);
-  nivelZoom = Math.min(1.3, Math.max(.45, disponible / ancho));
+  // Usar el límite del visor evita que cada ajuste encoja el lienzo anterior.
+  const limiteAlto = parseFloat(getComputedStyle(elementosArbol.visor).maxHeight);
+  const altoDisponible = Math.max(330, (Number.isFinite(limiteAlto) ? limiteAlto : elementosArbol.visor.clientHeight) - 24);
+  nivelZoom = Math.min(1.3, Math.max(.45, Math.min(disponible / ancho, altoDisponible / alto)));
   aplicarZoom();
 }
 
 function guardarArbol() {
   arbol.problema = elementosArbol.problema.value.trim();
   arbol.objetivo = elementosArbol.objetivo.value;
+  if (window.frameElement?.id === "aplicacion-pruebas") return;
   try { localStorage.setItem(CLAVE_ARBOL, JSON.stringify(arbol)); } catch { /* El cálculo no depende del guardado. */ }
 }
 
 function restaurarArbol() {
+  if (window.frameElement?.id === "aplicacion-pruebas") return false;
   try {
     const guardado = JSON.parse(localStorage.getItem(CLAVE_ARBOL));
     if (!guardado?.raiz || !Array.isArray(guardado.nodos) || !guardado.nodos.length) return false;
@@ -632,7 +637,6 @@ function agregarRama() {
   const id = nuevoId();
   arbol.nodos.push({ id, tipo: "terminal", nombre: `Resultado ${arbol.nodos.length + 1}`, ramas: [] });
   nodo.ramas.push({ nombre: `Rama ${nodo.ramas.length + 1}`, valor: 0, probabilidad: nodo.tipo === "azar" ? 0 : null, destino: id });
-  if (nodo.tipo === "azar") nodo.ramas.forEach(rama => { rama.probabilidad = 1 / nodo.ramas.length; });
   actualizarTodo();
 }
 
@@ -644,7 +648,6 @@ function eliminarRama(indice) {
   ids.add(rama.destino);
   arbol.nodos = arbol.nodos.filter(actual => !ids.has(actual.id));
   nodo.ramas.splice(indice, 1);
-  if (nodo.tipo === "azar") nodo.ramas.forEach(actual => { actual.probabilidad = 1 / nodo.ramas.length; });
   actualizarTodo();
 }
 
@@ -670,7 +673,6 @@ function actualizarRama(evento) {
 }
 
 function actualizarPosterior() {
-  calculoActual = null;
   calculoActual = null;
   elementosArbol.resultado.hidden = true;
   guardarArbol();
@@ -719,7 +721,6 @@ function resolverArbol(mostrar = true) {
     elementosArbol.valor.textContent = formatearArbol(calculoActual.valor);
     elementosArbol.detalleValor.textContent = arbol.objetivo === "minimizar" ? "costo esperado mínimo" : "beneficio esperado máximo";
     elementosArbol.nodosEvaluados.textContent = calculoActual.nodosEvaluados;
-    elementosArbol.recomendacion.innerHTML = ramaInicial ? `<p>Desde <strong>${escaparArbol(raiz.nombre)}</strong>, elija <strong>${escaparArbol(ramaInicial.nombre)}</strong>. El valor calculado del árbol es <strong>${formatearArbol(calculoActual.valor)}</strong>.</p>` : `<p>El nodo inicial es de azar. Su valor esperado es <strong>${formatearArbol(calculoActual.valor)}</strong>.</p>`;
     elementosArbol.resultado.hidden = false;
     mostrarDesarrolloArbol(calculoActual);
     guardarArbol();

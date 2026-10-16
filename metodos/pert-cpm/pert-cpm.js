@@ -78,6 +78,8 @@ const CASOS_PROYECTO = {
     tipo: "cpm",
     etiqueta: "Problema 4 · Construcción de una casa",
     unidad: "días",
+    fuente: "Práctica 03 · Problema 4 · pp. 9–11",
+    enunciado: "Construcción de una casa con 14 actividades. Todas las duraciones se expresan en días. Registre las precedencias de la tabla, determine el plazo total de obra, identifique la ruta crítica y revise las holguras de las actividades no críticas.",
     actividades: [
       { nombre: "A", descripcion: "Despejar terreno y hacer fundaciones", predecesoras: "", duracion: 6 },
       { nombre: "B", descripcion: "Levantar estructura", predecesoras: "A", duracion: 8 },
@@ -100,6 +102,8 @@ const CASOS_PROYECTO = {
     etiqueta: "Problema 5 · Terminar antes de un mes",
     unidad: "días",
     plazo: 30,
+    fuente: "Práctica 03 · Problema 5 · pp. 11–14",
+    enunciado: "Un proyecto tiene 15 actividades con tiempos optimista, más probable y pesimista. Calcule los tiempos esperados, la ruta crítica y su varianza. Estime la probabilidad de terminar antes de un mes, interpretado como 30 días. Los tres tiempos de cada actividad se cargan en la tabla; el plazo puede editarse.",
     actividades: [
       { nombre: "A", descripcion: "", predecesoras: "", optimista: 2, probable: 5, pesimista: 14 },
       { nombre: "B", descripcion: "", predecesoras: "", optimista: 2, probable: 9, pesimista: 10 },
@@ -2110,6 +2114,7 @@ function resolverFormulario() {
 }
 
 function guardarEstado() {
+  if (window.frameElement?.id === "aplicacion-pruebas") return;
   try {
     const actividadesActuales = capturarFilasVisuales();
     borradoresPorTipo[elementos.tipo.value] = actividadesActuales;
@@ -2138,6 +2143,7 @@ function programarGuardado() {
 }
 
 function restaurarEstado() {
+  if (window.frameElement?.id === "aplicacion-pruebas") return false;
   try {
     const textoGuardado = localStorage.getItem(claveGuardado);
     if (!textoGuardado) return false;
@@ -2175,12 +2181,21 @@ function actualizarCasosProyecto() {
     return opcion;
   }));
   if (casos.some(([clave]) => clave === seleccionAnterior)) elementos.casoEjemplo.value = seleccionAnterior;
+  mostrarEnunciadoProyecto();
 }
 
 function obtenerCasoProyecto(clave = elementos.casoEjemplo.value) {
   const caso = CASOS_PROYECTO[clave];
   if (!caso) return null;
   return JSON.parse(JSON.stringify(caso));
+}
+
+function mostrarEnunciadoProyecto() {
+  const caso = obtenerCasoProyecto();
+  const detalle = document.getElementById("enunciado-proyecto");
+  detalle.hidden = !caso?.enunciado;
+  detalle.querySelector("summary").textContent = caso?.fuente || "Enunciado de referencia";
+  detalle.querySelector("p").textContent = caso?.enunciado || "";
 }
 
 function cargarEjemplo(clave = elementos.casoEjemplo.value) {
@@ -2202,6 +2217,7 @@ function cargarEjemplo(clave = elementos.casoEjemplo.value) {
     document.getElementById("unidad-plazo").textContent = unidadTiempo();
   }
   caso.actividades.forEach(actividad => agregarActividad(actividad));
+  mostrarEnunciadoProyecto();
   borradoresPorTipo[caso.tipo] = capturarFilasVisuales(caso.tipo);
 
   ocultarResultados(false);
@@ -2695,3 +2711,5 @@ actualizarEncabezados();
 const estadoRestaurado = restaurarEstado();
 actualizarCasosProyecto();
 if (!estadoRestaurado) cargarEjemplo();
+mostrarEnunciadoProyecto();
+elementos.casoEjemplo.addEventListener("change", mostrarEnunciadoProyecto);

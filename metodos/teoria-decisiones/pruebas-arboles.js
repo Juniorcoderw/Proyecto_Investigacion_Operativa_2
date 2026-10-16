@@ -27,6 +27,29 @@ function terminal(id, nombre = "Fin") {
 aplicacionPruebasArbol.addEventListener("load", () => {
   const calculadora = aplicacionPruebasArbol.contentWindow;
   const pruebas = [
+    {
+      nombre: "el entorno de pruebas no sobrescribe el árbol guardado",
+      ejecutar() {
+        const anterior = localStorage.getItem("teoria-decisiones-arbol-v1");
+        calculadora.guardarArbol();
+        afirmarArbol(localStorage.getItem("teoria-decisiones-arbol-v1") === anterior, "Las pruebas deben mantener el guardado del usuario");
+      }
+    },
+    {
+      nombre: "agregar y quitar una rama no redistribuye probabilidades",
+      ejecutar() {
+        const doc = calculadora.document;
+        doc.getElementById("caso-arbol").value = "guia-producto";
+        doc.getElementById("ejemplo-arbol").click();
+        doc.querySelector('[data-nodo="n2"]').dispatchEvent(new MouseEvent("click", {bubbles:true}));
+        const leer = () => [...doc.querySelectorAll('#lista-ramas [data-campo="probabilidad"]')].map(x => Number(x.value));
+        afirmarArbol(leer().join(",") === "0.3,0.45,0.25", "Probabilidades del caso original");
+        doc.getElementById("agregar-rama").click();
+        afirmarArbol(leer().join(",") === "0.3,0.45,0.25,0", "Debe conservar las probabilidades al añadir");
+        doc.querySelectorAll(".eliminar-rama")[3].click();
+        afirmarArbol(leer().join(",") === "0.3,0.45,0.25", "Debe conservarlas al quitar la rama añadida");
+      }
+    },
     ...[["guia-producto", 43750], ["guia-ampliacion", 104000], ["guia-proveedores", 53000]].map(([clave, esperado]) => ({
       nombre: `árbol completo de la guía: ${clave}`,
       ejecutar() {

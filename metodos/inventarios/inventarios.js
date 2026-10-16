@@ -77,7 +77,7 @@ const CASOS_INVENTARIO = {
   "eoq-rb": { modelo: "eoq", etiqueta: "Caso 3 · R&B — mantenimiento 25 %", producto: "R&B Beverage · Cajas de bebidas", enunciado: "Demanda: 3,600 cajas al año; costo por pedido: $ 20; precio por caja: $ 3; mantenimiento anual: 25 % del precio; 250 días laborables y entrega en 5 días. Sin inventario de seguridad. El porcentaje equivale a $ 0.75 por caja al año. La captura de POM-QM usa 25 como importe, por lo que corresponde a la variante separada de este caso.", demanda: 3600, costoPedido: 20, costoUnitario: 3, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 25, modoMantenimiento: "porcentaje", moneda: "USD" },
   "eoq-rb-pom": { modelo: "eoq", etiqueta: "Caso 3 · Captura POM-QM — costo $ 25", producto: "R&B Beverage · Captura POM-QM", enunciado: "Reproduce los valores de la captura: demanda 3,600; pedido $ 20; mantenimiento $ 25 por unidad al año; precio $ 3; 250 días laborables; entrega 5 días e inventario de seguridad 0. Es una variante para comparación: $ 25 por unidad no equivale a 25 % del precio.", demanda: 3600, costoPedido: 20, costoUnitario: 3, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 25, modoMantenimiento: "unidad", moneda: "USD" },
   "eoq-panda": { modelo: "eoq", etiqueta: "Práctica 04 · Panda Auto", producto: "Panda Auto", demanda: 12000, costoPedido: 25, costoUnitario: 2.50, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 20, modoMantenimiento: "porcentaje", moneda: "USD" },
-  "epq-produccion": { modelo: "epq", etiqueta: "Contraste POM-QM · Producción 1", producto: "Producción por lotes", demanda: 10000, tasaProduccion: 40000, costoPedido: 100, costoUnitario: 10, diasLaborables: 250, tiempoEntrega: 2, mantenimiento: 2, modoMantenimiento: "unidad", moneda: "USD" },
+  "epq-produccion": { modelo: "epq", etiqueta: "Ejemplo EPQ · Producción por lotes", producto: "Producción por lotes", enunciado: "Ejemplo demostrativo; no está incluido en el informe de Práctica 04. Una empresa demanda 10 000 unidades al año y produce a una tasa anual de 40 000. Cada preparación cuesta $ 100, el mantenimiento es $ 2 por unidad al año y el precio unitario es $ 10. Se trabaja 250 días al año y la preparación tarda 2 días. Determine el lote de producción, inventario máximo, frecuencia, ciclo y costos.", demanda: 10000, tasaProduccion: 40000, costoPedido: 100, costoUnitario: 10, diasLaborables: 250, tiempoEntrega: 2, mantenimiento: 2, modoMantenimiento: "unidad", moneda: "USD" },
   "epq-taller": { modelo: "epq", etiqueta: "Contraste POM-QM · Producción 2", producto: "Taller de componentes", demanda: 24000, tasaProduccion: 60000, costoPedido: 80, costoUnitario: 6, diasLaborables: 300, tiempoEntrega: 4, mantenimiento: 1.20, modoMantenimiento: "unidad", moneda: "USD" },
   "faltantes-espera": { modelo: "faltantes", etiqueta: "Contraste POM-QM · Faltantes 1", producto: "Pedidos con espera planificada", demanda: 2000, costoFaltante: 30, costoPedido: 25, costoUnitario: 50, diasLaborables: 250, tiempoEntrega: 5, mantenimiento: 10, modoMantenimiento: "unidad", moneda: "USD" },
   "faltantes-repuestos": { modelo: "faltantes", etiqueta: "Contraste POM-QM · Faltantes 2", producto: "Repuestos bajo pedido", demanda: 5000, costoFaltante: 16, costoPedido: 40, costoUnitario: 20, diasLaborables: 250, tiempoEntrega: 4, mantenimiento: 4, modoMantenimiento: "unidad", moneda: "USD" }
@@ -305,6 +305,7 @@ function calcularModelo(datos) {
 }
 
 function guardarFormulario() {
+  if (window.frameElement?.id === "aplicacion-pruebas") return;
   const datos = {};
   new FormData(elementos.formulario).forEach((valor, clave) => { datos[clave] = valor; });
   datos.escenarios = listaEscenarios;
@@ -313,6 +314,7 @@ function guardarFormulario() {
 }
 
 function restaurarFormulario() {
+  if (window.frameElement?.id === "aplicacion-pruebas") return false;
   try {
     const guardado = localStorage.getItem(CLAVE_GUARDADO);
     if (!guardado) return false;

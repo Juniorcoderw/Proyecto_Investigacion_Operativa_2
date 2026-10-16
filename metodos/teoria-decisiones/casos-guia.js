@@ -3,7 +3,7 @@
   const casos = {
     'guia-producto': {
       problema: 'Lanzamiento de un nuevo producto', tipoMatriz: 'beneficios', alfa: .60,
-      fuente: 'Guía práctica · Ejercicio 1 · Importes en S/',
+      fuente: 'Práctica 07 · Ejercicio 1 · p. 3 · S/',
       enunciado: 'Una empresa evalúa lanzar un producto pequeño, mediano o grande. La demanda puede ser alta (30 %), media (45 %) o baja (25 %). Compare los beneficios y seleccione la alternativa de mayor valor esperado.',
       estados: ['Demanda alta', 'Demanda media', 'Demanda baja'], probabilidades: [.30, .45, .25],
       alternativas: [
@@ -14,7 +14,7 @@
     },
     'guia-ampliacion': {
       problema: 'Ampliación de una empresa', tipoMatriz: 'beneficios', alfa: .60,
-      fuente: 'Guía práctica · Ejercicio 2 · Importes en S/',
+      fuente: 'Práctica 07 · Ejercicio 2 · p. 4 · S/',
       enunciado: 'Una empresa debe decidir si mantiene su capacidad o realiza una ampliación pequeña o grande. Las probabilidades de demanda alta, normal y baja son 40 %, 35 % y 25 %. Compare los beneficios de las tres alternativas.',
       estados: ['Demanda alta', 'Demanda normal', 'Demanda baja'], probabilidades: [.40, .35, .25],
       alternativas: [
@@ -25,7 +25,7 @@
     },
     'guia-proveedores': {
       problema: 'Contratación de proveedores', tipoMatriz: 'costos', alfa: .60,
-      fuente: 'Guía práctica · Ejercicio 3 · Costos en S/',
+      fuente: 'Práctica 07 · Ejercicio 3 · p. 5 · Costos en S/',
       enunciado: 'Se comparan tres proveedores según los costos de contratación en un mercado favorable (50 %), normal (30 %) o desfavorable (20 %). El objetivo es minimizar el costo esperado, no maximizar los valores de la tabla.',
       estados: ['Mercado favorable', 'Mercado normal', 'Mercado desfavorable'], probabilidades: [.50, .30, .20],
       alternativas: [
@@ -56,7 +56,7 @@
   };
   window.agregarCasosGuia = selector => {
     const grupo = document.createElement('optgroup');
-    grupo.label = 'Guía práctica';
+    grupo.label = 'Práctica 07 · Casos completos';
     Object.entries(casos).forEach(([clave, caso], i) => grupo.append(new Option(`${i + 1} · ${caso.problema}`, clave)));
     selector.prepend(grupo);
   };
